@@ -616,6 +616,7 @@ export const TOOL_EFFECTS: Readonly<Record<string, ToolEffects>> = {
   list_browser_targets: browserEvidence,
   inspect_web_page: browserEvidence,
   analyze_web_bundle: browserEvidence,
+  analyze_web_stack: sessionEvidence,
   observe_web_session: browserEvidence,
   discover_webmcp_tools: browserEvidence,
   compare_web_captures: sessionEvidence,

@@ -24,6 +24,7 @@ export const toolFamilyCatalog = (sources) => {
           .REVERSE_ENGINEERING_TOOL_CONTRACTS,
         ...sources.gdbContracts.GDB_TOOL_CONTRACTS,
         ...sources.rizinDebugContracts.RIZIN_DEBUG_TOOL_CONTRACTS,
+        ...sources.webStackContracts.WEB_STACK_TOOL_CONTRACTS,
       ],
     },
     {

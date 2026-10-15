@@ -150,6 +150,7 @@ const SOURCE_PATHS = {
     "dist/domain/javascript/javascriptFeatureTraceSchemas.js",
   javascriptVersionComparison:
     "dist/domain/javascript/javascriptApplicationVersionComparisonSchemas.js",
+  webStackContracts: "dist/contracts/webstack/webStackContracts.js",
   reconstructionVerification:
     "dist/domain/reconstructionVerificationSchemas.js",
   residualUnknown: "dist/domain/residualUnknown.js",
