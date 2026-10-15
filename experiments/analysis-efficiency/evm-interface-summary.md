@@ -1,7 +1,7 @@
 # EVM interface delivery and migration checkpoint
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) after the static
-descriptor merged in [#2261](https://github.com/morluto/rea/pull/2261). Opt-in
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after the static
+descriptor merged in [#2261](https://github.com/zheedevVn/Rea-Unlock/pull/2261). Opt-in
 `inspect_evm_interface` MCP `detail: "summary"` returns every inferred interface
 candidate without bytecode hex or duplicate stdout. Complete Evidence remains
 retained under its original identity. Delivery bytes fall; the measured model

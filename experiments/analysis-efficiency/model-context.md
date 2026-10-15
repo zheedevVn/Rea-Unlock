@@ -1,7 +1,7 @@
 # Observe the client boundary before claiming token savings
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) after the managed
-summary [PR #2413](https://github.com/morluto/rea/pull/2413) merged as
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after the managed
+summary [PR #2413](https://github.com/zheedevVn/Rea-Unlock/pull/2413) merged as
 `82cfcee19f18b0eeae9a330ba04e0411cdf85225`. That opt-in view has verified smaller
 delivery and complete-default migration, while its original real-model cohort
 does not establish token savings. This follow-up measures why raw reply bytes

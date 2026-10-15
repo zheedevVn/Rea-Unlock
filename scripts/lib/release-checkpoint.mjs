@@ -181,13 +181,13 @@ async function validateCandidate(git, sha, version, commits) {
     }),
   );
   const npmPackage = server.packages.find(
-    (entry) => entry.identifier === "rea-agents",
+    (entry) => entry.identifier === "rea-unlock",
   );
   if (npmPackage === undefined)
-    throw new Error("server.json is missing the rea-agents package.");
+    throw new Error("server.json is missing the rea-unlock package.");
   versions.push(
     ["server.json", server.version],
-    ["server.json rea-agents package", npmPackage.version],
+    ["server.json rea-unlock package", npmPackage.version],
   );
   // Catalogs are generated and checked from this candidate by the release job;
   // they are not version authority stored in the immutable source tree.
@@ -293,7 +293,7 @@ export async function inspectReleaseCheckpoint(git, options) {
       `Expected release ${expectedVersion} must advance published baseline ${baselineVersion}.`,
     );
   }
-  const baselineTag = `refs/tags/rea-agents-${baselineVersion}`;
+  const baselineTag = `refs/tags/rea-unlock-${baselineVersion}`;
   const baselineSha = await resolveBaseline(git, baselineTag);
   await requireAncestor(
     git,

@@ -9,25 +9,23 @@
 
 **看到喜歡的功能，弄清它的工作原理，深入到二進位層面。**
 
-[![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![npm version](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[網站](https://rea.tools/zh-TW/) · [指南](https://rea.tools/zh-TW/guides/) · [案例](https://rea.tools/zh-TW/showcase/)**
+**[網站](https://github.com/zheedevVn/Rea-Unlock) · [指南](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [案例](https://github.com/zheedevVn/Rea-Unlock)**
 
 [快速開始](#快速開始) · [REA 的工作原理](#rea-的工作原理) · [可以分析什麼](#可以分析什麼) · [案例](#案例) · [常見問題](#常見問題) · [GNU objdump 與 Rizin 工具](../reverse-engineering-tools.md) · [文件](#文件)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> REA 官方來源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> REA 官方來源： [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > 請透過這些官方來源提供的安裝與發布連結取得 REA。相似的儲存庫名稱或複製的 README 不能證明下載內容來自官方。
 
 <div align="center">
@@ -41,7 +39,7 @@
 <table aria-label="REA 社群">
 <tr>
 <td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
+  <a href="https://github.com/zheedevVn/Rea-Unlock">
     <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
     <strong>加入逆向工程社群</strong>
   </a><br />
@@ -62,7 +60,7 @@ REA 將 AI 代理連接到分析工具，用於檢查原生二進位檔案、Jav
 
 設定流程會向 AI 代理註冊 REA，並安裝對應的工作流程指引。原生分析可以使用已有的 Hopper、Ghidra 或 IDA；設定流程也可以在你核准後安裝 Hopper。靜態 JavaScript 分析不需要原生分析引擎。
 
-> **[訪問 REA 網站](https://rea.tools/zh-TW/)**，查看設定說明、圖解指南和真實案例。
+> **[訪問 REA 網站](https://github.com/zheedevVn/Rea-Unlock)**，查看設定說明、圖解指南和真實案例。
 
 ## 快速開始
 
@@ -71,7 +69,7 @@ REA 將 AI 代理連接到分析工具，用於檢查原生二進位檔案、Jav
 安裝 Node.js 和 npm 後，執行：
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 選擇 AI 代理，檢查計劃中的變更並核准。設定流程會添加 REA 的 MCP 服務和對應的工作流程指引，並備份已有組態。完成後重新啟動 AI 代理。
@@ -91,7 +89,7 @@ npx rea-agents setup
 檢查已解包的 JavaScript/Electron 應用目錄或 ASAR 檔案：
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 結果包含模組、匯入、Electron 邊界及相關證據。將路徑替換為你的目標路徑，例如 Windows 上的 `"D:/apps/example"`。
@@ -99,7 +97,7 @@ npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --
 如果需要經常使用，可以安裝 `rea` 命令：
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -122,10 +120,10 @@ Bun 全域更新需要 Bun 1.2.17 或更新版本。如果使用較舊的 Bun �
 如果使用 `npx`，通過以下命令更新 AI 代理設定：
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-檢查設定變更並重新啟動 AI 代理。單次 CLI 操作可使用 `npx rea-agents@latest`，後接所需命令。使用 Bun 時，用 `bunx rea-agents@latest` 代替 `npx rea-agents@latest`。
+檢查設定變更並重新啟動 AI 代理。單次 CLI 操作可使用 `npx rea-unlock@latest`，後接所需命令。使用 Bun 時，用 `bunx rea-unlock@latest` 代替 `npx rea-unlock@latest`。
 
 ## REA 的工作原理
 
@@ -174,29 +172,29 @@ REA 需要 Node.js 22.x（>=22.19）、24.x（>=24.11）或 26+，以及 npm。�
 
 ## 案例
 
-[![DX-Ball 聲音平移、Notion 剪貼簿橋接與 TH04 彈幕環案例的插圖](../assets/rea-showcases.png)](https://rea.tools/zh-TW/showcase/)
+[![DX-Ball 聲音平移、Notion 剪貼簿橋接與 TH04 彈幕環案例的插圖](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball：重建聲像計算
 
 沿聲音呼叫追蹤到根據位置計算聲像的輔助函數，檢查指令，將不完整的偽程式碼轉為 C。重建結果通過了 3,205 個原始 x86 測試用例，並復現了編譯後函數的全部 63 個位元組。
 
-[閱讀案例](https://rea.tools/zh-TW/showcase/dx-ball/) ·
+[閱讀案例](https://github.com/zheedevVn/Rea-Unlock) ·
 [重建專案儲存庫](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion：追蹤 Electron 剪貼簿橋
 
 找到渲染處理程序的剪貼簿 API，沿 preload 和 IPC 追蹤到主處理程序，並檢查富格式剪貼簿資料。
 
-[閱讀案例](https://rea.tools/zh-TW/showcase/notion/)
+[閱讀案例](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04：恢復 DOS 環形子彈的計算
 
 檢查原始 PC-98 遊戲的 16 位指令，恢復固定角度和瞄準角度的計算，並將重建的 C++ 與當年的編譯器輸出進行對比。
 
-[閱讀案例](https://rea.tools/zh-TW/showcase/th04/) ·
+[閱讀案例](https://github.com/zheedevVn/Rea-Unlock) ·
 [重建專案儲存庫](https://github.com/N0zoM1z0/th04)
 
-如果你用 REA 分析了有趣的目標，我們很想瞭解。歡迎通過 [issue](https://github.com/morluto/rea/issues) 或 [pull request](https://github.com/morluto/rea/pulls) 分享案例，說明目標、你的問題、REA 如何提供幫助，以及你的發現。
+如果你用 REA 分析了有趣的目標，我們很想瞭解。歡迎通過 [issue](https://github.com/zheedevVn/Rea-Unlock/issues) 或 [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) 分享案例，說明目標、你的問題、REA 如何提供幫助，以及你的發現。
 
 ## 常見問題
 
@@ -224,7 +222,7 @@ REA 會在操作需要時啟動 Hopper。在 macOS 上，首次執行時可能�
 <details>
 <summary><strong>從 skills.sh 安裝 skill 有什麼作用？</strong></summary>
 
-skill 為 AI 代理提供調查指引。使用 `npx rea-agents setup` 註冊 REA 的 MCP 服務並安裝對應的指引，然後重新啟動 AI 代理。見[僅安裝 skill](../installation.md#skill-only-installation)。
+skill 為 AI 代理提供調查指引。使用 `npx rea-unlock setup` 註冊 REA 的 MCP 服務並安裝對應的指引，然後重新啟動 AI 代理。見[僅安裝 skill](../installation.md#skill-only-installation)。
 
 </details>
 
@@ -256,16 +254,16 @@ rea update
 通過 `npx` 設定 AI 代理時使用：
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-如果正在使用 AI 代理，請完成[設定更新](#更新-rea)並重新啟動 AI 代理。重試同一任務。如果問題仍然存在，請[提交 issue](https://github.com/morluto/rea/issues)，附上 REA 版本、目標類型、復現步驟和錯誤輸出。
+如果正在使用 AI 代理，請完成[設定更新](#更新-rea)並重新啟動 AI 代理。重試同一任務。如果問題仍然存在，請[提交 issue](https://github.com/zheedevVn/Rea-Unlock/issues)，附上 REA 版本、目標類型、復現步驟和錯誤輸出。
 
 </details>
 
 ## 文件
 
-可以先閱讀網站上的[實操指南](https://rea.tools/zh-TW/guides/)。具體選項、前提條件和結果契約見：
+可以先閱讀網站上的[實操指南](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs)。具體選項、前提條件和結果契約見：
 
 - [安裝與設定](../installation.md)：AI 代理註冊、提供者組態、更新和卸載。
 - [就緒檢查與故障排查](../installation.md#check-readiness-for-your-task)：診斷特定 AI 代理或分析引擎。
@@ -282,11 +280,11 @@ npx rea-agents@latest setup
 
 感謝每一位使用 REA、報告錯誤、提出功能需求、測試建置和貢獻修復的朋友。
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="REA 的 GitHub Star 歷史" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="REA 的 GitHub Star 歷史" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -301,7 +299,7 @@ REA 用於合法的研究、教育、互通性、軟體保存，以及分析你�
 
 ## 參與貢獻
 
-歡迎幫助改進 REA！你可以[提交 issue](https://github.com/morluto/rea/issues) 報告錯誤或建議功能，也可以[提交 pull request](https://github.com/morluto/rea/pulls) 改進程式碼或文件。
+歡迎幫助改進 REA！你可以[提交 issue](https://github.com/zheedevVn/Rea-Unlock/issues) 報告錯誤或建議功能，也可以[提交 pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) 改進程式碼或文件。
 
 開發設定和檢查見 [CONTRIBUTING.md](../../CONTRIBUTING.md)，驗證流程見[測試指南](../testing.md)，專案結構見[架構圖](../architecture.mermaid)。
 

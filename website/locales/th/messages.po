@@ -2365,7 +2365,7 @@ msgid "Terminal · refresh agent setup"
 msgstr "เทอร์มินัล*รีเฟรชการตั้งค่าตัวแทน"
 
 # Reviewed for readable setup and analysis terminology.
-#. {ph0}: <code>npx -y rea-agents@latest</code>
+#. {ph0}: <code>npx -y rea-unlock@latest</code>
 #: website/public/faq/index.html:299
 #, python-brace-format
 msgctxt "page:faq/index.html"
@@ -2702,7 +2702,7 @@ msgstr ""
 "เวอร์ชันล่าสุดอาจแก้ปัญหานี้แล้ว"
 
 # Reviewed for readable instructions and accurate software terminology.
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/faq/index.html:513
 #, python-brace-format
@@ -2742,9 +2742,9 @@ msgid "How can I share an example or contribute?"
 msgstr "ฉันจะแบ่งปันตัวอย่างหรือมีส่วนร่วมได้อย่างไร"
 
 # Reviewed for readable instructions and accurate software terminology.
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/pulls">
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/pulls">
 #. {ph3}: </a >
 #: website/public/faq/index.html:539
 #, python-brace-format
@@ -2760,7 +2760,7 @@ msgstr ""
 "และรูปช่วยให้คนอื่นตามการวิเคราะห์ได้ง่าย"
 
 # Reviewed for readable instructions and accurate software terminology.
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/faq/index.html:551
 #, python-brace-format
@@ -3711,7 +3711,7 @@ msgstr ""
 "{ph0}เลือกคู่มือการตรวจสอบ{ph1}{ph2}ตัวอย่างการทำงานสำหรับไบนารี Electron "
 "แอพและเบราว์เซอร์{ph3}"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -3724,7 +3724,7 @@ msgid ""
 msgstr ""
 "{ph0}GitHub ปัญหา{ph1}{ph2}รายงานปัญหาเกี่ยวกับคำสั่งและการวินิจฉัย{ph3}"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -7560,7 +7560,7 @@ msgstr ""
 #. squares-flag-checker/ctfcli.yaml" >
 #. {ph3}: </a >
 #. {ph4}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/ctf-masked-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/ctf-masked-
 #. squares.md" >
 #. {ph5}: </a >
 #: website/public/showcase/ctf/index.html:700
@@ -11206,7 +11206,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -11225,7 +11225,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-analysis-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -11247,7 +11247,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="agent-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -11266,7 +11266,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="home-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -11604,7 +11604,7 @@ msgctxt "runtime"
 msgid "Switch to dark mode"
 msgstr "เปลี่ยนเป็นโหมดมืด"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/web-network-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-
 #. captures.md" >
 #. {ph1}: </a >
 #: website/public/guides/browser/index.html:483
@@ -12956,7 +12956,7 @@ msgid "Back to top"
 msgstr "กลับขึ้นด้านบน"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/reverse-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/reverse-
 #. engineering-models.md" >
 #. {ph1}: </a >
 #: website/public/blog/reverse-engineering-models/index.html:779
@@ -13247,7 +13247,7 @@ msgstr "Claude Desktop · ใช้แชตในแอปเดสก์ท็
 
 #. {ph0}: <a href="https://claude.ai/download">
 #. {ph1}: </a>
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#claude-desktop" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:593
@@ -13323,11 +13323,11 @@ msgstr ""
 "DeepSeek Harness ({ph4}) มีในสาขา main ของคลังซอร์ส "
 "ให้ใช้รุ่นที่สร้างจากซอร์ส หรือรุ่นที่ออกเผยแพร่ซึ่งมีการเชื่อมต่อเหล่านี้"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md" >
 #. {ph1}: </a >
 #. {ph2}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#released-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#released-
 #. package-and-main" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:722
@@ -13354,7 +13354,7 @@ msgstr ""
 "ในแชตของ Grok Bot ขอให้เพิ่มเซิร์ฟเวอร์ MCP แบบกำหนดเองชื่อ {ph0} "
 "โดยใช้คำสั่งนี้บนคอมพิวเตอร์ของ Bot:"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#other-client-settings" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:753
@@ -13453,7 +13453,7 @@ msgstr "ผู้ช่วย AI เขียนโค้ดของคุณ"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="setup-first-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -13634,7 +13634,7 @@ msgstr ""
 "Privacy & Security → Automation แล้วลองใหม่"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#hopper"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#hopper"
 #. >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1061
@@ -13716,10 +13716,10 @@ msgstr ""
 "แล้วเริ่มผู้ช่วย AI ใหม่"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#ghidra"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#ghidra"
 #. >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/windows-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/windows-
 #. ghidra-p0.md" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:1220
@@ -13768,7 +13768,7 @@ msgstr ""
 "ใช้ไฟล์ลงทะเบียน JSON ที่เตรียมตามคู่มือเครื่องมือวิเคราะห์ "
 "แล้วเรียกขั้นตอนตั้งค่าอีกครั้งและเริ่มผู้ช่วย AI ใหม่"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/ida-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/ida-
 #. provider.md" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1338
@@ -13917,13 +13917,13 @@ msgctxt "page:get-started/index.html"
 msgid "Process behavior"
 msgstr "พฤติกรรมของโพรเซส"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/flutter-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/flutter-
 #. analysis.md" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/javascript-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/javascript-
 #. artifact-reconstruction.md" >
 #. {ph3}: </a >
-#. {ph4}: <a href="https://github.com/morluto/rea/blob/main/docs/evm-
+#. {ph4}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/evm-
 #. bytecode.md" >
 #. {ph5}: </a >
 #. {ph6}: <a href="../guides/">
@@ -14015,7 +14015,7 @@ msgstr ""
 "แล้วเริ่มแอปที่เชื่อมต่อใหม่"
 
 #. {ph0}: <code>rea update</code>
-#. {ph1}: <code>npx rea-agents@latest uninstall</code>
+#. {ph1}: <code>npx rea-unlock@latest uninstall</code>
 #: website/public/get-started/index.html:1768
 #, python-brace-format
 msgctxt "page:get-started/index.html"
@@ -14027,7 +14027,7 @@ msgstr ""
 "เพื่อลบการตั้งค่าแอปและสกิลของ REA"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#diagnose-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#diagnose-
 #. update-and-remove" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1774
@@ -14253,7 +14253,7 @@ msgstr ""
 "ใช้คู่มือที่ตรงกับคอมพิวเตอร์ของคุณ:"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#missing-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#missing-
 #. macos-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1178
@@ -14263,7 +14263,7 @@ msgid "{ph0}macOS · Intel{ph1}"
 msgstr "{ph0}macOS · Intel{ph1}"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#macos-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#macos-
 #. arm64-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1184
@@ -14515,7 +14515,7 @@ msgstr "สำเนาพร้อมท์การฟื้นฟูเกม
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="website-project-prompt" >
-#. {ph3}: <span translate="no">https://rea.tools/</span>
+#. {ph3}: <span translate="no">https://github.com/zheedevVn/Rea-Unlock</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -14686,7 +14686,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Read the FAQ{ph1} — setup and common questions."
 msgstr "{ph0}อ่าน FAQ{ph1} — การตั้งค่าและคำถามที่พบบ่อย"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/index.html:1196
 #, python-brace-format
@@ -14696,7 +14696,7 @@ msgstr ""
 "{ph0}เข้าร่วม Discord{ph1} — "
 "ขอความช่วยเหลือและพูดคุยเรื่องการวิเคราะห์ของคุณ"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/index.html:1200
 #, python-brace-format
@@ -14730,7 +14730,7 @@ msgstr ""
 "{ph0}"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#development-
 #. setup" >
 #. {ph1}: </a >
 #. {ph2}: <code>6.4.0</code>
@@ -14870,7 +14870,7 @@ msgctxt "page:contributors/index.html"
 msgid "Find a contributor"
 msgstr "ค้นหาผู้มีส่วนร่วม"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/graphs/contributors">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/graphs/contributors">
 #. {ph1}: </a>
 #. {ph2}: <time datetime="2026-10-15" translate="no">2026-10-15</time>
 #: website/public/contributors/index.html:1110
@@ -15936,7 +15936,7 @@ msgstr "ผู้มีส่วนร่วม: {count}"
 #~ msgctxt "page:first-investigation/index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
 #~ "{ph0}›{ph1}{ph2}ติดตั้ง REA และเชื่อมต่อกับตัวแทนการเข้ารหัสนี้โดยใช้ npx "
@@ -15946,12 +15946,12 @@ msgstr "ผู้มีส่วนร่วม: {count}"
 #, python-brace-format
 #~ msgctxt "page:first-investigation/index.html"
 #~ msgid ""
-#~ "{ph0}›{ph1}{ph2}Download https://rea.tools/examples/notes-example.zip into a"
+#~ "{ph0}›{ph1}{ph2}Download https://github.com/zheedevVn/Rea-Unlock into a"
 #~ " new example folder and unpack it. Use REA to find what happens when I click"
 #~ " Export notes. Show where notes.csv is written, which fields it contains, "
 #~ "and the relevant files and lines.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}›{ph1}{ph2}ดาวน์โหลด https://rea.tools/examples/notes-example.zip "
+#~ "{ph0}›{ph1}{ph2}ดาวน์โหลด https://github.com/zheedevVn/Rea-Unlock "
 #~ "ลงในโฟลเดอร์ตัวอย่างใหม่และแกะมัน ใช้ REA "
 #~ "เมื่อต้องการค้นหาสิ่งที่เกิดขึ้นเมื่อฉันคลิกบันทึกการส่งออก "
 #~ "แสดงที่บันทึกงเขตข้อมูลที่มีและไฟล์ที่เกี่ยวข้องและบรรทัด{ph3}{ph4}{ph5}"
@@ -15960,7 +15960,7 @@ msgstr "ผู้มีส่วนร่วม: {count}"
 #~ msgctxt "page:get-started/index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
 #~ "{ph0}›{ph1}{ph2}ติดตั้ง REA และเชื่อมต่อกับตัวแทนการเข้ารหัสนี้โดยใช้ npx "
@@ -15971,7 +15971,7 @@ msgstr "ผู้มีส่วนร่วม: {count}"
 #~ msgctxt "page:index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
 #~ "{ph0}›{ph1}{ph2}ติดตั้ง REA และเชื่อมต่อกับตัวแทนการเข้ารหัสนี้โดยใช้ npx "
@@ -15993,10 +15993,10 @@ msgstr "ผู้มีส่วนร่วม: {count}"
 #, python-brace-format
 #~ msgctxt "page:index.html"
 #~ msgid ""
-#~ "{ph0}›{ph1}{ph2}Use REA to inspect https://rea.tools/. Clone this website "
+#~ "{ph0}›{ph1}{ph2}Use REA to inspect https://github.com/zheedevVn/Rea-Unlock Clone this website "
 #~ "for me.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}›{ph1}{ph2}ใช้ REA เพื่อตรวจสอบ https://rea.tools/. "
+#~ "{ph0}›{ph1}{ph2}ใช้ REA เพื่อตรวจสอบ https://github.com/zheedevVn/Rea-Unlock "
 #~ "โคลนเว็บไซต์นี้สำหรับฉัน.{ph3}{ph4}{ph5}"
 
 #~ msgctxt "figure:ctf-mask-equation.svg"

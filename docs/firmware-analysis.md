@@ -48,7 +48,7 @@ git submodule update --init third_party/binwalk third_party/unblob
 ```
 
 Normal REA builds and npm packages do not include or build these sources or
-engine binaries. See [upstream provenance](https://github.com/morluto/rea/blob/main/third_party/README.md).
+engine binaries. See [upstream provenance](https://github.com/zheedevVn/Rea-Unlock/blob/main/third_party/README.md).
 
 ## CLI and MCP
 

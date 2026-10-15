@@ -78,10 +78,10 @@ disposable Codex profile, current Codex supports per-tool configuration. For
 example, opening and closing an analysis session can be scoped independently:
 
 ```toml
-[mcp_servers.rea.tools.open_binary]
+[mcp_servers.github.com/zheedevVn/Rea-Unlock.open_binary]
 approval_mode = "approve"
 
-[mcp_servers.rea.tools.close_binary]
+[mcp_servers.github.com/zheedevVn/Rea-Unlock.close_binary]
 approval_mode = "approve"
 ```
 

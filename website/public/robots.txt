@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rea.tools/sitemap.xml
+Sitemap: https://github.com/zheedevVn/Rea-Unlock

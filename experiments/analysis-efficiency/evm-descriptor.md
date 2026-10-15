@@ -1,6 +1,6 @@
 # EVM descriptor and real-template checkpoint
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) after the native
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after the native
 checkpoint merged. The internal descriptor binds the existing exact EVM
 contract, CLI name and typed service lifetime. Existing complete inputs, output,
 provider selection and cleanup remain the baseline. Wiring alone does not establish

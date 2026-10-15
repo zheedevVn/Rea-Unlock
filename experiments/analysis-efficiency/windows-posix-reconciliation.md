@@ -1,6 +1,6 @@
 # Windows reconciliation of recorded POSIX paths
 
-Follow-up to [#2422](https://github.com/morluto/rea/pull/2422), including
+Follow-up to [#2422](https://github.com/zheedevVn/Rea-Unlock/pull/2422), including
 @Aurantium-47's diagnosis of the host-dependent relative-path operation.
 
 ## Source pins and real data
@@ -110,7 +110,7 @@ selects both Windows package and JavaScript recovery lanes; 85 scope checks and
 two curated-path checks pass. Runtime code and the real-data checks are unchanged.
 
 The original production fix merged as
-[1a1b67c88](https://github.com/morluto/rea/commit/1a1b67c88) while this follow-up
+[1a1b67c88](https://github.com/zheedevVn/Rea-Unlock/commit/1a1b67c88) while this follow-up
 was open. The follow-up was then rebased onto main fb28ec153 and contains only
 the stronger workflow assertions, Windows lane ownership, scope classification
 and this verification record. The updated 131 related tests, two representative

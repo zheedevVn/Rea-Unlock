@@ -9,25 +9,23 @@
 
 **Repérez une fonctionnalité qui vous plaît. Comprenez son fonctionnement, jusqu'au niveau du binaire.**
 
-[![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![npm version](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Site web](https://rea.tools/fr/) · [Guides](https://rea.tools/fr/guides/) · [Études de cas](https://rea.tools/fr/showcase/)**
+**[Site web](https://github.com/zheedevVn/Rea-Unlock) · [Guides](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Études de cas](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Démarrage rapide](#démarrage-rapide) · [Comment fonctionne REA](#comment-fonctionne-rea) · [Ce que vous pouvez analyser](#ce-que-vous-pouvez-analyser) · [Études de cas](#études-de-cas) · [Questions fréquentes](#questions-fréquentes) · [Outils GNU objdump et Rizin](../reverse-engineering-tools.md) · [Documentation](#documentation)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> Sources officielles de REA : [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Sources officielles de REA : [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Utilisez les liens d’installation et de publication de ces sources officielles. Un nom de dépôt similaire ou un README copié ne prouve pas qu’un téléchargement est officiel.
 
 <div align="center">
@@ -38,17 +36,6 @@
 
 <br /><br />
 
-<table aria-label="REA community">
-<tr>
-<td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
-    <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
-    <strong>Rejoignez la communauté de rétro-ingénierie</strong>
-  </a><br />
-  <sub>Discord · Questions et réponses · Partage de projets</sub>
-</td>
-</tr>
-</table>
 
 <br />
 
@@ -62,7 +49,7 @@ REA connecte votre agent à des outils d'inspection de binaires natifs, d'applic
 
 Setup enregistre REA auprès de votre agent et installe les instructions de workflow correspondantes. L'analyse native peut utiliser une installation existante de Hopper, de Ghidra ou d'IDA ; Setup peut aussi installer Hopper après votre accord. L'analyse statique JavaScript ne nécessite aucun moteur d'analyse natif.
 
-> **[Visitez le site web de REA](https://rea.tools/fr/)** pour les instructions d'installation, des guides illustrés et des études de cas réelles.
+> **[Visitez le site web de REA](https://github.com/zheedevVn/Rea-Unlock)** pour les instructions d'installation, des guides illustrés et des études de cas réelles.
 
 ## Démarrage rapide
 
@@ -71,7 +58,7 @@ Setup enregistre REA auprès de votre agent et installe les instructions de work
 Une fois Node.js et npm installés, exécutez :
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 Choisissez vos agents, vérifiez les modifications proposées et approuvez-les. Setup ajoute le serveur MCP de REA et les instructions de workflow correspondantes, et sauvegarde la configuration existante. Redémarrez ensuite votre agent.
@@ -92,7 +79,7 @@ Remplacez Notes par votre application cible et la fonctionnalité que vous voule
 Inspectez le répertoire extrait ou l'archive ASAR d'une application JavaScript/Electron :
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 Le résultat comprend les modules, les imports, les frontières Electron et les preuves associées. Remplacez le chemin par votre cible, par exemple `"D:/apps/example"` sous Windows.
@@ -100,7 +87,7 @@ Le résultat comprend les modules, les imports, les frontières Electron et les 
 Pour installer la commande `rea` pour un usage régulier :
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -123,10 +110,10 @@ Pour actualiser les enregistrements de vos agents et le skill, exécutez la comm
 Si vous utilisez `npx`, mettez à jour la configuration de votre agent avec :
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Vérifiez les modifications proposées par Setup et redémarrez votre agent. Pour des commandes CLI ponctuelles, utilisez `npx rea-agents@latest` suivi de la commande. Avec Bun, utilisez `bunx rea-agents@latest` à la place de `npx rea-agents@latest`.
+Vérifiez les modifications proposées par Setup et redémarrez votre agent. Pour des commandes CLI ponctuelles, utilisez `npx rea-unlock@latest` suivi de la commande. Avec Bun, utilisez `bunx rea-unlock@latest` à la place de `npx rea-unlock@latest`.
 
 ## Comment fonctionne REA
 
@@ -174,27 +161,27 @@ Les formats natifs et les hôtes pris en charge varient selon le fournisseur. Co
 
 ## Études de cas
 
-[![Illustrations des études sur la spatialisation sonore de DX-Ball, le pont du presse-papiers de Notion et le cercle de projectiles de TH04](../assets/rea-showcases.png)](https://rea.tools/fr/showcase/)
+[![Illustrations des études sur la spatialisation sonore de DX-Ball, le pont du presse-papiers de Notion et le cercle de projectiles de TH04](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball : reconstruire un calcul de panoramique sonore
 
 Suivez un appel sonore jusqu'à la fonction qui convertit une position en panoramique, inspectez ses instructions et transformez un pseudo-code incomplet en C. La reconstruction réussit 3 205 cas issus du x86 d'origine et reproduit à l'identique les 63 octets de la fonction compilée.
 
-[Lire l'étude de cas](https://rea.tools/fr/showcase/dx-ball/) · [Dépôt de la reconstruction](https://github.com/N0zoM1z0/dx-ball)
+[Lire l'étude de cas](https://github.com/zheedevVn/Rea-Unlock) · [Dépôt de la reconstruction](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion : suivre le pont du presse-papiers d'Electron
 
 Trouvez l'API de presse-papiers du renderer, suivez-la à travers le preload et l'IPC jusqu'au processus principal, puis inspectez le format de presse-papiers enrichi.
 
-[Lire l'étude de cas](https://rea.tools/fr/showcase/notion/)
+[Lire l'étude de cas](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04 : retrouver un calcul d'anneau de projectiles sous DOS
 
 Inspectez les instructions 16 bits du jeu PC-98 d'origine, retrouvez les calculs d'angles fixes et visés, et comparez le C++ reconstruit avec la sortie du compilateur d'époque.
 
-[Lire l'étude de cas](https://rea.tools/fr/showcase/th04/) · [Dépôt de la reconstruction](https://github.com/N0zoM1z0/th04)
+[Lire l'étude de cas](https://github.com/zheedevVn/Rea-Unlock) · [Dépôt de la reconstruction](https://github.com/N0zoM1z0/th04)
 
-Si vous avez utilisé REA sur un projet intéressant, nous serions ravis de le découvrir. Partagez votre cas dans une [issue](https://github.com/morluto/rea/issues) ou une [pull request](https://github.com/morluto/rea/pulls), en précisant la cible, votre question, la manière dont REA vous a aidé et ce que vous avez découvert.
+Si vous avez utilisé REA sur un projet intéressant, nous serions ravis de le découvrir. Partagez votre cas dans une [issue](https://github.com/zheedevVn/Rea-Unlock/issues) ou une [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls), en précisant la cible, votre question, la manière dont REA vous a aidé et ce que vous avez découvert.
 
 ## Questions fréquentes
 
@@ -222,7 +209,7 @@ REA lance Hopper lorsqu'une opération en a besoin. Sous macOS, une boîte de di
 <details>
 <summary><strong>Que fait l'installation du skill depuis skills.sh ?</strong></summary>
 
-Le skill fournit des instructions d'investigation à votre agent. Utilisez `npx rea-agents setup` pour enregistrer le serveur MCP de REA et installer les instructions correspondantes, puis redémarrez votre agent. Consultez [l'installation du skill seul](../installation.md#skill-only-installation).
+Le skill fournit des instructions d'investigation à votre agent. Utilisez `npx rea-unlock setup` pour enregistrer le serveur MCP de REA et installer les instructions correspondantes, puis redémarrez votre agent. Consultez [l'installation du skill seul](../installation.md#skill-only-installation).
 
 </details>
 
@@ -254,16 +241,16 @@ rea update
 Pour une configuration d'agent via `npx` :
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Si vous utilisez un agent, terminez l'[actualisation de la configuration](#mettre-à-jour-rea) et redémarrez-le. Relancez la même tâche. Si le problème persiste, [ouvrez une issue](https://github.com/morluto/rea/issues) en indiquant votre version de REA, le type de cible, les étapes pour reproduire le problème et la sortie d'erreur.
+Si vous utilisez un agent, terminez l'[actualisation de la configuration](#mettre-à-jour-rea) et redémarrez-le. Relancez la même tâche. Si le problème persiste, [ouvrez une issue](https://github.com/zheedevVn/Rea-Unlock/issues) en indiquant votre version de REA, le type de cible, les étapes pour reproduire le problème et la sortie d'erreur.
 
 </details>
 
 ## Documentation
 
-Commencez par les [guides pas à pas](https://rea.tools/fr/guides/) du site web. Pour les options exactes, les prérequis et les contrats de résultats :
+Commencez par les [guides pas à pas](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) du site web. Pour les options exactes, les prérequis et les contrats de résultats :
 
 - [Installation et configuration](../installation.md) : enregistrement des agents, configuration des fournisseurs, mises à jour et désinstallation.
 - [Vérification et dépannage](../installation.md#check-readiness-for-your-task) : diagnostiquer un agent ou un moteur d'analyse donné.
@@ -280,11 +267,11 @@ Signalez les vulnérabilités via [SECURITY.md](../../SECURITY.md).
 
 Merci à toutes les personnes qui utilisent REA, signalent des bugs, proposent des fonctionnalités, testent les builds et contribuent des correctifs.
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="Historique des étoiles GitHub de REA" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="Historique des étoiles GitHub de REA" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -300,7 +287,7 @@ applicable licenses.
 
 ## Contribuer
 
-Votre aide sur REA est la bienvenue ! [Ouvrez une issue](https://github.com/morluto/rea/issues) pour signaler un bug ou proposer une fonctionnalité, ou [envoyez une pull request](https://github.com/morluto/rea/pulls) pour améliorer le code ou la documentation.
+Votre aide sur REA est la bienvenue ! [Ouvrez une issue](https://github.com/zheedevVn/Rea-Unlock/issues) pour signaler un bug ou proposer une fonctionnalité, ou [envoyez une pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) pour améliorer le code ou la documentation.
 
 Consultez [CONTRIBUTING.md](../../CONTRIBUTING.md) pour l'environnement de développement et les vérifications, la page [tests](../testing.md) pour les procédures de vérification, et la [carte de l'architecture](../architecture.mermaid) pour la structure du projet.
 

@@ -6,7 +6,7 @@ delivery (including retained-reference recovery), caller-selected ordinals, and
 summary/preview/complete/repeated pages. Each failed RPC remains in task costs.
 The body question uses stored bytes, not decoded HTTP application payloads.
 
-Tracks the experiments for [#2016](https://github.com/morluto/rea/issues/2016).
+Tracks the experiments for [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016).
 The production CLI/MCP contracts and defaults remain the compatibility baseline.
 Downloaded artifacts, runtime copies, exported Evidence, transcripts and detailed
 JSON measurements belong outside the checkout. This document keeps the measured
@@ -491,9 +491,9 @@ failed CI gate is not presented as passed.
 
 | Failure                                  | Main `c22111eca`                                                                         | Reviewed PR `8d6f7eb1c`                                                                |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Empty prompt completion after open       | [main shard](https://github.com/morluto/rea/actions/runs/38224038323/job/114727940506)   | [PR shard](https://github.com/morluto/rea/actions/runs/38228724531/job/114742955092)   |
-| Packaged prompt completion, Darwin arm64 | [main package](https://github.com/morluto/rea/actions/runs/38224038323/job/114728030045) | [PR package](https://github.com/morluto/rea/actions/runs/38228724531/job/114743092314) |
-| Packaged prompt completion, Darwin x64   | [main package](https://github.com/morluto/rea/actions/runs/38224038323/job/114728029923) | [PR package](https://github.com/morluto/rea/actions/runs/38228724531/job/114743092079) |
+| Empty prompt completion after open       | [main shard](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38224038323/job/114727940506)   | [PR shard](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38228724531/job/114742955092)   |
+| Packaged prompt completion, Darwin arm64 | [main package](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38224038323/job/114728030045) | [PR package](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38228724531/job/114743092314) |
+| Packaged prompt completion, Darwin x64   | [main package](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38224038323/job/114728029923) | [PR package](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38228724531/job/114743092079) |
 
 `src/server/promptCompletion.ts`, `src/application/binary/BinarySession.ts`,
 `tests/boundary/mcp/promptCompletion.test.ts` and

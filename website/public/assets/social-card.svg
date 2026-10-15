@@ -4,7 +4,7 @@
   <rect width="1200" height="630" fill="#ffffff"/>
   <g font-family="DejaVu Sans, sans-serif" fill="#20252b">
     <text x="72" y="110" font-size="44" font-weight="700">REA</text>
-    <text x="1128" y="106" font-size="24" text-anchor="end" fill="#5b6570">rea.tools</text>
+    <text x="1128" y="106" font-size="24" text-anchor="end" fill="#5b6570">github.com/zheedevVn/Rea-Unlock</text>
     <path d="M72 142 H1128" stroke="#dce2e8" stroke-width="2"/>
     <text x="72" y="252" font-size="64" font-weight="700">Find out how</text>
     <text x="72" y="334" font-size="64" font-weight="700">software works.</text>

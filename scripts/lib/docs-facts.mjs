@@ -42,7 +42,7 @@ const readmeLinkTargets = (root, from, content, language = "en") =>
       const url = new URL(target);
       const prefix = `/${language}/`;
       if (
-        url.origin !== "https://rea.tools" ||
+        url.origin !== "https://github.com/zheedevVn/Rea-Unlock" ||
         !url.pathname.startsWith(prefix)
       )
         return target;

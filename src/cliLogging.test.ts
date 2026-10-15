@@ -44,7 +44,7 @@ describe("CLI command outcome classification", () => {
     const installation = {
       manager: "npm",
       prefix: "/fixture",
-      packageRoot: "/fixture/lib/node_modules/rea-agents",
+      packageRoot: "/fixture/lib/node_modules/rea-unlock",
     } as const;
     const updateHost: UpdateHost = {
       installation: () => Promise.resolve(installation),

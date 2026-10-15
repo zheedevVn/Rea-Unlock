@@ -12,9 +12,9 @@ from zipfile import BadZipFile, ZipFile
 
 from website import NOTES_FIXTURES, SITE_ORIGIN, authored_markdown, page_url, sync_pages
 
-LEGACY_ORIGIN = "morluto.github.io"
+LEGACY_ORIGIN = "zheedevVn.github.io"
 SITE_TEXT_URL = re.compile(
-    r"https?://(?:rea\.tools|morluto\.github\.io)/[^\s<>\"'`]+", re.IGNORECASE
+    r"https?://(?:rea\.tools|zheedevVn\.github\.io)/[^\s<>\"'`]+", re.IGNORECASE
 )
 
 
@@ -65,7 +65,7 @@ def check_repository_links(root):
                 errors.append(f"{path.relative_to(root)}: obsolete website URL: {reference}")
                 continue
             if url.hostname == "github.com":
-                match = re.match(r"^/morluto/rea/(?:blob|tree)/main/(.+)$", url.path)
+                match = re.match(r"^/zheedevVn/Rea-Unlock/(?:blob|tree)/main/(.+)$", url.path)
                 if not match:
                     continue
                 target = (root / unquote(match[1])).resolve()
@@ -244,8 +244,8 @@ def check_search_metadata(site, pages):
                 errors.append(f"{label}: hreflang must include its own canonical")
             for language, target in page.alternates.items():
                 parsed = urlsplit(target)
-                if parsed.scheme != "https" or parsed.netloc != "rea.tools":
-                    errors.append(f"{label}: hreflang needs absolute rea.tools URLs")
+                if parsed.scheme != "https" or parsed.netloc != "github.com/zheedevVn/Rea-Unlock":
+                    errors.append(f"{label}: hreflang needs absolute github.com/zheedevVn/Rea-Unlock URLs")
                     continue
                 target_path = (site / unquote(parsed.path).lstrip("/")).resolve()
                 if target_path.is_dir():
@@ -267,7 +267,7 @@ def check_search_metadata(site, pages):
             errors.append("sitemap.xml: needs a sitemap-protocol urlset")
         if len(urls) != len(set(urls)) or set(urls) != indexable:
             errors.append(
-                "sitemap.xml: must contain each indexable page once, using its rea.tools URL"
+                "sitemap.xml: must contain each indexable page once, using its github.com/zheedevVn/Rea-Unlock URL"
             )
         if any(
             len(entry) != 1 or entry[0].tag != f"{namespace}loc" for entry in sitemap
@@ -299,7 +299,7 @@ def check_search_metadata(site, pages):
         ]
         if directives != expected:
             errors.append(
-                "robots.txt: expected crawl access and one absolute rea.tools sitemap directive"
+                "robots.txt: expected crawl access and one absolute github.com/zheedevVn/Rea-Unlock sitemap directive"
             )
 
     image = site / "assets/social-card.png"
@@ -343,10 +343,10 @@ def check_site(site):
                 errors.append(f"{label}: invalid URL {reference!r}: {error}")
                 continue
             if url.hostname == LEGACY_ORIGIN and (url.path == "/rea" or url.path.startswith("/rea/")):
-                errors.append(f"{label}: obsolete website URL: {reference}; use rea.tools")
+                errors.append(f"{label}: obsolete website URL: {reference}; use github.com/zheedevVn/Rea-Unlock")
                 continue
-            if url.hostname == "rea.tools":
-                if url.scheme != "https" or url.netloc != "rea.tools":
+            if url.hostname == "github.com/zheedevVn/Rea-Unlock":
+                if url.scheme != "https" or url.netloc != "github.com/zheedevVn/Rea-Unlock":
                     errors.append(f"{label}: website URL must use {SITE_ORIGIN}: {reference}")
                     continue
                 target = (site / unquote(url.path).lstrip("/")).resolve()

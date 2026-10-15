@@ -38,7 +38,7 @@ for asset notes and the source of case-study claims.
 - Keep personal paths, account data, credentials and raw captures outside the
   public assets. Use generic inputs and label shortened display paths.
 - Follow the same clear writing standard in search titles and descriptions.
-  Give each content page its own absolute `https://rea.tools/` canonical and
+  Give each content page its own absolute `https://github.com/zheedevVn/Rea-Unlock canonical and
   matching sharing metadata; keep navigation relative. The sitemap is generated
   from HTML automatically. Mark example applications `noindex` in the head and
   keep them crawlable. Maintain the SVG sharing source, not the generated PNG.

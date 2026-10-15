@@ -116,7 +116,7 @@ On Linux, a reachable but locked desktop keyring can stall Chrome before its
 first navigation. For a dedicated investigation profile, add
 `--password-store=basic` to bypass that keyring. Empty or placeholder frame URLs
 then describe an unloaded page; REA continues to require an allowed, committed
-URL. See [the startup investigation](https://github.com/morluto/rea/issues/1384#issuecomment-6093781686).
+URL. See [the startup investigation](https://github.com/zheedevVn/Rea-Unlock/issues/1384#issuecomment-6093781686).
 
 ### Browsers without HTTP discovery
 

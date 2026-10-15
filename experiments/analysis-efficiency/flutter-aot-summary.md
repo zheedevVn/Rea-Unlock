@@ -1,7 +1,7 @@
 # Dart AOT summary and retained string pools
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) and
-[#2455](https://github.com/morluto/rea/pull/2455). The selected analyst question
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) and
+[#2455](https://github.com/zheedevVn/Rea-Unlock/pull/2455). The selected analyst question
 asks for shipped LocalSend target/ABI/library identity, every nullable snapshot
 observation, string-pool lower bounds and returned counts, and original coverage
 and limitations. It does not require individual observed strings.

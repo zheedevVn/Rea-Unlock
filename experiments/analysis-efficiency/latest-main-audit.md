@@ -1,6 +1,6 @@
 # Latest-main efficiency continuation
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016). The 2026-10-13
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016). The 2026-10-13
 fetch resolved main to `f254f5ac2b804b353a711264bb178f43fdf07867`, the same
 revision as the preceding Android conclusion. Newer capabilities below were
 added during that earlier cycle; they are additional measurement scopes, not

@@ -1,7 +1,7 @@
 # Task-scoped preset lifecycle verification
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) after
-[#2308](https://github.com/morluto/rea/pull/2308) merged. This increment verifies
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after
+[#2308](https://github.com/zheedevVn/Rea-Unlock/pull/2308) merged. This increment verifies
 existing caller-selected Ghidra settings and immutable JSON snapshots through
 actual public CLI/MCP workflows. Production defaults, provider selection and
 public contracts remain unchanged; an engine database cache is still deferred.

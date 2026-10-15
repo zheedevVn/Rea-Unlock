@@ -1,7 +1,7 @@
 # Windows runtime admission retry verification
 
-Scope: [#2257](https://github.com/morluto/rea/issues/2257). Related initial
-diagnosis: [#2266](https://github.com/morluto/rea/pull/2266).
+Scope: [#2257](https://github.com/zheedevVn/Rea-Unlock/issues/2257). Related initial
+diagnosis: [#2266](https://github.com/zheedevVn/Rea-Unlock/pull/2266).
 
 ## Revisions and real input
 

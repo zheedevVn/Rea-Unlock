@@ -19,7 +19,7 @@ describe the use case and observable outcome. -->
 <!-- Explain the chosen approach, why it fits REA's architecture, and what is
 intentionally not included. -->
 
-Follow the [contribution scope](https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#contribution-scope).
+Follow the [contribution scope](https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#contribution-scope).
 Unresolved scope, authority, side effects, or required verification block
 integration. Link the required maintainer scope decision for new providers or
 capabilities involving target execution, injection, mutation, or protection

@@ -2,9 +2,9 @@
 
 This lane extends native ELF analysis; it does not execute MIPS code or rehost
 firmware. It advances the generic-MIPS portion of
-[#718](https://github.com/morluto/rea/issues/718), not the whole firmware roadmap.
+[#718](https://github.com/zheedevVn/Rea-Unlock/issues/718), not the whole firmware roadmap.
 PSP/Allegrex has a [separate static-ELF profile](ghidra-psp.md) tracked in
-[#1330](https://github.com/morluto/rea/issues/1330).
+[#1330](https://github.com/zheedevVn/Rea-Unlock/issues/1330).
 
 ## Admission boundary
 
@@ -23,7 +23,7 @@ or compressed images remain unsupported. Their family may be identified, but pro
 specific unsupported constraint rather than guessing a compatible profile.
 
 A second admission covers recordless legacy firmware images
-([#1620](https://github.com/morluto/rea/issues/1620)): ELF32 `ET_EXEC` headers
+([#1620](https://github.com/zheedevVn/Rea-Unlock/issues/1620)): ELF32 `ET_EXEC` headers
 declaring `EF_MIPS_ARCH_32` or `EF_MIPS_ARCH_32R2` with an unspecified ABI
 field, `EF_MIPS_ABI2` clear, and an _inspected_ absence of any ABI flags
 record (a target whose record was merely not observed stays refused). For

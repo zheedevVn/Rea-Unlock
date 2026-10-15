@@ -251,7 +251,7 @@ export const presentInputJsonSchema = (
  * Clients that render advertised inputs into SDK declarations expand
  * schema-local references with a shared per-input budget: Pi 1.1.0 code-mode
  * allows 32 expansions and degrades every later reference to `unknown`
- * (morluto/rea#1632), hiding the fields those references describe. The budget
+ * (zheedevVn/Rea-Unlock#1632), hiding the fields those references describe. The budget
  * counts conservatively — every resolvable, non-cyclic reference occurrence
  * in every schema position — so any reference-resolving client stays within
  * its measured limit.

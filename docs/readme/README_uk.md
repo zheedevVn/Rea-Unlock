@@ -9,25 +9,23 @@
 
 **Побачили цікаву функцію? Зрозумійте, як вона працює, аж до рівня двійкового коду.**
 
-[![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![npm version](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Сайт](https://rea.tools/uk/) · [Посібники](https://rea.tools/uk/guides/) · [Приклади](https://rea.tools/uk/showcase/)**
+**[Сайт](https://github.com/zheedevVn/Rea-Unlock) · [Посібники](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Приклади](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Швидкий старт](#швидкий-старт) · [Як працює REA](#як-працює-rea) · [Що можна аналізувати](#що-можна-аналізувати) · [Приклади](#приклади) · [Поширені запитання](#поширені-запитання) · [Інструменти GNU objdump і Rizin](../reverse-engineering-tools.md) · [Документація](#документація)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> Офіційні джерела REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Офіційні джерела REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Користуйтеся посиланнями на встановлення та випуски з цих офіційних джерел. Схожа назва репозиторію або скопійований README не підтверджують, що завантажуваний файл є офіційним.
 
 <div align="center">
@@ -41,7 +39,7 @@
 <table aria-label="Спільнота REA">
 <tr>
 <td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
+  <a href="https://github.com/zheedevVn/Rea-Unlock">
     <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
     <strong>Приєднуйтеся до спільноти реверс-інжинірингу</strong>
   </a><br />
@@ -62,7 +60,7 @@ REA підключає вашого агента до інструментів �
 
 Налаштування реєструє REA у вашому агенті та встановлює відповідні інструкції робочих процесів. Для нативного аналізу можна використати вже встановлений Hopper або Ghidra; налаштування також може встановити Hopper за вашою згодою. Статичному аналізу JavaScript не потрібен жоден із цих рушіїв.
 
-> **[Відвідайте сайт REA](https://rea.tools/uk/)**, щоб знайти інструкції налаштування, ілюстровані посібники та реальні дослідження.
+> **[Відвідайте сайт REA](https://github.com/zheedevVn/Rea-Unlock)**, щоб знайти інструкції налаштування, ілюстровані посібники та реальні дослідження.
 
 ## Швидкий старт
 
@@ -71,7 +69,7 @@ REA підключає вашого агента до інструментів �
 Якщо Node.js і npm встановлено, виконайте:
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 Виберіть агентів, перевірте запропоновані зміни та схваліть їх. Налаштування додає MCP-сервер REA та відповідні інструкції робочих процесів, створюючи резервні копії наявної конфігурації. Після цього перезапустіть агента.
@@ -91,7 +89,7 @@ npx rea-agents setup
 Перевірте розпакований каталог застосунку JavaScript/Electron або файл ASAR:
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 Результат містить модулі, імпорти, межі Electron і підтвердження для них. Замініть шлях своїм, наприклад `"D:/apps/example"` у Windows.
@@ -99,7 +97,7 @@ npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --
 Для регулярного використання встановіть команду `rea`:
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -120,10 +118,10 @@ rea update
 Якщо використовуєте `npx`, оновіть налаштування агента командою:
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Перевірте зміни налаштувань і перезапустіть агента. Для разових команд CLI використовуйте `npx rea-agents@latest`, а потім потрібну команду.
+Перевірте зміни налаштувань і перезапустіть агента. Для разових команд CLI використовуйте `npx rea-unlock@latest`, а потім потрібну команду.
 
 ## Як працює REA
 
@@ -170,27 +168,27 @@ REA потребує Node.js 22.x (>=22.19), 24.x (>=24.11) або 26+, а та�
 
 ## Приклади
 
-[![Ілюстрації прикладів панорамування звуку в DX-Ball, мосту буфера обміну Notion та кільця куль у TH04](../assets/rea-showcases.png)](https://rea.tools/uk/showcase/)
+[![Ілюстрації прикладів панорамування звуку в DX-Ball, мосту буфера обміну Notion та кільця куль у TH04](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball: відновлення розрахунку звукової панорами
 
 Простежте звуковий виклик до допоміжної функції, що перетворює координату на панорамування, перевірте інструкції та перетворіть неповний псевдокод на C. Відновлена реалізація проходить 3 205 тестів з оригінальним x86-кодом і відтворює всі 63 байти скомпільованої функції.
 
-[Прочитати дослідження](https://rea.tools/uk/showcase/dx-ball/) · [Репозиторій реконструкції](https://github.com/N0zoM1z0/dx-ball)
+[Прочитати дослідження](https://github.com/zheedevVn/Rea-Unlock) · [Репозиторій реконструкції](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion: відстеження мосту буфера обміну Electron
 
 Знайдіть API буфера обміну в процесі рендерингу, простежте його через preload та IPC до головного процесу й перевірте формат буфера обміну з даними форматування.
 
-[Прочитати дослідження](https://rea.tools/uk/showcase/notion/)
+[Прочитати дослідження](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04: відновлення розрахунку кільця куль у DOS
 
 Перевірте 16-бітні інструкції оригінальної гри для PC-98, відновіть розрахунки фіксованих і прицільних кутів та порівняйте відновлений C++ із виводом тогочасного компілятора.
 
-[Прочитати дослідження](https://rea.tools/uk/showcase/th04/) · [Репозиторій реконструкції](https://github.com/N0zoM1z0/th04)
+[Прочитати дослідження](https://github.com/zheedevVn/Rea-Unlock) · [Репозиторій реконструкції](https://github.com/N0zoM1z0/th04)
 
-Якщо ви дослідили з REA щось цікаве, поділіться результатом. Створіть [issue](https://github.com/morluto/rea/issues) або [pull request](https://github.com/morluto/rea/pulls) і вкажіть ціль, ваше запитання, як допоміг REA та що ви з'ясували.
+Якщо ви дослідили з REA щось цікаве, поділіться результатом. Створіть [issue](https://github.com/zheedevVn/Rea-Unlock/issues) або [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) і вкажіть ціль, ваше запитання, як допоміг REA та що ви з'ясували.
 
 ## Поширені запитання
 
@@ -218,7 +216,7 @@ REA запускає Hopper, коли він потрібен для опера�
 <details>
 <summary><strong>Що дає встановлення skill із skills.sh?</strong></summary>
 
-Skill надає агенту інструкції дослідження. Використовуйте `npx rea-agents setup`, щоб зареєструвати MCP-сервер REA та встановити відповідні інструкції, а потім перезапустіть агента. Дивіться [встановлення лише skill](../installation.md#skill-only-installation).
+Skill надає агенту інструкції дослідження. Використовуйте `npx rea-unlock setup`, щоб зареєструвати MCP-сервер REA та встановити відповідні інструкції, а потім перезапустіть агента. Дивіться [встановлення лише skill](../installation.md#skill-only-installation).
 
 </details>
 
@@ -250,16 +248,16 @@ rea update
 Для налаштування агента через `npx`:
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Якщо використовуєте агента, завершіть [оновлення налаштувань](#оновіть-rea) і перезапустіть його. Повторіть те саме завдання. Якщо проблема залишається, [відкрийте issue](https://github.com/morluto/rea/issues) із версією REA, типом цілі, кроками відтворення та виводом помилки.
+Якщо використовуєте агента, завершіть [оновлення налаштувань](#оновіть-rea) і перезапустіть його. Повторіть те саме завдання. Якщо проблема залишається, [відкрийте issue](https://github.com/zheedevVn/Rea-Unlock/issues) із версією REA, типом цілі, кроками відтворення та виводом помилки.
 
 </details>
 
 ## Документація
 
-Почніть із [практичних посібників](https://rea.tools/uk/guides/) на сайті. Точні параметри, передумови й контракти результатів описано тут:
+Почніть із [практичних посібників](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) на сайті. Точні параметри, передумови й контракти результатів описано тут:
 
 - [Встановлення й налаштування](../installation.md): реєстрація агентів, конфігурація провайдерів, оновлення та видалення.
 - [Готовність та усунення неполадок](../installation.md#check-readiness-for-your-task): діагностика конкретного агента або рушія аналізу.
@@ -276,11 +274,11 @@ npx rea-agents@latest setup
 
 Дякуємо всім, хто використовує REA, повідомляє про помилки, пропонує нові функції, тестує збірки й допомагає з виправленнями.
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="Історія зірок REA на GitHub" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="Історія зірок REA на GitHub" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -296,7 +294,7 @@ applicable licenses.
 
 ## Участь у проєкті
 
-Будемо раді вашій допомозі з REA! [Відкрийте issue](https://github.com/morluto/rea/issues), щоб повідомити про помилку чи запропонувати функцію, або [надішліть pull request](https://github.com/morluto/rea/pulls) з поліпшеннями коду чи документації.
+Будемо раді вашій допомозі з REA! [Відкрийте issue](https://github.com/zheedevVn/Rea-Unlock/issues), щоб повідомити про помилку чи запропонувати функцію, або [надішліть pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) з поліпшеннями коду чи документації.
 
 Налаштування середовища розробки й перевірки описано в [CONTRIBUTING.md](../../CONTRIBUTING.md), шляхи верифікації — у [посібнику тестування](../testing.md), а структуру проєкту — на [схемі архітектури](../architecture.mermaid).
 

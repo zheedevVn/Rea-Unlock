@@ -75,7 +75,7 @@ def audit_url(item):
                     return dict(result, status="broken", reason="Release asset is missing")
             return dict(result, status="ok", via="gh api", endpoint=endpoint)
         request = Request(value.split("#", 1)[0], headers={
-            "User-Agent": "REA-Website-Verifier/1.0 (+https://github.com/morluto/rea)",
+            "User-Agent": "REA-Website-Verifier/1.0 (+https://github.com/zheedevVn/Rea-Unlock)",
         })
         with urlopen(request, timeout=15) as response:
             return dict(result, status="ok", http_status=response.status, final_url=response.url)
@@ -93,7 +93,7 @@ def external_links(root):
 
     def add(value, source):
         url = urlsplit(value)
-        if url.scheme in ("http", "https") and url.hostname not in ("rea.tools", "localhost", "127.0.0.1", "::1"):
+        if url.scheme in ("http", "https") and url.hostname not in ("github.com/zheedevVn/Rea-Unlock", "localhost", "127.0.0.1", "::1"):
             references.setdefault(value, []).append(str(source.relative_to(root)))
 
     class Links(HTMLParser):

@@ -105,7 +105,7 @@ export const parseLinuxVmRssBytes = (status) => {
 /**
  * Collect unique file-backed ESM module URLs from Node's diagnostic stream.
  */
-export const createEsmModuleProfileCollector = (packageName = "rea-agents") => {
+export const createEsmModuleProfileCollector = (packageName = "rea-unlock") => {
   const modules = new Set();
   let buffer = "";
   let debugLines = 0;

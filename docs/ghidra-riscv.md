@@ -2,7 +2,7 @@
 
 This lane extends native ELF analysis for `EM_RISCV` targets. It does not
 execute RISC-V code, emulate a boot sequence, or rehost firmware. It addresses
-[#2063](https://github.com/morluto/rea/issues/2063) and follows the same
+[#2063](https://github.com/zheedevVn/Rea-Unlock/issues/2063) and follows the same
 lane shape as [generic MIPS support](ghidra-mips.md).
 
 ## Admission boundary

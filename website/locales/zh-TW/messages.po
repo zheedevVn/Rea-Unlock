@@ -2122,7 +2122,7 @@ msgid "Terminal · refresh agent setup"
 msgstr "終端 · 重新整理助手配置"
 
 # Reviewed for readable setup and analysis terminology.
-#. {ph0}: <code>npx -y rea-agents@latest</code>
+#. {ph0}: <code>npx -y rea-unlock@latest</code>
 #: website/public/faq/index.html:299
 #, python-brace-format
 msgctxt "page:faq/index.html"
@@ -2406,7 +2406,7 @@ msgid ""
 "release may already fix the problem."
 msgstr "先{ph0}更新 REA{ph1}，重啟助手，再試一次相同任務。新版本可能已經修復這個問題。"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/faq/index.html:513
 #, python-brace-format
@@ -2440,9 +2440,9 @@ msgctxt "page:faq/index.html"
 msgid "How can I share an example or contribute?"
 msgstr "如何分享案例或參與貢獻？"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/pulls">
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/pulls">
 #. {ph3}: </a >
 #: website/public/faq/index.html:539
 #, python-brace-format
@@ -2456,7 +2456,7 @@ msgstr ""
 "做出了有用的 REA 案例？我們很想看看！透過 {ph0}issue{ph1} 或 {ph2}PR{ph3} "
 "分享目標、問題、結果，以及如何驗證。簡短的程式碼片段和圖示，能幫助大家理解調查過程。"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/faq/index.html:551
 #, python-brace-format
@@ -3352,7 +3352,7 @@ msgid ""
 " Electron app and a browser.{ph3}"
 msgstr "{ph0}選擇調查指南{ph1}{ph2}二進位制、Electron 應用和瀏覽器的完整示例。{ph3}"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -3364,7 +3364,7 @@ msgid ""
 "diagnostics.{ph3}"
 msgstr "{ph0}GitHub issues{ph1}{ph2}附上命令與診斷結果，反饋問題。{ph3}"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -6977,7 +6977,7 @@ msgstr "在閱讀組織者的原始碼或解決方案之前，對字串引用，
 #. squares-flag-checker/ctfcli.yaml" >
 #. {ph3}: </a >
 #. {ph4}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/ctf-masked-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/ctf-masked-
 #. squares.md" >
 #. {ph5}: </a >
 #: website/public/showcase/ctf/index.html:700
@@ -10518,7 +10518,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -10536,7 +10536,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-analysis-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -10557,7 +10557,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="agent-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -10575,7 +10575,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="home-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -10890,7 +10890,7 @@ msgctxt "runtime"
 msgid "Switch to dark mode"
 msgstr "切換至深色模式"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/web-network-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-
 #. captures.md" >
 #. {ph1}: </a >
 #: website/public/guides/browser/index.html:483
@@ -12030,7 +12030,7 @@ msgid "Back to top"
 msgstr "回到頂部"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/reverse-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/reverse-
 #. engineering-models.md" >
 #. {ph1}: </a >
 #: website/public/blog/reverse-engineering-models/index.html:779
@@ -12301,7 +12301,7 @@ msgstr "Claude Desktop · 使用桌面聊天應用程式"
 
 #. {ph0}: <a href="https://claude.ai/download">
 #. {ph1}: </a>
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#claude-desktop" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:593
@@ -12370,11 +12370,11 @@ msgstr ""
 "Qoder（{ph0}）、Factory Droid（{ph1}）、Trae（{ph2}）、ZCode（{ph3}）和 DeepSeek "
 "Harness（{ph4}）已在 main 中提供；需要使用原始碼建置或包含這些整合的新版本。"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md" >
 #. {ph1}: </a >
 #. {ph2}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#released-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#released-
 #. package-and-main" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:722
@@ -12399,7 +12399,7 @@ msgid ""
 " command on the Bot's computer:"
 msgstr "在 Grok Bot 聊天中，請它新增名為 {ph0} 的自訂 MCP 服務，在 Bot 的電腦上執行這條指令："
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#other-client-settings" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:753
@@ -12489,7 +12489,7 @@ msgstr "你的程式開發助手"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="setup-first-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -12656,7 +12656,7 @@ msgid ""
 msgstr "如果 macOS 請求自動化權限，在「系統設定 → 隱私權與安全性 → 自動化」中允許啟動 REA 的應用程式，然後重試。"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#hopper"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#hopper"
 #. >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1061
@@ -12728,10 +12728,10 @@ msgid ""
 msgstr "在同一個終端機工作階段中執行這些指令。設定路徑後重新執行 setup，確認更新後的用戶端設定，再重新啟動程式開發助手。"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#ghidra"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#ghidra"
 #. >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/windows-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/windows-
 #. ghidra-p0.md" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:1220
@@ -12773,7 +12773,7 @@ msgid ""
 "rerun setup and restart your agent."
 msgstr "使用按 provider 指南準備好的 JSON 設定檔，再執行 setup 並重新啟動程式開發助手。"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/ida-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/ida-
 #. provider.md" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1338
@@ -12917,13 +12917,13 @@ msgctxt "page:get-started/index.html"
 msgid "Process behavior"
 msgstr "程序行為"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/flutter-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/flutter-
 #. analysis.md" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/javascript-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/javascript-
 #. artifact-reconstruction.md" >
 #. {ph3}: </a >
-#. {ph4}: <a href="https://github.com/morluto/rea/blob/main/docs/evm-
+#. {ph4}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/evm-
 #. bytecode.md" >
 #. {ph5}: </a >
 #. {ph6}: <a href="../guides/">
@@ -13004,7 +13004,7 @@ msgid ""
 msgstr "要更新程式開發助手的連接，重新執行最新版 setup，查看並確認計畫，然後重新啟動用戶端。"
 
 #. {ph0}: <code>rea update</code>
-#. {ph1}: <code>npx rea-agents@latest uninstall</code>
+#. {ph1}: <code>npx rea-unlock@latest uninstall</code>
 #: website/public/get-started/index.html:1768
 #, python-brace-format
 msgctxt "page:get-started/index.html"
@@ -13014,7 +13014,7 @@ msgid ""
 msgstr "全域安裝的 CLI 用 {ph0} 更新。使用 {ph1} 移除 REA 的用戶端設定和 skill。"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#diagnose-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#diagnose-
 #. update-and-remove" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1774
@@ -13227,7 +13227,7 @@ msgid ""
 msgstr "macOS 編譯需要 Xcode Command Line Tools、make 和 bison。選擇符合電腦架構的指南："
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#missing-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#missing-
 #. macos-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1178
@@ -13237,7 +13237,7 @@ msgid "{ph0}macOS · Intel{ph1}"
 msgstr "{ph0}macOS · Intel{ph1}"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#macos-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#macos-
 #. arm64-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1184
@@ -13473,7 +13473,7 @@ msgstr "複製遊戲重建提示"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="website-project-prompt" >
-#. {ph3}: <span translate="no">https://rea.tools/</span>
+#. {ph3}: <span translate="no">https://github.com/zheedevVn/Rea-Unlock</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -13632,7 +13632,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Read the FAQ{ph1} — setup and common questions."
 msgstr "{ph0}閱讀 FAQ{ph1} — 安裝設定和常見問題。"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/index.html:1196
 #, python-brace-format
@@ -13640,7 +13640,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Join Discord{ph1} — get help and discuss your investigations."
 msgstr "{ph0}加入 Discord{ph1} — 尋求協助，交流你的調查。"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/index.html:1200
 #, python-brace-format
@@ -13672,7 +13672,7 @@ msgid ""
 msgstr "依設定提示連接你的助手。如果沒有出現提示，執行 {ph0}。"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#development-
 #. setup" >
 #. {ph1}: </a >
 #. {ph2}: <code>6.4.0</code>
@@ -13804,7 +13804,7 @@ msgctxt "page:contributors/index.html"
 msgid "Find a contributor"
 msgstr "尋找貢獻者"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/graphs/contributors">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/graphs/contributors">
 #. {ph1}: </a>
 #. {ph2}: <time datetime="2026-10-15" translate="no">2026-10-15</time>
 #: website/public/contributors/index.html:1110
@@ -14785,7 +14785,7 @@ msgstr "貢獻者: {count}"
 #~ msgctxt "page:first-investigation/index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
 #~ "{ph0}›{ph1}{ph2}安裝/安裝 REA 並將其連線到這個編碼代理使用 npx rea-代理@最新設定。 "
@@ -14794,12 +14794,12 @@ msgstr "貢獻者: {count}"
 #, python-brace-format
 #~ msgctxt "page:first-investigation/index.html"
 #~ msgid ""
-#~ "{ph0}›{ph1}{ph2}Download https://rea.tools/examples/notes-example.zip into a"
+#~ "{ph0}›{ph1}{ph2}Download https://github.com/zheedevVn/Rea-Unlock into a"
 #~ " new example folder and unpack it. Use REA to find what happens when I click"
 #~ " Export notes. Show where notes.csv is written, which fields it contains, "
 #~ "and the relevant files and lines.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}›{ph1}{ph2}下載 https://rea.tools/examples/notes-example.zip "
+#~ "{ph0}›{ph1}{ph2}下載 https://github.com/zheedevVn/Rea-Unlock "
 #~ "到一個新的示例資料夾中並解壓縮。 使用方法 REA 要查詢當我單擊匯出筆記時會發生什麼。 "
 #~ "顯示註釋的位置。csv被寫入，它包含哪些欄位，以及相關的檔案和行。{ph3}{ph4}{ph5}"
 
@@ -14807,7 +14807,7 @@ msgstr "貢獻者: {count}"
 #~ msgctxt "page:get-started/index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
 #~ "{ph0}›{ph1}{ph2}安裝/安裝 REA 並將其連線到這個編碼代理使用 npx rea-代理@最新設定。 "
@@ -14817,7 +14817,7 @@ msgstr "貢獻者: {count}"
 #~ msgctxt "page:index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
 #~ "{ph0}›{ph1}{ph2}安裝/安裝 REA 並將其連線到這個編碼代理使用 npx rea-代理@最新設定。 "
@@ -14838,10 +14838,10 @@ msgstr "貢獻者: {count}"
 #, python-brace-format
 #~ msgctxt "page:index.html"
 #~ msgid ""
-#~ "{ph0}›{ph1}{ph2}Use REA to inspect https://rea.tools/. Clone this website "
+#~ "{ph0}›{ph1}{ph2}Use REA to inspect https://github.com/zheedevVn/Rea-Unlock Clone this website "
 #~ "for me.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}›{ph1}{ph2}使用方法 REA 檢查 https://rea.tools/. 為我克隆這個網站。{ph3}{ph4}{ph5}"
+#~ "{ph0}›{ph1}{ph2}使用方法 REA 檢查 https://github.com/zheedevVn/Rea-Unlock 為我克隆這個網站。{ph3}{ph4}{ph5}"
 
 #~ msgctxt "figure:ctf-mask-equation.svg"
 #~ msgid "code[21] = 55"

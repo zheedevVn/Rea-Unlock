@@ -12,7 +12,7 @@ import {
 const installation = {
   manager: "npm",
   prefix: "/opt/rea",
-  packageRoot: "/opt/rea/lib/node_modules/rea-agents",
+  packageRoot: "/opt/rea/lib/node_modules/rea-unlock",
 } as const;
 
 describe("npm latest release metadata", () => {

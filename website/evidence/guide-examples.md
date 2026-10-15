@@ -9,7 +9,7 @@ introduced by this iteration.
 This six-file, source-owned teaching fixture is in
 `website/public/examples/notes-electron/`. It is a static analysis target, not
 an installed Electron distribution. Its graph was obtained using the released
-`rea-agents` 4.1.0 package, Node.js 24.18.0 on Linux x64, on 7 October 2026:
+`rea-unlock` 4.1.0 package, Node.js 24.18.0 on Linux x64, on 7 October 2026:
 
 ```sh
 rea analyze-javascript-application \
@@ -85,7 +85,7 @@ Evidence: `ev_aeb777df405c09dc1bbdd4c185a5af2452abaa3cb493683c296c5afa97efbc11`.
 ## SEO metadata check — 9 October 2026
 
 Both Notes HTML heads gained descriptions and `noindex` directives. The Electron
-fixture was analyzed again with `rea-agents` 4.1.0 and Node.js 24.18.0 on Linux
+fixture was analyzed again with `rea-unlock` 4.1.0 and Node.js 24.18.0 on Linux
 x64. REA still reports four parsed JavaScript files, zero parse failures, one
 exposed API member, one literal IPC channel, one renderer transmission, one main
 handler and one paired transmission, with zero ambiguous transmissions.

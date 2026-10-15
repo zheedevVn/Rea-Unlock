@@ -1,6 +1,6 @@
 # Windows empty-profile startup verification
 
-Follow-up to [#2345](https://github.com/morluto/rea/pull/2345), including
+Follow-up to [#2345](https://github.com/zheedevVn/Rea-Unlock/pull/2345), including
 @gefrezim's diagnosis of the import-time Windows home lookup.
 
 ## Source and boundary

@@ -1,7 +1,7 @@
 # Managed artifact delivery and retained views
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) after
-[#2404](https://github.com/morluto/rea/pull/2404) merged. This checkpoint pins
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after
+[#2404](https://github.com/zheedevVn/Rea-Unlock/pull/2404) merged. This checkpoint pins
 the complete managed workflow before implementing another optional view.
 The baseline below precedes implementation; the follow-up adds explicit summary
 delivery and portable collection pages while preserving complete defaults.

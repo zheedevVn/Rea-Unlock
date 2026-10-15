@@ -14,7 +14,7 @@ body:
         Use concrete examples when available, distinguish current limitations
         from proposed behavior, and leave unmeasured impact or unknowns explicit.
 
-        Read the [contribution scope](https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#contribution-scope).
+        Read the [contribution scope](https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#contribution-scope).
         Maintainers can help resolve scope and technical questions. Unresolved
         boundaries block integration, not opening a request for discussion.
 
@@ -25,7 +25,7 @@ body:
       options:
         - label: I searched the open and closed issues and pull requests for a related proposal.
           required: true
-        - label: I understand the [contribution scope](https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#contribution-scope) must be reviewed before integration; open questions are welcome here.
+        - label: I understand the [contribution scope](https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#contribution-scope) must be reviewed before integration; open questions are welcome here.
           required: true
         - label: This request does not include credentials, private samples, or sensitive target data.
           required: true

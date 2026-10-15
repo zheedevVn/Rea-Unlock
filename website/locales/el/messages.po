@@ -1642,7 +1642,7 @@ msgid "Evidence and model attribution"
 msgstr "Στοιχεία και απόδοση της εργασίας στα μοντέλα"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/reverse-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/reverse-
 #. engineering-models.md" >
 #. {ph1}: </a >
 #: website/public/blog/reverse-engineering-models/index.html:779
@@ -4075,7 +4075,7 @@ msgctxt "page:faq/index.html"
 msgid "Terminal · refresh agent setup"
 msgstr "Τερματικό · ανανέωση ρύθμισης βοηθού"
 
-#. {ph0}: <code>npx -y rea-agents@latest</code>
+#. {ph0}: <code>npx -y rea-unlock@latest</code>
 #: website/public/faq/index.html:299
 #, python-brace-format
 msgctxt "page:faq/index.html"
@@ -4420,7 +4420,7 @@ msgstr ""
 "{ph0}Ενημερώστε το REA{ph1}, επανεκκινήστε τον βοηθό σας και επαναλάβετε την"
 " ίδια εργασία. Μια πρόσφατη έκδοση μπορεί να έχει ήδη διορθώσει το πρόβλημα."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/faq/index.html:513
 #, python-brace-format
@@ -4460,9 +4460,9 @@ msgctxt "page:faq/index.html"
 msgid "How can I share an example or contribute?"
 msgstr "Πώς μπορώ να μοιραστώ ένα παράδειγμα ή να συνεισφέρω;"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/pulls">
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/pulls">
 #. {ph3}: </a >
 #: website/public/faq/index.html:539
 #, python-brace-format
@@ -4478,7 +4478,7 @@ msgstr ""
 " {ph0}issue{ph1} ή {ph2}pull request{ph3}. Σύντομα αποσπάσματα κώδικα και "
 "εικόνες βοηθούν τους άλλους να παρακολουθήσουν τη διερεύνηση."
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/faq/index.html:551
 #, python-brace-format
@@ -4689,7 +4689,7 @@ msgstr "Αντιγραφή"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -4741,7 +4741,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-analysis-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -5274,7 +5274,7 @@ msgstr "{ph0}{ph1}{ph2}{ph3}{ph4}{ph5}{ph6}{ph7}Ο βοηθός προγραμμ
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="agent-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -5682,7 +5682,7 @@ msgstr ""
 "{ph0}Επιλέξτε έναν οδηγό διερεύνησης{ph1}{ph2}Αναλυτικά παραδείγματα για ένα"
 " δυαδικό αρχείο, μια εφαρμογή Electron και έναν browser.{ph3}"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -5696,7 +5696,7 @@ msgstr ""
 "{ph0}GitHub issues{ph1}{ph2}Αναφέρετε ένα πρόβλημα μαζί με την εντολή και τα"
 " διαγνωστικά.{ph3}"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -6242,7 +6242,7 @@ msgstr ""
 "{ph0}ροή εργασίας εφαρμογών{ph1} για να ακολουθήσετε τα αρχεία και τα όρια "
 "διεργασιών."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/web-network-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-
 #. captures.md" >
 #. {ph1}: </a >
 #: website/public/guides/browser/index.html:483
@@ -7741,7 +7741,7 @@ msgstr "Αντιγραφή"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="home-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -8456,7 +8456,7 @@ msgstr "{ph0}{ph1}{ph2}{ph3}{ph4}{ph5}{ph6}{ph7}Παράδειγμα prompt · �
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="website-project-prompt" >
-#. {ph3}: <span translate="no">https://rea.tools/</span>
+#. {ph3}: <span translate="no">https://github.com/zheedevVn/Rea-Unlock</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -10118,7 +10118,7 @@ msgstr ""
 #. squares-flag-checker/ctfcli.yaml" >
 #. {ph3}: </a >
 #. {ph4}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/ctf-masked-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/ctf-masked-
 #. squares.md" >
 #. {ph5}: </a >
 #: website/public/showcase/ctf/index.html:700
@@ -13845,7 +13845,7 @@ msgstr ""
 
 #. {ph0}: <a href="https://claude.ai/download">
 #. {ph1}: </a>
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#claude-desktop" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:593
@@ -13928,11 +13928,11 @@ msgstr ""
 "χρησιμοποιήστε μια μεταγλώττιση από τον πηγαίο κώδικα ή μια έκδοση που "
 "περιλαμβάνει αυτές τις ενσωματώσεις."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md" >
 #. {ph1}: </a >
 #. {ph2}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#released-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#released-
 #. package-and-main" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:722
@@ -13962,7 +13962,7 @@ msgstr ""
 "διακομιστή MCP με όνομα {ph0}, χρησιμοποιώντας αυτή την εντολή στον "
 "υπολογιστή του Bot:"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#other-client-settings" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:753
@@ -14064,7 +14064,7 @@ msgstr "Ο βοηθός προγραμματισμού σας"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="setup-first-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -14252,7 +14252,7 @@ msgstr ""
 "REA από System Settings → Privacy & Security → Automation και ξαναδοκιμάστε."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#hopper"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#hopper"
 #. >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1061
@@ -14350,7 +14350,7 @@ msgstr ""
 "bison. Χρησιμοποιήστε τον οδηγό για τον υπολογιστή σας:"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#missing-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#missing-
 #. macos-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1178
@@ -14360,7 +14360,7 @@ msgid "{ph0}macOS · Intel{ph1}"
 msgstr "{ph0}macOS · Intel{ph1}"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#macos-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#macos-
 #. arm64-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1184
@@ -14398,10 +14398,10 @@ msgstr ""
 "της εφαρμογής και επανεκκινήστε τον βοηθό σας."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#ghidra"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#ghidra"
 #. >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/windows-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/windows-
 #. ghidra-p0.md" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:1220
@@ -14502,7 +14502,7 @@ msgstr ""
 "Χρησιμοποιήστε το αρχείο καταχώρισης JSON που προετοιμάσατε με τον οδηγό "
 "παρόχου ανάλυσης, εκτελέστε ξανά τη ρύθμιση και επανεκκινήστε τον βοηθό σας."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/ida-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/ida-
 #. provider.md" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1338
@@ -14661,13 +14661,13 @@ msgctxt "page:get-started/index.html"
 msgid "Process behavior"
 msgstr "Συμπεριφορά διεργασίας"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/flutter-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/flutter-
 #. analysis.md" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/javascript-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/javascript-
 #. artifact-reconstruction.md" >
 #. {ph3}: </a >
-#. {ph4}: <a href="https://github.com/morluto/rea/blob/main/docs/evm-
+#. {ph4}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/evm-
 #. bytecode.md" >
 #. {ph5}: </a >
 #. {ph6}: <a href="../guides/">
@@ -14771,7 +14771,7 @@ msgstr ""
 " εντολή ρύθμισης, ελέγξτε το σχέδιό της και επανεκκινήστε την εφαρμογή σας."
 
 #. {ph0}: <code>rea update</code>
-#. {ph1}: <code>npx rea-agents@latest uninstall</code>
+#. {ph1}: <code>npx rea-unlock@latest uninstall</code>
 #: website/public/get-started/index.html:1768
 #, python-brace-format
 msgctxt "page:get-started/index.html"
@@ -14783,7 +14783,7 @@ msgstr ""
 "{ph1} για να αφαιρέσετε τη διαμόρφωση εφαρμογών και τη δεξιότητα του REA."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#diagnose-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#diagnose-
 #. update-and-remove" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1774
@@ -15224,7 +15224,7 @@ msgid "{ph0}Read the FAQ{ph1} — setup and common questions."
 msgstr ""
 "{ph0}Διαβάστε τις συχνές ερωτήσεις{ph1} — ρύθμιση και συνηθισμένες απορίες."
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/index.html:1196
 #, python-brace-format
@@ -15234,7 +15234,7 @@ msgstr ""
 "{ph0}Μπείτε στο Discord{ph1} — ζητήστε βοήθεια και συζητήστε τις "
 "διερευνήσεις σας."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/index.html:1200
 #, python-brace-format
@@ -15250,7 +15250,7 @@ msgid "Setup options"
 msgstr "Επιλογές ρύθμισης"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#development-
 #. setup" >
 #. {ph1}: </a >
 #. {ph2}: <code>6.4.0</code>
@@ -15395,7 +15395,7 @@ msgctxt "page:contributors/index.html"
 msgid "Find a contributor"
 msgstr "Βρείτε έναν συνεισφέροντα"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/graphs/contributors">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/graphs/contributors">
 #. {ph1}: </a>
 #. {ph2}: <time datetime="2026-10-15" translate="no">2026-10-15</time>
 #: website/public/contributors/index.html:1110

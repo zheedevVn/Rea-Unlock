@@ -1268,7 +1268,7 @@ msgctxt "page:blog/reverse-engineering-models/index.html"
 msgid "Evidence and model attribution"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/website/evidence/reverse-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/reverse-
 #. engineering-models.md" >
 #. {ph1}: </a >
 #: website/public/blog/reverse-engineering-models/index.html:779
@@ -2699,7 +2699,7 @@ msgctxt "page:contributors/index.html"
 msgid "Find a contributor"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/graphs/contributors">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/graphs/contributors">
 #. {ph1}: </a>
 #. {ph2}: <time datetime="2026-10-15" translate="no">2026-10-15</time>
 #: website/public/contributors/index.html:1110
@@ -3247,7 +3247,7 @@ msgctxt "page:faq/index.html"
 msgid "Terminal · refresh agent setup"
 msgstr ""
 
-#. {ph0}: <code>npx -y rea-agents@latest</code>
+#. {ph0}: <code>npx -y rea-unlock@latest</code>
 #: website/public/faq/index.html:299
 #, python-brace-format
 msgctxt "page:faq/index.html"
@@ -3532,7 +3532,7 @@ msgid ""
 " already fix the problem."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/faq/index.html:513
 #, python-brace-format
@@ -3565,9 +3565,9 @@ msgctxt "page:faq/index.html"
 msgid "How can I share an example or contribute?"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/pulls">
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/pulls">
 #. {ph3}: </a >
 #: website/public/faq/index.html:539
 #, python-brace-format
@@ -3578,7 +3578,7 @@ msgid ""
 "Short code excerpts and figures help others follow the investigation."
 msgstr ""
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/faq/index.html:551
 #, python-brace-format
@@ -3774,7 +3774,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -3816,7 +3816,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-analysis-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-example.zip</span >
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
 #. {ph6}: <span class="terminal-cursor" aria-hidden="true">
@@ -4577,7 +4577,7 @@ msgstr ""
 
 #. {ph0}: <a href="https://claude.ai/download">
 #. {ph1}: </a>
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#claude-desktop" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:593
@@ -4647,11 +4647,11 @@ msgid ""
 "those integrations."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md" >
 #. {ph1}: </a >
 #. {ph2}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#released-package-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#released-package-
 #. and-main" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:722
@@ -4675,7 +4675,7 @@ msgid ""
 "on the Bot's computer:"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#other-client-settings" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:753
@@ -4711,7 +4711,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="agent-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -4830,7 +4830,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="setup-first-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-example.zip</span >
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
 #. {ph6}: <span class="terminal-cursor" aria-hidden="true">
@@ -5037,7 +5037,7 @@ msgid ""
 "Settings → Privacy & Security → Automation, then retry."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/installation.md#hopper"
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#hopper"
 #. >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1061
@@ -5141,7 +5141,7 @@ msgid ""
 msgstr ""
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#missing-macos-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#missing-macos-
 #. native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1178
@@ -5150,7 +5150,7 @@ msgctxt "page:get-started/index.html"
 msgid "{ph0}macOS · Intel{ph1}"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/installation.md#macos-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#macos-
 #. arm64-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1184
@@ -5181,10 +5181,10 @@ msgid ""
 " approve the updated client configuration, then restart your agent."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/installation.md#ghidra"
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#ghidra"
 #. >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/windows-ghidra-p0.md" >
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/windows-ghidra-p0.md" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:1220
 #, python-brace-format
@@ -5214,7 +5214,7 @@ msgid ""
 "has its own version and platform requirements."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#development-
 #. setup" >
 #. {ph1}: </a >
 #. {ph2}: <code>6.4.0</code>
@@ -5282,7 +5282,7 @@ msgid ""
 "and restart your agent."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/ida-provider.md" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/ida-provider.md" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1338
 #, python-brace-format
@@ -5436,12 +5436,12 @@ msgctxt "page:get-started/index.html"
 msgid "Process behavior"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/flutter-analysis.md" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/flutter-analysis.md" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/javascript-artifact-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/javascript-artifact-
 #. reconstruction.md" >
 #. {ph3}: </a >
-#. {ph4}: <a href="https://github.com/morluto/rea/blob/main/docs/evm-bytecode.md" >
+#. {ph4}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/evm-bytecode.md" >
 #. {ph5}: </a >
 #. {ph6}: <a href="../guides/">
 #. {ph7}: </a>
@@ -5671,7 +5671,7 @@ msgid ""
 msgstr ""
 
 #. {ph0}: <code>rea update</code>
-#. {ph1}: <code>npx rea-agents@latest uninstall</code>
+#. {ph1}: <code>npx rea-unlock@latest uninstall</code>
 #: website/public/get-started/index.html:1768
 #, python-brace-format
 msgctxt "page:get-started/index.html"
@@ -5681,7 +5681,7 @@ msgid ""
 msgstr ""
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#diagnose-update-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#diagnose-update-
 #. and-remove" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1774
@@ -5712,7 +5712,7 @@ msgid ""
 "app and a browser.{ph3}"
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -5723,7 +5723,7 @@ msgid ""
 "{ph0}GitHub issues{ph1}{ph2}Report a problem with the command and diagnostics.{ph3}"
 msgstr ""
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -6227,7 +6227,7 @@ msgid ""
 "workflow{ph1} to follow files and process boundaries."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/web-network-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-
 #. captures.md" >
 #. {ph1}: </a >
 #: website/public/guides/browser/index.html:483
@@ -7579,7 +7579,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="home-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -8538,7 +8538,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="website-project-prompt" >
-#. {ph3}: <span translate="no">https://rea.tools/</span>
+#. {ph3}: <span translate="no">https://github.com/zheedevVn/Rea-Unlock</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -8603,7 +8603,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Read the FAQ{ph1} — setup and common questions."
 msgstr ""
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/index.html:1196
 #, python-brace-format
@@ -8611,7 +8611,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Join Discord{ph1} — get help and discuss your investigations."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/index.html:1200
 #, python-brace-format
@@ -9969,7 +9969,7 @@ msgstr ""
 #. href="https://github.com/DownUnderCTF/Challenges_2023_Public/blob/b48f83db2984bc7fa2ec7879a32d7efb1be8d333/rev/masked-
 #. squares-flag-checker/ctfcli.yaml" >
 #. {ph3}: </a >
-#. {ph4}: <a href="https://github.com/morluto/rea/blob/main/website/evidence/ctf-masked-
+#. {ph4}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/ctf-masked-
 #. squares.md" >
 #. {ph5}: </a >
 #: website/public/showcase/ctf/index.html:700

@@ -96,7 +96,7 @@ cliTest(
         rea: {
           type: "stdio",
           command: "npx",
-          args: ["-y", "rea-agents@1.0.0", "mcp"],
+          args: ["-y", "rea-unlock@1.0.0", "mcp"],
           env: custom,
         },
       },

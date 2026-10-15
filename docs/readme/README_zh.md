@@ -9,25 +9,23 @@
 
 **看到喜欢的功能，弄清它的工作原理，深入到二进制层面。**
 
-[![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![npm version](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[网站](https://rea.tools/zh-CN/) · [指南](https://rea.tools/zh-CN/guides/) · [案例](https://rea.tools/zh-CN/showcase/)**
+**[网站](https://github.com/zheedevVn/Rea-Unlock) · [指南](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [案例](https://github.com/zheedevVn/Rea-Unlock)**
 
 [快速开始](#快速开始) · [REA 的工作原理](#rea-的工作原理) · [可以分析什么](#可以分析什么) · [案例](#案例) · [常见问题](#常见问题) · [GNU objdump 和 Rizin 工具](../reverse-engineering-tools.md) · [文档](#文档)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> REA 官方来源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> REA 官方来源： [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > 请通过这些官方来源提供的安装和发布链接获取 REA。相似的仓库名称或复制的 README 不能证明下载内容来自官方。
 
 <div align="center">
@@ -41,7 +39,7 @@
 <table aria-label="REA 社区">
 <tr>
 <td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
+  <a href="https://github.com/zheedevVn/Rea-Unlock">
     <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
     <strong>加入逆向工程社区</strong>
   </a><br />
@@ -62,7 +60,7 @@ REA 将智能体连接到分析工具，用于检查原生二进制文件、Java
 
 设置流程会向智能体注册 REA，并安装匹配的工作流指引。原生分析可以使用已有的 Hopper、Ghidra 或 IDA；设置流程也可以在你批准后安装 Hopper。静态 JavaScript 分析不需要原生分析引擎。
 
-> **[访问 REA 网站](https://rea.tools/zh-CN/)**，查看设置说明、图解指南和真实案例。
+> **[访问 REA 网站](https://github.com/zheedevVn/Rea-Unlock)**，查看设置说明、图解指南和真实案例。
 
 ## 快速开始
 
@@ -71,7 +69,7 @@ REA 将智能体连接到分析工具，用于检查原生二进制文件、Java
 安装 Node.js 和 npm 后，运行：
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 选择智能体，检查计划中的变更并批准。设置流程会添加 REA 的 MCP 服务和匹配的工作流指引，并备份已有配置。完成后重启智能体。
@@ -91,7 +89,7 @@ npx rea-agents setup
 检查已解包的 JavaScript/Electron 应用目录或 ASAR 文件：
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 结果包含模块、导入、Electron 边界及相关证据。将路径替换为你的目标路径，例如 Windows 上的 `"D:/apps/example"`。
@@ -99,7 +97,7 @@ npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --
 如果需要经常使用，可以安装 `rea` 命令：
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -122,10 +120,10 @@ Bun 全局更新需要 Bun 1.2.17 或更高版本。如果使用较旧的 Bun �
 如果使用 `npx`，通过以下命令更新智能体设置：
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-检查设置变更并重启智能体。单次 CLI 操作可使用 `npx rea-agents@latest`，后接所需命令。使用 Bun 时，用 `bunx rea-agents@latest` 代替 `npx rea-agents@latest`。
+检查设置变更并重启智能体。单次 CLI 操作可使用 `npx rea-unlock@latest`，后接所需命令。使用 Bun 时，用 `bunx rea-unlock@latest` 代替 `npx rea-unlock@latest`。
 
 ## REA 的工作原理
 
@@ -174,29 +172,29 @@ REA 需要 Node.js 22.x（>=22.19）、24.x（>=24.11）或 26+，以及 npm。�
 
 ## 案例
 
-[![DX-Ball 声音平移、Notion 剪贴板桥接与 TH04 弹幕环案例的插图](../assets/rea-showcases.png)](https://rea.tools/zh-CN/showcase/)
+[![DX-Ball 声音平移、Notion 剪贴板桥接与 TH04 弹幕环案例的插图](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball：重建声像计算
 
 沿声音调用追踪到根据位置计算声像的辅助函数，检查指令，将不完整的伪代码转为 C。重建结果通过了 3,205 个原始 x86 测试用例，并复现了编译后函数的全部 63 个字节。
 
-[阅读案例](https://rea.tools/zh-CN/showcase/dx-ball/) ·
+[阅读案例](https://github.com/zheedevVn/Rea-Unlock) ·
 [重建项目仓库](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion：追踪 Electron 剪贴板桥
 
 找到渲染进程的剪贴板 API，沿 preload 和 IPC 追踪到主进程，并检查富格式剪贴板数据。
 
-[阅读案例](https://rea.tools/zh-CN/showcase/notion/)
+[阅读案例](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04：恢复 DOS 环形子弹的计算
 
 检查原始 PC-98 游戏的 16 位指令，恢复固定角度和瞄准角度的计算，并将重建的 C++ 与当年的编译器输出进行对比。
 
-[阅读案例](https://rea.tools/zh-CN/showcase/th04/) ·
+[阅读案例](https://github.com/zheedevVn/Rea-Unlock) ·
 [重建项目仓库](https://github.com/N0zoM1z0/th04)
 
-如果你用 REA 分析了有趣的目标，我们很想了解。欢迎通过 [issue](https://github.com/morluto/rea/issues) 或 [pull request](https://github.com/morluto/rea/pulls) 分享案例，说明目标、你的问题、REA 如何提供帮助，以及你的发现。
+如果你用 REA 分析了有趣的目标，我们很想了解。欢迎通过 [issue](https://github.com/zheedevVn/Rea-Unlock/issues) 或 [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) 分享案例，说明目标、你的问题、REA 如何提供帮助，以及你的发现。
 
 ## 常见问题
 
@@ -224,7 +222,7 @@ REA 会在操作需要时启动 Hopper。在 macOS 上，首次运行时可能�
 <details>
 <summary><strong>从 skills.sh 安装 skill 有什么作用？</strong></summary>
 
-skill 为智能体提供调查指引。使用 `npx rea-agents setup` 注册 REA 的 MCP 服务并安装匹配的指引，然后重启智能体。见[仅安装 skill](../installation.md#skill-only-installation)。
+skill 为智能体提供调查指引。使用 `npx rea-unlock setup` 注册 REA 的 MCP 服务并安装匹配的指引，然后重启智能体。见[仅安装 skill](../installation.md#skill-only-installation)。
 
 </details>
 
@@ -256,16 +254,16 @@ rea update
 通过 `npx` 设置智能体时使用：
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-如果正在使用智能体，请完成[设置更新](#更新-rea)并重启智能体。重试同一任务。如果问题仍然存在，请[提交 issue](https://github.com/morluto/rea/issues)，附上 REA 版本、目标类型、复现步骤和错误输出。
+如果正在使用智能体，请完成[设置更新](#更新-rea)并重启智能体。重试同一任务。如果问题仍然存在，请[提交 issue](https://github.com/zheedevVn/Rea-Unlock/issues)，附上 REA 版本、目标类型、复现步骤和错误输出。
 
 </details>
 
 ## 文档
 
-可以先阅读网站上的[实操指南](https://rea.tools/zh-CN/guides/)。具体选项、前提条件和结果契约见：
+可以先阅读网站上的[实操指南](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs)。具体选项、前提条件和结果契约见：
 
 - [安装与设置](../installation.md)：智能体注册、提供方配置、更新和卸载。
 - [就绪检查与故障排查](../installation.md#check-readiness-for-your-task)：诊断特定智能体或分析引擎。
@@ -282,11 +280,11 @@ npx rea-agents@latest setup
 
 感谢每一位使用 REA、报告错误、提出功能需求、测试构建和贡献修复的朋友。
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="REA 的 GitHub Star 历史" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="REA 的 GitHub Star 历史" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -301,7 +299,7 @@ REA 用于合法的研究、教育、互操作性、软件保存，以及分析�
 
 ## 参与贡献
 
-欢迎帮助改进 REA！你可以[提交 issue](https://github.com/morluto/rea/issues) 报告错误或建议功能，也可以[提交 pull request](https://github.com/morluto/rea/pulls) 改进代码或文档。
+欢迎帮助改进 REA！你可以[提交 issue](https://github.com/zheedevVn/Rea-Unlock/issues) 报告错误或建议功能，也可以[提交 pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) 改进代码或文档。
 
 开发设置和检查见 [CONTRIBUTING.md](../../CONTRIBUTING.md)，验证流程见[测试指南](../testing.md)，项目结构见[架构图](../architecture.mermaid)。
 

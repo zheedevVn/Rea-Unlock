@@ -63,7 +63,7 @@ and DLLs.
 ## Configuration
 
 ```powershell
-npm install --global rea-agents
+npm install --global rea-unlock
 $env:GHIDRA_INSTALL_DIR = "C:\tools\ghidra_12.1.4_PUBLIC"
 $env:JAVA_HOME = "C:\tools\jdk-21"
 $env:REA_ANALYSIS_PROVIDER = "ghidra"
@@ -189,7 +189,7 @@ private runtime files; crash-time transactional deletion is not claimed.
 
 ## Verification
 
-See [native controls](https://github.com/morluto/rea/blob/main/native/windows/README.md) for the separate artifact
+See [native controls](https://github.com/zheedevVn/Rea-Unlock/blob/main/native/windows/README.md) for the separate artifact
 build lane and native boundary checks. Development tarballs without the built
 artifact report native controls unavailable; publishing requires the verified
 artifact and manifest.

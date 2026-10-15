@@ -30,7 +30,7 @@ without this lane reports Windows native controls as unavailable.
 
 The source tree omits `native/windows/build/` from Git. To run Windows
 provider-backed workflows from a checkout without the MinGW build lane, extract
-the two files from the published `rea-agents` tarball whose version exactly
+the two files from the published `rea-unlock` tarball whose version exactly
 matches the checkout's `package.json` version. Do not use `latest` or copy files
 from another REA version; the loader verifies the manifest version, ABI,
 architecture, and addon digest before it grants authority.
@@ -39,8 +39,8 @@ From the checkout root, replace `<matching-version>` with the `version` in
 `package.json`:
 
 ```sh
-npm pack rea-agents@<matching-version>
-tar -xzf rea-agents-<matching-version>.tgz
+npm pack rea-unlock@<matching-version>
+tar -xzf rea-unlock-<matching-version>.tgz
 mkdir -p native/windows/build
 cp package/native/windows/build/manifest.json native/windows/build/
 cp package/native/windows/build/rea-windows-x64.node native/windows/build/

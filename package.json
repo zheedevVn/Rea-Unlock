@@ -1,16 +1,17 @@
 {
-  "name": "rea-agents",
-  "mcpName": "io.github.morluto/rea",
+  "name": "rea-unlock",
+  "mcpName": "io.github.zheedevVn/rea-unlock",
   "version": "6.5.0",
   "description": "Reverse engineer anything from your terminal or agent with one CLI and MCP server.",
   "license": "MIT",
+  "author": "Hồ Đức Minh",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/morluto/rea.git"
+    "url": "git+https://github.com/zheedevVn/Rea-Unlock.git"
   },
-  "homepage": "https://github.com/morluto/rea#readme",
+  "homepage": "https://github.com/zheedevVn/Rea-Unlock#readme",
   "bugs": {
-    "url": "https://github.com/morluto/rea/issues"
+    "url": "https://github.com/zheedevVn/Rea-Unlock/issues"
   },
   "keywords": [
     "reverse-engineering",
@@ -39,7 +40,7 @@
   },
   "bin": {
     "rea": "scripts/rea.mjs",
-    "rea-agents": "scripts/rea.mjs"
+    "rea-unlock": "scripts/rea.mjs"
   },
   "engines": {
     "node": "^22.19.0 || ^24.11.0 || >=26.0.0"

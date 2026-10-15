@@ -69,17 +69,17 @@ class WebsiteSearchChecks(unittest.TestCase):
             self.assertEqual(
                 urls(),
                 {
-                    "https://rea.tools/",
-                    "https://rea.tools/guides/new/",
-                    "https://rea.tools/code%20%26%20notes.html",
-                    "https://rea.tools/visible/",
+                    "https://github.com/zheedevVn/Rea-Unlock",
+                    "https://github.com/zheedevVn/Rea-Unlock/tree/main/docs",
+                    "https://github.com/zheedevVn/Rea-Unlock",
+                    "https://github.com/zheedevVn/Rea-Unlock",
                 },
             )
             nested.rename(site / "moved.html")
-            self.assertIn("https://rea.tools/moved.html", urls())
-            self.assertNotIn("https://rea.tools/guides/new/", urls())
+            self.assertIn("https://github.com/zheedevVn/Rea-Unlock", urls())
+            self.assertNotIn("https://github.com/zheedevVn/Rea-Unlock/tree/main/docs", urls())
             (site / "moved.html").unlink()
-            self.assertNotIn("https://rea.tools/moved.html", urls())
+            self.assertNotIn("https://github.com/zheedevVn/Rea-Unlock", urls())
 
     def test_verifier_rejects_wrong_canonicals_stale_sitemaps_and_missing_previews(
         self,
@@ -87,14 +87,14 @@ class WebsiteSearchChecks(unittest.TestCase):
         cases = (
             (
                 "index.html",
-                'rel="canonical" href="https://rea.tools/"',
-                'rel="canonical" href="https://morluto.github.io/rea/"',
+                'rel="canonical" href="https://github.com/zheedevVn/Rea-Unlock"',
+                'rel="canonical" href="https://zheedevVn.github.io/rea/"',
                 "head canonical",
             ),
             (
                 "showcase/aegis/index.html",
-                'rel="canonical" href="https://rea.tools/showcase/aegis/"',
-                'rel="canonical" href="https://rea.tools/"',
+                'rel="canonical" href="https://github.com/zheedevVn/Rea-Unlock"',
+                'rel="canonical" href="https://github.com/zheedevVn/Rea-Unlock"',
                 "head canonical",
             ),
             (
@@ -105,8 +105,8 @@ class WebsiteSearchChecks(unittest.TestCase):
             ),
             (
                 "sitemap.xml",
-                "https://rea.tools/faq/",
-                "https://rea.tools/deleted/",
+                "https://github.com/zheedevVn/Rea-Unlock",
+                "https://github.com/zheedevVn/Rea-Unlock",
                 "each indexable page once",
             ),
             (
@@ -220,7 +220,7 @@ class WebsiteMaintenanceChecks(unittest.TestCase):
                 snapshot = root / "website/public/contributors/people.json"
                 snapshot.parent.mkdir(parents=True)
                 snapshot.write_bytes(json.dumps({
-                    "repository": "morluto/rea", "updated": "2026-10-14", "contributors": people[:1],
+                    "repository": "zheedevVn/Rea-Unlock", "updated": "2026-10-14", "contributors": people[:1],
                 }).encode("utf-8"))
                 before = snapshot.read_bytes()
                 with patch.object(WEBSITE.subprocess, "run", return_value=response), failure as save:
@@ -282,10 +282,10 @@ class WebsiteMaintenanceChecks(unittest.TestCase):
                 WEBSITE.new_page(root, "../outside", "Title", "Description")
             WEBSITE.sync_pages(root, check=True)
             PREPARE.prepare_sitemap(site)
-            self.assertNotIn("https://rea.tools/blog/new-example/", (site / "sitemap.xml").read_text())
+            self.assertNotIn("https://github.com/zheedevVn/Rea-Unlock", (site / "sitemap.xml").read_text())
             page.write_text(source.replace('    <meta name="robots" content="noindex" />\n', ''))
             PREPARE.prepare_sitemap(site)
-            self.assertIn("https://rea.tools/blog/new-example/", (site / "sitemap.xml").read_text())
+            self.assertIn("https://github.com/zheedevVn/Rea-Unlock", (site / "sitemap.xml").read_text())
             self.assertEqual(VERIFY.check_site(site)[3], [])
 
     def test_links_in_prompts_fragments_and_copy_controls_are_verified(self):
@@ -295,9 +295,9 @@ class WebsiteMaintenanceChecks(unittest.TestCase):
             page = site / "faq/index.html"
             original = page.read_text()
             cases = (
-                ('<a href="https://rea.tools/deleted/">Broken</a>', "missing local target"),
-                ('<code>https://rea.tools/guides/native/#deleted</code>', "missing HTML fragment"),
-                ('<code>https://morluto.github.io/rea/examples/notes-web/</code>', "obsolete website URL"),
+                ('<a href="https://github.com/zheedevVn/Rea-Unlock">Broken</a>', "missing local target"),
+                ('<code>https://github.com/zheedevVn/Rea-Unlock/tree/main/docs</code>', "missing HTML fragment"),
+                ('<code>https://zheedevVn.github.io/rea/examples/notes-web/</code>', "obsolete website URL"),
                 ('<button data-copy="deleted">Copy</button>', "missing copy target"),
                 ('<a href="https://[">Malformed</a>', "invalid URL"),
             )
@@ -396,7 +396,7 @@ class WebsiteTranslationChecks(unittest.TestCase):
             self.assertTrue(fallback.translation_fallback)
             self.assertTrue(fallback.noindex())
             self.assertEqual(fallback.lang, "en")
-            self.assertNotIn("https://rea.tools/zh-CN/faq/", (site / "sitemap.xml").read_text())
+            self.assertNotIn("https://github.com/zheedevVn/Rea-Unlock", (site / "sitemap.xml").read_text())
             self.assertNotIn('hreflang="zh-CN"', (site / "faq/index.html").read_text())
             new.msgstr = "现在如何安装 REA？"
             new.flags.append("fuzzy")
@@ -412,7 +412,7 @@ class WebsiteTranslationChecks(unittest.TestCase):
             self.assertNotIn("data-translation-fallback", result)
             self.assertIn('href="../assets/styles.css"', (site / "zh-CN/index.html").read_text())
             self.assertIn('hreflang="zh-CN"', (site / "faq/index.html").read_text())
-            self.assertIn("https://rea.tools/zh-CN/faq/", (site / "sitemap.xml").read_text())
+            self.assertIn("https://github.com/zheedevVn/Rea-Unlock", (site / "sitemap.xml").read_text())
 
     def test_broken_placeholders_and_inline_markup_fail_before_replacing_preview(self):
         with self.translated_project() as root:

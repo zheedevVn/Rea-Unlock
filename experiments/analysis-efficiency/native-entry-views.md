@@ -1,6 +1,6 @@
 # Native PE and DOS entry-view checkpoint
 
-Continuation of [#2016](https://github.com/morluto/rea/issues/2016) after
+Continuation of [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after
 #2122 and #2193 merged. Real Ghidra observations and real Codex CLI answers
 support the selected native facets on these shipped inputs. They do not justify
 an automatic native summary policy: the four selected replies are larger than

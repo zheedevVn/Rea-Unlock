@@ -32,7 +32,7 @@ export async function installCanaryPackage(specifier, workspace, environment) {
     ],
     { cwd: workspace, env: environment, maxBuffer: 16 * 1024 * 1024 },
   );
-  return join(prefix, "node_modules", "rea-agents");
+  return join(prefix, "node_modules", "rea-unlock");
 }
 
 /** Exercise the same installed CLI/MCP contract before and after publication. */
@@ -45,9 +45,9 @@ export async function verifyInstalledCanaryPackage(
   const installed = JSON.parse(
     await readFile(join(packageRoot, "package.json"), "utf8"),
   );
-  if (installed.name !== "rea-agents" || installed.version !== version)
+  if (installed.name !== "rea-unlock" || installed.version !== version)
     throw new Error(
-      `Installed package identity is ${installed.name}@${installed.version}, expected rea-agents@${version}`,
+      `Installed package identity is ${installed.name}@${installed.version}, expected rea-unlock@${version}`,
     );
   const launcher = join(packageRoot, "scripts", "rea.mjs");
   for (const option of ["--help", "--llms"])

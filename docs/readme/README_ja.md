@@ -9,25 +9,23 @@
 
 **気に入った機能を見つけたら、その仕組みをバイナリのレベルまで理解する。**
 
-[![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![npm version](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[ウェブサイト](https://rea.tools/ja/) · [ガイド](https://rea.tools/ja/guides/) · [事例](https://rea.tools/ja/showcase/)**
+**[ウェブサイト](https://github.com/zheedevVn/Rea-Unlock) · [ガイド](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [事例](https://github.com/zheedevVn/Rea-Unlock)**
 
 [クイックスタート](#クイックスタート) · [REA の仕組み](#rea-の仕組み) · [分析できる対象](#分析できる対象) · [事例](#事例) · [よくある質問](#よくある質問) · [GNU objdump・Rizin ツール](../reverse-engineering-tools.md) · [ドキュメント](#ドキュメント)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> REA の公式配布元： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> REA の公式配布元： [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > インストールとリリースのリンクは、これらの公式配布元からたどってください。似たリポジトリ名やコピーされた README だけでは、公式の配布物とは確認できません。
 
 <div align="center">
@@ -41,7 +39,7 @@
 <table aria-label="REA コミュニティ">
 <tr>
 <td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
+  <a href="https://github.com/zheedevVn/Rea-Unlock">
     <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
     <strong>リバースエンジニアリングのコミュニティに参加</strong>
   </a><br />
@@ -62,7 +60,7 @@ REA はエージェントを分析ツールにつなぎ、ネイティブバイ�
 
 セットアップはエージェントに REA を登録し、対応するワークフローの手順をインストールします。ネイティブ分析には既存の Hopper または Ghidra を使えます。承認すれば、セットアップで Hopper をインストールすることもできます。静的な JavaScript 分析には、どちらのエンジンも必要ありません。
 
-> **[REA のウェブサイト](https://rea.tools/ja/)**で、セットアップ手順、図解ガイド、実際の事例を確認できます。
+> **[REA のウェブサイト](https://github.com/zheedevVn/Rea-Unlock)**で、セットアップ手順、図解ガイド、実際の事例を確認できます。
 
 ## クイックスタート
 
@@ -71,7 +69,7 @@ REA はエージェントを分析ツールにつなぎ、ネイティブバイ�
 Node.js と npm がインストールされている環境で実行します。
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 使うエージェントを選び、予定されている変更を確認して承認してください。セットアップは REA の MCP サーバーと対応するワークフローの手順を追加し、既存の設定をバックアップします。完了後にエージェントを再起動してください。
@@ -91,7 +89,7 @@ Notes を対象のアプリに置き換え、理解したい機能を指定し�
 展開済みの JavaScript/Electron アプリのディレクトリ、または ASAR を調べます。
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 結果にはモジュール、インポート、Electron の境界と、それらの根拠が含まれます。パスは対象に合わせて変更してください。Windows では、たとえば `"D:/apps/example"` を指定します。
@@ -99,7 +97,7 @@ npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --
 日常的に使う場合は、`rea` コマンドをインストールできます。
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -120,10 +118,10 @@ rea update
 `npx` を使っている場合は、次のコマンドでエージェントの設定を更新します。
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-設定の変更を確認し、エージェントを再起動してください。単発の CLI 操作では、`npx rea-agents@latest` に続けてコマンドを指定します。
+設定の変更を確認し、エージェントを再起動してください。単発の CLI 操作では、`npx rea-unlock@latest` に続けてコマンドを指定します。
 
 ## REA の仕組み
 
@@ -170,29 +168,29 @@ REA には Node.js 22.x（>=22.19）、24.x（>=24.11）、または 26+ と npm
 
 ## 事例
 
-[![DX-Ball の音声パン、Notion のクリップボードブリッジ、TH04 の弾幕リングの事例を表すイラスト](../assets/rea-showcases.png)](https://rea.tools/ja/showcase/)
+[![DX-Ball の音声パン、Notion のクリップボードブリッジ、TH04 の弾幕リングの事例を表すイラスト](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball：音声のパン計算を再構築する
 
 音声の呼び出しから位置をパンに変換する補助関数をたどり、命令を調べ、不完全な疑似コードを C に書き直します。再構築した実装は、元の x86 に対する 3,205 ケースの検証を通過し、コンパイル後の関数の全 63 バイトを再現しています。
 
-[事例を読む](https://rea.tools/ja/showcase/dx-ball/) ·
+[事例を読む](https://github.com/zheedevVn/Rea-Unlock) ·
 [再構築リポジトリ](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion：Electron のクリップボードブリッジを追跡する
 
 レンダラーのクリップボード API を見つけ、preload と IPC を経由してメインプロセスまでたどり、リッチなクリップボード形式を調べます。
 
-[事例を読む](https://rea.tools/ja/showcase/notion/)
+[事例を読む](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04：DOS の弾幕リングの計算を復元する
 
 元の PC-98 ゲームの 16 ビット命令を調べ、固定角度と自機を狙う角度の計算を復元し、再構築した C++ を当時のコンパイラーの出力と比較します。
 
-[事例を読む](https://rea.tools/ja/showcase/th04/) ·
+[事例を読む](https://github.com/zheedevVn/Rea-Unlock) ·
 [再構築リポジトリ](https://github.com/N0zoM1z0/th04)
 
-REA で興味深い対象を調べたら、ぜひ共有してください。[issue](https://github.com/morluto/rea/issues) または [pull request](https://github.com/morluto/rea/pulls) に、対象、調べたかったこと、REA がどう役立ったか、何が分かったかを記載してください。
+REA で興味深い対象を調べたら、ぜひ共有してください。[issue](https://github.com/zheedevVn/Rea-Unlock/issues) または [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) に、対象、調べたかったこと、REA がどう役立ったか、何が分かったかを記載してください。
 
 ## よくある質問
 
@@ -220,7 +218,7 @@ REA は必要な操作の際に Hopper を起動します。macOS では、初�
 <details>
 <summary><strong>skills.sh からスキルをインストールすると何ができますか？</strong></summary>
 
-スキルはエージェントに調査の手順を提供します。`npx rea-agents setup` で REA の MCP サーバーを登録し、対応する手順をインストールしてから、エージェントを再起動してください。[スキルのみのインストール](../installation.md#skill-only-installation)を参照してください。
+スキルはエージェントに調査の手順を提供します。`npx rea-unlock setup` で REA の MCP サーバーを登録し、対応する手順をインストールしてから、エージェントを再起動してください。[スキルのみのインストール](../installation.md#skill-only-installation)を参照してください。
 
 </details>
 
@@ -252,16 +250,16 @@ rea update
 `npx` でエージェントを設定している場合：
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-エージェントを使っている場合は、[設定の更新](#rea-を更新する)を完了し、再起動してください。同じタスクをもう一度試し、問題が続く場合は [issue を作成](https://github.com/morluto/rea/issues)して、REA のバージョン、対象の種類、再現手順、エラー出力を記載してください。
+エージェントを使っている場合は、[設定の更新](#rea-を更新する)を完了し、再起動してください。同じタスクをもう一度試し、問題が続く場合は [issue を作成](https://github.com/zheedevVn/Rea-Unlock/issues)して、REA のバージョン、対象の種類、再現手順、エラー出力を記載してください。
 
 </details>
 
 ## ドキュメント
 
-まずはウェブサイトの[実践ガイド](https://rea.tools/ja/guides/)を参照してください。正確なオプション、前提条件、結果の契約については、以下を参照してください。
+まずはウェブサイトの[実践ガイド](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs)を参照してください。正確なオプション、前提条件、結果の契約については、以下を参照してください。
 
 - [インストールとセットアップ](../installation.md)：エージェントの登録、プロバイダーの設定、更新、アンインストール。
 - [準備状況の確認とトラブルシューティング](../installation.md#check-readiness-for-your-task)：特定のエージェントや分析エンジンを診断。
@@ -278,11 +276,11 @@ npx rea-agents@latest setup
 
 REA の利用、バグ報告、機能の要望、ビルドのテスト、修正への貢献に感謝します。
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="REA の GitHub スター履歴" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="REA の GitHub スター履歴" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -298,7 +296,7 @@ applicable licenses.
 
 ## 貢献する
 
-REA への貢献を歓迎します！[issue を作成](https://github.com/morluto/rea/issues)してバグや機能の提案を報告したり、[pull request を送信](https://github.com/morluto/rea/pulls)してコードやドキュメントを改善したりできます。
+REA への貢献を歓迎します！[issue を作成](https://github.com/zheedevVn/Rea-Unlock/issues)してバグや機能の提案を報告したり、[pull request を送信](https://github.com/zheedevVn/Rea-Unlock/pulls)してコードやドキュメントを改善したりできます。
 
 開発環境とチェックは [CONTRIBUTING.md](../../CONTRIBUTING.md)、検証レーンは[テストガイド](../testing.md)、プロジェクト構造は[アーキテクチャ図](../architecture.mermaid)を参照してください。
 

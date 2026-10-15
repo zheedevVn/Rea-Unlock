@@ -7,7 +7,7 @@ import { err, ok, type Result } from "../domain/result.js";
 // parameters schema exceeds its literal serialized size cap. Community
 // measurements bound the cap between ~13.7 KB (accepted) and ~15 KB
 // (rejected); 13 KiB leaves margin under the lower bound. See
-// https://github.com/morluto/rea/issues/1484 for the measured evidence.
+// https://github.com/zheedevVn/Rea-Unlock/issues/1484 for the measured evidence.
 export const COMPACT_INPUT_SCHEMA_BUDGET_BYTES = 13 * 1024;
 
 export const mcpInputSchemaProfileSchema = z.enum(["full", "compact"]);

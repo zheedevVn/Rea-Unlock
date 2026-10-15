@@ -44,7 +44,7 @@ it.skipIf(process.platform === "win32")(
     await writeFile(
       join(candidate, "package.json"),
       JSON.stringify({
-        name: "rea-agents",
+        name: "rea-unlock",
         version,
         type: "module",
         files: ["scripts"],
@@ -93,7 +93,7 @@ if (process.argv[2] === "mcp") {
     }
     await writeFile(
       join(controller, "package.json"),
-      JSON.stringify({ name: "rea-agents", version, type: "module" }),
+      JSON.stringify({ name: "rea-unlock", version, type: "module" }),
     );
     await symlink(
       resolve("node_modules"),
@@ -120,7 +120,7 @@ if (process.argv[2] === "mcp") {
     );
     const result = JSON.parse((await invoke()).stdout);
     expect(result).toMatchObject({
-      package: "rea-agents",
+      package: "rea-unlock",
       version,
       source: tarball,
       mcpTools: snapshot.tools.tools.length,
@@ -146,7 +146,7 @@ if (process.argv[2] === "mcp") {
     await writeFile(
       join(candidate, "package.json"),
       JSON.stringify({
-        name: "rea-agents",
+        name: "rea-unlock",
         version: "0.0.0",
         type: "module",
         files: ["scripts"],

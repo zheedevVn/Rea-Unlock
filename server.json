@@ -1,11 +1,11 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.morluto/rea",
+  "name": "io.github.zheedevVn/rea-unlock",
   "title": "REA",
   "description": "Reverse engineer anything from your terminal or agent with one CLI and MCP server.",
-  "websiteUrl": "https://github.com/morluto/rea",
+  "websiteUrl": "https://github.com/zheedevVn/Rea-Unlock",
   "repository": {
-    "url": "https://github.com/morluto/rea",
+    "url": "https://github.com/zheedevVn/Rea-Unlock",
     "source": "github"
   },
   "version": "6.5.0",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
-      "identifier": "rea-agents",
+      "identifier": "rea-unlock",
       "version": "6.5.0",
       "runtimeHint": "npx",
       "transport": {

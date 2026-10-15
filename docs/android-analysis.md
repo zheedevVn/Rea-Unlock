@@ -2,7 +2,7 @@
 
 REA wraps an existing headless JADX engine through `src/android/`. Its source is
 kept as an unmodified, commit-pinned Git submodule; see
-[upstream provenance](https://github.com/morluto/rea/blob/main/third_party/README.md). CLI and MCP use the same
+[upstream provenance](https://github.com/zheedevVn/Rea-Unlock/blob/main/third_party/README.md). CLI and MCP use the same
 application workflow and return artifact-bound Evidence inline.
 
 This family is present on repository main and in npm 4.1.0. Check the
@@ -39,7 +39,7 @@ unverified.
 Use a **full JDK 17 or newer** (including its compiler module) and
 [**jadx-headless-mcp 0.7.1**](https://github.com/1013503897/jadx-headless-mcp/releases/download/v0.7.1/jadx-headless-mcp-0.7.1-all.jar).
 Verify the downloaded JAR's SHA-256 against
-[REA's pinned release metadata](https://github.com/morluto/rea/blob/main/src/android/JadxRelease.ts)
+[REA's pinned release metadata](https://github.com/zheedevVn/Rea-Unlock/blob/main/src/android/JadxRelease.ts)
 before using it. The following download and verification commands work for npm
 package consumers as well as repository checkouts; the repository-only
 `npm run fixtures:android` helper is not included in the npm package.

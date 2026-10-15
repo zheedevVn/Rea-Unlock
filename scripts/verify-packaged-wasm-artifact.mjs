@@ -42,7 +42,7 @@ try {
     ...(process.platform === "win32"
       ? ["node_modules"]
       : ["lib", "node_modules"]),
-    "rea-agents",
+    "rea-unlock",
     "scripts",
     "rea.mjs",
   );

@@ -147,7 +147,7 @@ jobs:
               sys.exit("Unknown publication target: " + target)
           hosts = {"GitHub Pages": pages_url}
           if target == "both":
-              hosts["Cloudflare"] = "https://rea.tools/"
+              hosts["Cloudflare"] = "https://github.com/zheedevVn/Rea-Unlock"
           pending = dict(hosts)
           for attempt in range(24):
               for name, base in list(pending.items()):
@@ -155,7 +155,7 @@ jobs:
                   try:
                       request = Request(url, headers={
                           "Cache-Control": "no-cache",
-                          "User-Agent": "REA-Website-Verifier/1.0 (+https://github.com/morluto/rea)",
+                          "User-Agent": "REA-Website-Verifier/1.0 (+https://github.com/zheedevVn/Rea-Unlock)",
                       })
                       with urlopen(request, timeout=10) as response:
                           actual = json.load(response).get("commit")

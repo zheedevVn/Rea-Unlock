@@ -1,7 +1,7 @@
 # EVM descriptor lifecycle acceptance
 
-Continues [#2016](https://github.com/morluto/rea/issues/2016) after
-[#2349](https://github.com/morluto/rea/pull/2349) merged. The
+Continues [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016) after
+[#2349](https://github.com/zheedevVn/Rea-Unlock/pull/2349) merged. The
 [public verifier](verify-evm-lifecycle.mjs) exercises actual compiled CLI and
 stdio MCP workflows with unchanged EVMole 0.9.3/WASM. This increment adds
 verification only; production contracts, factories, algorithms and defaults
@@ -94,7 +94,7 @@ Latest main `81cca2e0e3ebd98c21f41d7ad63d6a00e4cbc3f9` could not build during
 setup: its shared partial-error handler passes three arguments to an interface
 requiring four. Independently completed main CI at
 `fdd8f826023c568937d237c2f97d855de283a9b8` reports the same TypeScript failure
-([run 38309578208](https://github.com/morluto/rea/actions/runs/38309578208)).
+([run 38309578208](https://github.com/zheedevVn/Rea-Unlock/actions/runs/38309578208)).
 The unrelated regression is recorded in the maintainer-requested private bug
 handoff; this change does not repair it. The maintainer independently corrected
 the producing caller in main `8fc2043eb8bcedbf34dce064f977e455438635d6`.

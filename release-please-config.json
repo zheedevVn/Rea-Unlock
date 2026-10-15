@@ -15,7 +15,7 @@
   ],
   "packages": {
     ".": {
-      "package-name": "rea-agents",
+      "package-name": "rea-unlock",
       "extra-files": [
         { "type": "generic", "path": "docs/installation.md" },
         {

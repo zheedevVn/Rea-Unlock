@@ -8,26 +8,24 @@
 
 **Βρήκες μια λειτουργία που σου αρέσει; Μάθε πώς λειτουργεί, μέχρι το επίπεδο του δυαδικού κώδικα.**
 
-[![Έκδοση npm](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![Έκδοση npm](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![Κατάλογος εργαλείων MCP](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Απαιτήσεις Node.js](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#τι-μπορείς-να-αναλύσεις)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![Άδεια MIT](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Ιστότοπος](https://rea.tools/) · [Οδηγοί](https://rea.tools/guides/) · [Μελέτες περίπτωσης](https://rea.tools/showcase/)**
+**[Ιστότοπος](https://github.com/zheedevVn/Rea-Unlock) · [Οδηγοί](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Μελέτες περίπτωσης](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Γρήγορη εκκίνηση](#γρήγορη-εκκίνηση) · [Πώς λειτουργεί το REA](#πώς-λειτουργεί-το-rea) · [Τι μπορείς να αναλύσεις](#τι-μπορείς-να-αναλύσεις) · [Μελέτες περίπτωσης](#μελέτες-περίπτωσης) · [Συχνές ερωτήσεις](#συχνές-ερωτήσεις) · [Τεκμηρίωση](#τεκμηρίωση)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> Κατέβασε το REA από το [morluto/rea](https://github.com/morluto/rea),
-> το [rea.tools](https://rea.tools/) ή το [πακέτο rea-agents στο npm](https://www.npmjs.com/package/rea-agents).
+> Κατέβασε το REA από το [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock),
+> το [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock) ή το [πακέτο rea-unlock στο npm](https://www.npmjs.com/package/rea-unlock).
 > Ακολούθησε τους συνδέσμους εγκατάστασης και εκδόσεων από αυτές τις επίσημες πηγές.
 > Ένα παρόμοιο όνομα αποθετηρίου ή ένα αντιγραμμένο README δεν αποδεικνύει ότι
 > ένα αρχείο προς λήψη προέρχεται από επίσημη πηγή.
@@ -43,7 +41,7 @@
 <table aria-label="Κοινότητα REA">
 <tr>
 <td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
+  <a href="https://github.com/zheedevVn/Rea-Unlock">
     <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
     <strong>Έλα στην κοινότητα αντίστροφης μηχανικής</strong>
   </a><br />
@@ -64,7 +62,7 @@
 
 Η διαδικασία εγκατάστασης καταχωρίζει το REA στον agent σου και εγκαθιστά τις αντίστοιχες οδηγίες εργασίας. Για ανάλυση κώδικα μηχανής μπορείς να χρησιμοποιήσεις μια υπάρχουσα εγκατάσταση του Hopper, του Ghidra ή του IDA. Η διαδικασία εγκατάστασης μπορεί επίσης να εγκαταστήσει το Hopper, εφόσον το εγκρίνεις. Η στατική ανάλυση JavaScript δεν χρειάζεται μηχανή ανάλυσης κώδικα μηχανής.
 
-> **[Επισκέψου τον ιστότοπο του REA](https://rea.tools/)** για οδηγίες εγκατάστασης, εικονογραφημένους οδηγούς και πραγματικές μελέτες περίπτωσης.
+> **[Επισκέψου τον ιστότοπο του REA](https://github.com/zheedevVn/Rea-Unlock)** για οδηγίες εγκατάστασης, εικονογραφημένους οδηγούς και πραγματικές μελέτες περίπτωσης.
 
 ## Γρήγορη εκκίνηση
 
@@ -73,7 +71,7 @@
 Αφού εγκαταστήσεις το Node.js και το npm, εκτέλεσε:
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 Επίλεξε τους agents σου, έλεγξε τις προτεινόμενες αλλαγές και ενέκρινέ τες. Η διαδικασία προσθέτει τον MCP server του REA και τις αντίστοιχες οδηγίες εργασίας, κρατώντας αντίγραφα ασφαλείας των υφιστάμενων ρυθμίσεων. Στη συνέχεια, επανεκκίνησε τον agent σου.
@@ -93,7 +91,7 @@ npx rea-agents setup
 Εξέτασε τον αποσυμπιεσμένο φάκελο μιας εφαρμογής JavaScript/Electron ή ένα αρχείο ASAR:
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 Το αποτέλεσμα περιλαμβάνει modules, εισαγωγές, τα όρια μεταξύ των μερών της εφαρμογής Electron και τα αντίστοιχα τεκμήρια. Αντικατάστησε τη διαδρομή με τη δική σου, για παράδειγμα `"D:/apps/example"` στα Windows.
@@ -101,7 +99,7 @@ npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --
 Για να εγκαταστήσεις την εντολή `rea` για τακτική χρήση:
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -124,10 +122,10 @@ rea update
 Αν χρησιμοποιείς `npx`, ενημέρωσε τη ρύθμιση του agent με:
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Έλεγξε τις αλλαγές και επανεκκίνησε τον agent σου. Για μεμονωμένες εντολές CLI, χρησιμοποίησε `npx rea-agents@latest` και στη συνέχεια την εντολή που θέλεις. Με Bun, χρησιμοποίησε `bunx rea-agents@latest` αντί για `npx rea-agents@latest`.
+Έλεγξε τις αλλαγές και επανεκκίνησε τον agent σου. Για μεμονωμένες εντολές CLI, χρησιμοποίησε `npx rea-unlock@latest` και στη συνέχεια την εντολή που θέλεις. Με Bun, χρησιμοποίησε `bunx rea-unlock@latest` αντί για `npx rea-unlock@latest`.
 
 ## Πώς λειτουργεί το REA
 
@@ -183,27 +181,27 @@ npx rea-agents@latest setup
 
 ## Μελέτες περίπτωσης
 
-[![Εικονογραφήσεις των μελετών περίπτωσης για τη στερεοφωνική τοποθέτηση ήχου στο DX-Ball, τη γέφυρα προχείρου του Notion και τον δακτύλιο βλημάτων του TH04](../assets/rea-showcases.png)](https://rea.tools/showcase/)
+[![Εικονογραφήσεις των μελετών περίπτωσης για τη στερεοφωνική τοποθέτηση ήχου στο DX-Ball, τη γέφυρα προχείρου του Notion και τον δακτύλιο βλημάτων του TH04](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball: ανακατασκευή υπολογισμού στερεοφωνικής τοποθέτησης ήχου
 
 Ακολούθησε μια κλήση ήχου μέχρι τη βοηθητική συνάρτηση που μετατρέπει τη θέση σε στερεοφωνική τοποθέτηση, εξέτασε τις εντολές και μετέτρεψε τον ελλιπή ψευδοκώδικα σε C. Η ανακατασκευή περνά 3.205 δοκιμές με τον αρχικό κώδικα x86 και αναπαράγει και τα 63 bytes της μεταγλωττισμένης συνάρτησης.
 
-[Διάβασε τη μελέτη περίπτωσης](https://rea.tools/showcase/dx-ball/) · [Αποθετήριο ανακατασκευής](https://github.com/N0zoM1z0/dx-ball)
+[Διάβασε τη μελέτη περίπτωσης](https://github.com/zheedevVn/Rea-Unlock) · [Αποθετήριο ανακατασκευής](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion: ιχνηλάτηση της γέφυρας προχείρου στο Electron
 
 Βρες το API προχείρου του renderer, ακολούθησέ το μέσω του preload και του IPC μέχρι την κύρια διεργασία και εξέτασε τη μορφή εμπλουτισμένου περιεχομένου του προχείρου.
 
-[Διάβασε τη μελέτη περίπτωσης](https://rea.tools/showcase/notion/)
+[Διάβασε τη μελέτη περίπτωσης](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04: ανάκτηση υπολογισμού δακτυλίου βλημάτων σε DOS
 
 Εξέτασε τις εντολές 16 bit του αρχικού παιχνιδιού για PC-98, ανέκτησε τους υπολογισμούς σταθερών γωνιών και γωνιών στόχευσης και σύγκρινε τον ανακατασκευασμένο κώδικα C++ με την έξοδο του μεταγλωττιστή της εποχής.
 
-[Διάβασε τη μελέτη περίπτωσης](https://rea.tools/showcase/th04/) · [Αποθετήριο ανακατασκευής](https://github.com/N0zoM1z0/th04)
+[Διάβασε τη μελέτη περίπτωσης](https://github.com/zheedevVn/Rea-Unlock) · [Αποθετήριο ανακατασκευής](https://github.com/N0zoM1z0/th04)
 
-Αν χρησιμοποίησες το REA για κάτι ενδιαφέρον, θα θέλαμε να το δούμε. Μοιράσου τη μελέτη σου σε ένα [issue](https://github.com/morluto/rea/issues) ή [pull request](https://github.com/morluto/rea/pulls), αναφέροντας τον στόχο, το ερώτημά σου, πώς βοήθησε το REA και τι ανακάλυψες.
+Αν χρησιμοποίησες το REA για κάτι ενδιαφέρον, θα θέλαμε να το δούμε. Μοιράσου τη μελέτη σου σε ένα [issue](https://github.com/zheedevVn/Rea-Unlock/issues) ή [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls), αναφέροντας τον στόχο, το ερώτημά σου, πώς βοήθησε το REA και τι ανακάλυψες.
 
 ## Συχνές ερωτήσεις
 
@@ -231,7 +229,7 @@ npx rea-agents@latest setup
 <details>
 <summary><strong>Τι προσφέρει η εγκατάσταση του skill από το skills.sh;</strong></summary>
 
-Το skill παρέχει οδηγίες διερεύνησης για τον agent σου. Χρησιμοποίησε `npx rea-agents setup` για να καταχωρίσεις τον MCP server του REA και να εγκαταστήσεις τις αντίστοιχες οδηγίες. Στη συνέχεια, επανεκκίνησε τον agent σου. Δες την [εγκατάσταση μόνο του skill](../installation.md#skill-only-installation).
+Το skill παρέχει οδηγίες διερεύνησης για τον agent σου. Χρησιμοποίησε `npx rea-unlock setup` για να καταχωρίσεις τον MCP server του REA και να εγκαταστήσεις τις αντίστοιχες οδηγίες. Στη συνέχεια, επανεκκίνησε τον agent σου. Δες την [εγκατάσταση μόνο του skill](../installation.md#skill-only-installation).
 
 </details>
 
@@ -263,16 +261,16 @@ rea update
 Για ρύθμιση agent μέσω `npx`:
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Αν χρησιμοποιείς agent, ολοκλήρωσε την [ανανέωση της ρύθμισης](#ενημέρωση-του-rea) και επανεκκίνησέ τον. Δοκίμασε ξανά την ίδια εργασία. Αν το πρόβλημα παραμένει, [άνοιξε ένα issue](https://github.com/morluto/rea/issues) με την έκδοση του REA, τον τύπο του στόχου, τα βήματα αναπαραγωγής και την έξοδο του σφάλματος.
+Αν χρησιμοποιείς agent, ολοκλήρωσε την [ανανέωση της ρύθμισης](#ενημέρωση-του-rea) και επανεκκίνησέ τον. Δοκίμασε ξανά την ίδια εργασία. Αν το πρόβλημα παραμένει, [άνοιξε ένα issue](https://github.com/zheedevVn/Rea-Unlock/issues) με την έκδοση του REA, τον τύπο του στόχου, τα βήματα αναπαραγωγής και την έξοδο του σφάλματος.
 
 </details>
 
 ## Τεκμηρίωση
 
-Ξεκίνα από τους [οδηγούς με ολοκληρωμένα παραδείγματα](https://rea.tools/guides/) στον ιστότοπο. Για τις ακριβείς επιλογές, τις προϋποθέσεις και τις προδιαγραφές των αποτελεσμάτων:
+Ξεκίνα από τους [οδηγούς με ολοκληρωμένα παραδείγματα](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) στον ιστότοπο. Για τις ακριβείς επιλογές, τις προϋποθέσεις και τις προδιαγραφές των αποτελεσμάτων:
 
 - [Εγκατάσταση και ρύθμιση](../installation.md): καταχώριση agents, ρύθμιση παρόχων ανάλυσης, ενημερώσεις και απεγκατάσταση.
 - [Έλεγχος ετοιμότητας και αντιμετώπιση προβλημάτων](../installation.md#check-readiness-for-your-task): διάγνωση ενός agent ή μιας μηχανής ανάλυσης.
@@ -289,11 +287,11 @@ npx rea-agents@latest setup
 
 Ευχαριστούμε όλους όσοι χρησιμοποιούν το REA, αναφέρουν σφάλματα, ζητούν νέες λειτουργίες, δοκιμάζουν builds και συνεισφέρουν διορθώσεις.
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="Ιστορικό αστεριών του REA στο GitHub" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="Ιστορικό αστεριών του REA στο GitHub" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -307,7 +305,7 @@ npx rea-agents@latest setup
 
 ## Συνεισφορά
 
-Θα χαρούμε να βοηθήσεις στο REA! [Άνοιξε ένα issue](https://github.com/morluto/rea/issues) για να αναφέρεις ένα σφάλμα ή να προτείνεις μια λειτουργία, ή [στείλε ένα pull request](https://github.com/morluto/rea/pulls) για να βελτιώσεις τον κώδικα ή την τεκμηρίωση.
+Θα χαρούμε να βοηθήσεις στο REA! [Άνοιξε ένα issue](https://github.com/zheedevVn/Rea-Unlock/issues) για να αναφέρεις ένα σφάλμα ή να προτείνεις μια λειτουργία, ή [στείλε ένα pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) για να βελτιώσεις τον κώδικα ή την τεκμηρίωση.
 
 Δες το [CONTRIBUTING.md](../../CONTRIBUTING.md) για τη ρύθμιση του περιβάλλοντος ανάπτυξης και τους ελέγχους, τον [οδηγό δοκιμών](../testing.md) για τις διαδικασίες επαλήθευσης και τον [χάρτη αρχιτεκτονικής](../architecture.mermaid) για τη δομή του έργου.
 

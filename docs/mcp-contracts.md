@@ -696,7 +696,7 @@ captures can exceed ten structural levels.
 Some function-calling providers reject a request while any single tool's
 `parameters` schema exceeds a literal serialized size cap; Moonshot clients
 such as kimi-cli fail every request while the default catalog is attached
-([#1484](https://github.com/morluto/rea/issues/1484)). Setting the server's
+([#1484](https://github.com/zheedevVn/Rea-Unlock/issues/1484)). Setting the server's
 `REA_MCP_INPUT_SCHEMA_PROFILE` environment variable to `compact` renders every
 advertised input schema within a 13,312-byte budget, measured to sit below
 Moonshot's observed cap (community measurements: a 13.7 KB schema is accepted
@@ -704,10 +704,10 @@ while a ~15 KB one is rejected). The setting is read at startup; restart the
 server to apply changes, as with `REA_MCP_MAX_RESPONSE_BYTES`. The default
 value `full` keeps the complete advertisement unchanged. Compact presentation
 also reduces schemas whose expanded JSON tree exceeds ten levels, the limit
-reported by strict-depth MCP clients in [#2813](https://github.com/morluto/rea/issues/2813).
+reported by strict-depth MCP clients in [#2813](https://github.com/zheedevVn/Rea-Unlock/issues/2813).
 WorkBuddy/CodeBuddy gateways have also rejected full REA catalogs with an
 opaque `11133` error while accepting the compact profile
-([#2999](https://github.com/morluto/rea/issues/2999)); compatibility depends on
+([#2999](https://github.com/zheedevVn/Rea-Unlock/issues/2999)); compatibility depends on
 the selected gateway and model. That report used ZCode through a gateway to a
 Kimi-K3 backend, not the WorkBuddy MCP client. Set the profile on REA's
 registration in the actual MCP host; the host's name alone does not identify
@@ -762,7 +762,7 @@ validation on the server.
 Some stdio hosts reject a complete `tools/list` frame before they load any
 tools. The opt-in `REA_MCP_OUTPUT_SCHEMA_PROFILE=off` setting omits `outputSchema`
 from the advertised catalog for hosts with a small frame limit (the measured
-pi-web-ui failure and catalog breakdown are in [#2512](https://github.com/morluto/rea/issues/2512)).
+pi-web-ui failure and catalog breakdown are in [#2512](https://github.com/zheedevVn/Rea-Unlock/issues/2512)).
 The default `full` profile is unchanged. With `off`, REA validates successful
 structured results against the same named canonical tool contract before
 delivery; it still returns complete `structuredContent` and text results.

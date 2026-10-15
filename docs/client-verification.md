@@ -397,7 +397,7 @@ The raw Chrome fixture launchers use `--password-store=basic` so Linux startup
 does not wait for an unlock prompt from a reachable but locked desktop keyring.
 Such a stall leaves the initial page unloaded with empty or placeholder CDP URLs;
 it does not establish permission to capture that page. See
-[the keyring diagnosis](https://github.com/morluto/rea/issues/1384#issuecomment-6093781686).
+[the keyring diagnosis](https://github.com/zheedevVn/Rea-Unlock/issues/1384#issuecomment-6093781686).
 
 On Windows, browser verifier lanes that launch an owned fixture require a
 standard, non-elevated caller token. They inspect the verifier caller before

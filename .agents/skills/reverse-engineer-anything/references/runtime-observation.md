@@ -74,5 +74,5 @@ Inspect native `.saz` snapshots with `inspect_web_network_capture` and
 traffic analysis, connect Everywhere's separate MCP server and use its
 advertised session tools with an explicit `sessionsSource` (`LiveTraffic` or
 `AgentCalls`). Preserve existing sessions and filters when inspecting a
-recorded run. See the [capture and MCP guide](https://github.com/morluto/rea/blob/main/docs/web-network-captures.md)
+recorded run. See the [capture and MCP guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-captures.md)
 for the workflow and Telerik's public setup and traffic-debugging skills.

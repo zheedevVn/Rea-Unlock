@@ -175,7 +175,7 @@ def main():
     ]) + '\n'
     # MCP read-only hints cover normal static tools. Explicitly authorize only
     # the session-opening primitive needed by the requested native tasks.
-    config += '[mcp_servers.rea.tools.open_binary]\napproval_mode = "approve"\n'
+    config += '[mcp_servers.github.com/zheedevVn/Rea-Unlock.open_binary]\napproval_mode = "approve"\n'
     for tool in ['analyze_javascript_application', 'inspect_analysis_view',
                  'inspect_android_package', 'search_android_classes',
                  'inspect_android_class', 'inspect_android_method',
@@ -189,7 +189,7 @@ def main():
                  'inspect_evm_interface', 'get_evidence_bundle', 'export_evidence_bundle',
                  'capture_browser_scenario',
                  'resolve_containing_procedure', 'analyze_function', 'close_binary']:
-        config += '[mcp_servers.rea.tools.' + tool + ']\napproval_mode = "approve"\n'
+        config += '[mcp_servers.github.com/zheedevVn/Rea-Unlock.' + tool + ']\napproval_mode = "approve"\n'
     try:
         if source_auth.exists():
             shutil.copyfile(source_auth, auth)

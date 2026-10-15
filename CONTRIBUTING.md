@@ -246,7 +246,7 @@ use `npm run docs:generate`; `docs:build` generates them before building the web
 
 Pull requests run `npm run docs:check`. `.github/workflows/pages.yml` is a
 manual VitePress build and does not publish. The public site at
-<https://rea.tools/> serves `website/public/` through Cloudflare Workers. See
+<https://github.com/zheedevVn/Rea-Unlock> serves `website/public/` through Cloudflare Workers. See
 the [website README](website/README.md#cloudflare-workers) for previews and
 manual deployments.
 

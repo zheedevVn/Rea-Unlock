@@ -19,7 +19,7 @@ watch_dir = ["./public", "./locales", "./templates"]
 name = "rea-website"
 workers_dev = true
 preview_urls = false
-routes = [{ pattern = "rea.tools", custom_domain = true }]
+routes = [{ pattern = "github.com/zheedevVn/Rea-Unlock", custom_domain = true }]
 
 # Production receives the already prepared and verified shared Pages artifact.
 # Override the preview build so deployment does not regenerate local assets.

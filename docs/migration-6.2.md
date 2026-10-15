@@ -62,8 +62,8 @@ or CLI `--provider`, using the advertised values.
 
 These changes establish one complete result representation and explicit
 provider/profile ownership rather than accepting incomplete producer records.
-See [63bf914](https://github.com/morluto/rea/commit/63bf91405cf97b114a84f337fb1272d98a267999)
-and [#1277](https://github.com/morluto/rea/pull/1277).
+See [63bf914](https://github.com/zheedevVn/Rea-Unlock/commit/63bf91405cf97b114a84f337fb1272d98a267999)
+and [#1277](https://github.com/zheedevVn/Rea-Unlock/pull/1277).
 
 ## Saved snapshots and artifact inventories
 
@@ -98,7 +98,7 @@ current filesystem permission produces `executable: false`. A `.js` and `.txt`
 file with identical bytes can share a node and retain different roles.
 Regenerate old inventories: a merged content node alone cannot recover the
 per-path facts that were lost. These changes are part of
-[63bf914](https://github.com/morluto/rea/commit/63bf91405cf97b114a84f337fb1272d98a267999).
+[63bf914](https://github.com/zheedevVn/Rea-Unlock/commit/63bf91405cf97b114a84f337fb1272d98a267999).
 
 ## Process captures and cleanup failures
 
@@ -109,7 +109,7 @@ historical reference and recapture with 6.2 when current comparisons are needed.
 Do not infer the original launched binary from a later file digest, or invent
 event ordering from independently recorded collections. An explicitly empty
 journal is valid under its advertised contract; the field cannot be omitted.
-See [2a77469](https://github.com/morluto/rea/commit/2a7746998d47446c4db6d4f524e0f183d6803f3f).
+See [2a77469](https://github.com/zheedevVn/Rea-Unlock/commit/2a7746998d47446c4db6d4f524e0f183d6803f3f).
 
 Filesystem effects can now report `status: "unknown"` with a reason when a
 partial snapshot cannot establish creation or deletion. Update exhaustive
@@ -120,7 +120,7 @@ silently returning success when provider cleanup fails. Preserve its
 `details.partial_observation` or primary execution diagnostics, inspect the
 reported owned resources, and address cleanup before retrying. A successful
 analysis observation does not prove successful cleanup. This behavior is covered
-by [#1211](https://github.com/morluto/rea/pull/1211). That change also makes
+by [#1211](https://github.com/zheedevVn/Rea-Unlock/pull/1211). That change also makes
 configured agent-evaluation fixture checks grade cited Evidence; routing or
 answer wording alone no longer passes an assessed fixture.
 
@@ -134,13 +134,13 @@ value as a missing property. Semantic object-operation graph observations use
 `properties.property_path`, an array of complete path segments or `null`,
 rather than a flattened property name. Regenerate old application analysis
 before depending on nested mutation or presence facts. See
-[475a0f8](https://github.com/morluto/rea/commit/475a0f84dac63d710e032bc7f731c1a3bda624ec).
+[475a0f8](https://github.com/zheedevVn/Rea-Unlock/commit/475a0f84dac63d710e032bc7f731c1a3bda624ec).
 
 Function comparison dimension statuses are `unchanged`, `changed` or `unknown`.
 The unreachable `truncated` status and `summary.truncated` counter have been
 removed. Update exhaustive enum handling and display logic; unavailable facts
 remain `unknown`. See
-[5510b27](https://github.com/morluto/rea/commit/5510b27d7f863a3df26212fba4a59f8df0da3712).
+[5510b27](https://github.com/zheedevVn/Rea-Unlock/commit/5510b27d7f863a3df26212fba4a59f8df0da3712).
 
 ## Historical-source symlinks
 
@@ -150,7 +150,7 @@ recorded target strings. External targets use the observed absolute target;
 display placeholders such as `<outside-root>` cannot serve as lookup data.
 Reimport the source tree when the old graph retained only a placeholder, and
 handle nullable targets in custom readers. See
-[b7b4333](https://github.com/morluto/rea/commit/b7b433370310c3ffe33d5027d8393151d5e862da).
+[b7b4333](https://github.com/zheedevVn/Rea-Unlock/commit/b7b433370310c3ffe33d5027d8393151d5e862da).
 
 Keep original saved artifacts until their replacements and consuming workflows
 have been checked. Fresh analysis may establish different facts if the target,

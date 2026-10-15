@@ -1,6 +1,6 @@
 # WASM first-call summary delivery
 
-Refs [#2016](https://github.com/morluto/rea/issues/2016). This bounded follow-up
+Refs [#2016](https://github.com/zheedevVn/Rea-Unlock/issues/2016). This bounded follow-up
 adds optional MCP `inspect_wasm_artifact detail: summary`. Omitted/complete MCP
 requests and CLI output remain complete. Full original Evidence is retained;
 delivery selection is stripped before provider inputs, and exact export views

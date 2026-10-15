@@ -32,7 +32,7 @@ const selection = () => ({
     head_repository: { full_name: "fixture/rea" },
   },
   release: {
-    tag_name: "rea-agents-6.5.0",
+    tag_name: "rea-unlock-6.5.0",
     draft: false,
     published_at: "2026-10-14T12:32:45Z",
   },
@@ -106,7 +106,7 @@ it("refuses foreign runs, unrelated workflows and unpublished releases", () => {
   draft.release.draft = true;
   expect(() => selectRecoveryRelease(draft)).toThrow();
   const wrongTag = selection();
-  wrongTag.release.tag_name = "rea-agents-6.6.0";
+  wrongTag.release.tag_name = "rea-unlock-6.6.0";
   expect(() => selectRecoveryRelease(wrongTag)).toThrow();
 });
 

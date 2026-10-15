@@ -76,4 +76,4 @@ jobs:
           npm install --prefix "${RUNNER_TEMP}/rea-core-installed" --ignore-scripts --no-fund --no-audit "${RUNNER_TEMP}/${core_package_name}"
       - name: Verify installed CLI and MCP against the source-owned recording
         shell: bash
-        run: node scripts/verify-recorded-crash.mjs "${RUNNER_TEMP}/rea-core-installed/node_modules/rea-agents/scripts/rea.mjs"
+        run: node scripts/verify-recorded-crash.mjs "${RUNNER_TEMP}/rea-core-installed/node_modules/rea-unlock/scripts/rea.mjs"

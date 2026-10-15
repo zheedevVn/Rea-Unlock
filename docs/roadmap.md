@@ -1,10 +1,10 @@
 # REA roadmap
 
-The [platform tracker](https://github.com/morluto/rea/issues/32),
-[process/Hopper tracker](https://github.com/morluto/rea/issues/48), and
-[browser tracker](https://github.com/morluto/rea/issues/39) track capability and
+The [platform tracker](https://github.com/zheedevVn/Rea-Unlock/issues/32),
+[process/Hopper tracker](https://github.com/zheedevVn/Rea-Unlock/issues/48), and
+[browser tracker](https://github.com/zheedevVn/Rea-Unlock/issues/39) track capability and
 verification work. Available tools and setup are documented in the
-[investigation guides](https://rea.tools/guides/),
+[investigation guides](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs),
 [installation guide](installation.md), and
 [generated catalog](mcp-contracts.md#generated-catalog).
 

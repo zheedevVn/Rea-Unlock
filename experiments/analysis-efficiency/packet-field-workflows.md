@@ -1,6 +1,6 @@
 # Larger and non-HTTP packet investigation costs
 
-This closes the bounded experiment in [#3130](https://github.com/morluto/rea/issues/3130).
+This closes the bounded experiment in [#3130](https://github.com/zheedevVn/Rea-Unlock/issues/3130).
 Existing field, filter and input/output-window controls substantially reduce
 delivered JSON for the selected questions. Actual Codex total input and elapsed
 time are less consistent. Requiring field discovery for a known field adds cost.

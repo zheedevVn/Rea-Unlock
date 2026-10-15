@@ -100,7 +100,7 @@ export const packagePrivateLauncherBlocker = (
     }
     const family = packagePrivateStorageFamily(resolved, packages);
     if (family !== undefined)
-      return `The REA launcher ${part} is stored at ${resolved}, inside the private storage of MSIX package ${family}. Only processes started by that app can see it at ${part}, and Windows removes it with the package, so other clients could not start this registration. Install REA from a terminal that the app did not start (for example with \`npm install -g rea-agents\`), then rerun setup from that terminal.`;
+      return `The REA launcher ${part} is stored at ${resolved}, inside the private storage of MSIX package ${family}. Only processes started by that app can see it at ${part}, and Windows removes it with the package, so other clients could not start this registration. Install REA from a terminal that the app did not start (for example with \`npm install -g rea-unlock\`), then rerun setup from that terminal.`;
   }
   return undefined;
 };

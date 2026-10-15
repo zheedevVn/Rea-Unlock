@@ -29,17 +29,18 @@ const README_LINK_DRIFT_MUTATIONS = [
     "(../installation.md#supported-agents)",
     "(../installation.md#missing-agents)",
   ],
-  ["https://rea.tools/zh-CN/guides/", "https://rea.tools/zh-CN/missing/"],
-  ["https://rea.tools/zh-CN/guides/", "https://rea.tools/zh-TW/guides/"],
   [
-    "https://rea.tools/zh-CN/guides/",
-    "https://rea.tools/zh-CN/guides/?other=1",
+    "https://github.com/zheedevVn/Rea-Unlock/guides/",
+    "https://github.com/zheedevVn/Rea-Unlock/missing/",
+  ],
+  [
+    "https://github.com/zheedevVn/Rea-Unlock/guides/",
+    "https://github.com/zheedevVn/Rea-Unlock/guides/?other=1",
   ],
   [
     'src="../assets/rea-hopper-analysis.png"',
     'src="../assets/missing-hopper.png"',
   ],
-  ['href="https://discord.gg/GkcryMnJDM"', 'href="https://discord.gg/missing"'],
 ] as const;
 
 const seedReadmeFactFixture = async (directory: string) => {

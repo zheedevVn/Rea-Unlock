@@ -9,25 +9,23 @@
 
 **Thấy một tính năng bạn thích? Hiểu cách nó hoạt động, đến tận mức mã nhị phân.**
 
-[![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
+[![npm version](https://img.shields.io/npm/v/rea-unlock?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-unlock)
 [![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](../mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
-[![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
+[![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
-[![Discord](https://img.shields.io/discord/1556595354999332884?logo=discord&logoColor=white&label=Discord&color=5865F2)](https://discord.gg/GkcryMnJDM)
 
-<a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Trang web](https://rea.tools/vi/) · [Hướng dẫn](https://rea.tools/vi/guides/) · [Các nghiên cứu điển hình](https://rea.tools/vi/showcase/)**
+**[Trang web](https://github.com/zheedevVn/Rea-Unlock) · [Hướng dẫn](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Các nghiên cứu điển hình](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Bắt đầu nhanh](#bắt-đầu-nhanh) · [Cách REA hoạt động](#cách-rea-hoạt-động) · [Những gì bạn có thể phân tích](#những-gì-bạn-có-thể-phân-tích) · [Các nghiên cứu điển hình](#các-nghiên-cứu-điển-hình) · [Câu hỏi thường gặp](#câu-hỏi-thường-gặp) · [Công cụ GNU objdump và Rizin](../reverse-engineering-tools.md) · [Tài liệu](#tài-liệu)
 
-<code>npx rea-agents setup</code>
+<code>npx rea-unlock setup</code>
 
 </div>
 
 > [!IMPORTANT]
-> Các nguồn chính thức của REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Các nguồn chính thức của REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Hãy dùng các liên kết cài đặt và bản phát hành từ những nguồn chính thức này. Tên kho mã tương tự hoặc README được sao chép không chứng minh rằng tệp tải xuống là bản chính thức.
 
 <div align="center">
@@ -41,7 +39,7 @@
 <table aria-label="Cộng đồng REA">
 <tr>
 <td align="center" width="360">
-  <a href="https://discord.gg/GkcryMnJDM">
+  <a href="https://github.com/zheedevVn/Rea-Unlock">
     <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
     <strong>Tham gia cộng đồng kỹ thuật dịch ngược</strong>
   </a><br />
@@ -62,7 +60,7 @@ REA kết nối tác nhân của bạn với các công cụ kiểm tra tệp nh
 
 Quá trình thiết lập đăng ký REA với tác nhân và cài đặt các hướng dẫn quy trình tương ứng. Phân tích mã máy có thể sử dụng Hopper hoặc Ghidra đã cài sẵn; quá trình thiết lập cũng có thể cài Hopper nếu bạn chấp thuận. Phân tích tĩnh JavaScript không cần công cụ nào trong hai công cụ này.
 
-> **[Truy cập trang web REA](https://rea.tools/vi/)** để xem cách thiết lập, hướng dẫn có hình minh họa và các nghiên cứu điển hình thực tế.
+> **[Truy cập trang web REA](https://github.com/zheedevVn/Rea-Unlock)** để xem cách thiết lập, hướng dẫn có hình minh họa và các nghiên cứu điển hình thực tế.
 
 ## Bắt đầu nhanh
 
@@ -71,7 +69,7 @@ Quá trình thiết lập đăng ký REA với tác nhân và cài đặt các h
 Sau khi cài Node.js và npm, chạy:
 
 ```bash
-npx rea-agents setup
+npx rea-unlock setup
 ```
 
 Chọn các tác nhân, xem lại những thay đổi được đề xuất và chấp thuận. Quá trình thiết lập thêm máy chủ MCP của REA cùng hướng dẫn quy trình tương ứng, đồng thời sao lưu cấu hình hiện có. Sau đó khởi động lại tác nhân.
@@ -91,7 +89,7 @@ Thay Notes bằng ứng dụng mục tiêu và chỉ rõ tính năng bạn muố
 Kiểm tra thư mục ứng dụng JavaScript/Electron đã giải nén hoặc tệp ASAR:
 
 ```bash
-npx -y rea-agents@latest analyze-javascript-application /absolute/path/to/app --json
+npx -y rea-unlock@latest analyze-javascript-application /absolute/path/to/app --json
 ```
 
 Kết quả bao gồm mô-đun, các khai báo import, ranh giới Electron và bằng chứng tương ứng. Thay đường dẫn bằng mục tiêu của bạn, chẳng hạn `"D:/apps/example"` trên Windows.
@@ -99,7 +97,7 @@ Kết quả bao gồm mô-đun, các khai báo import, ranh giới Electron và 
 Để cài lệnh `rea` cho việc sử dụng thường xuyên:
 
 ```bash
-npm install --global rea-agents
+npm install --global rea-unlock
 rea --help
 ```
 
@@ -120,10 +118,10 @@ rea update
 Nếu dùng `npx`, cập nhật thiết lập tác nhân bằng:
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Xem lại thay đổi cấu hình và khởi động lại tác nhân. Với lệnh CLI dùng một lần, dùng `npx rea-agents@latest` rồi thêm lệnh cần chạy.
+Xem lại thay đổi cấu hình và khởi động lại tác nhân. Với lệnh CLI dùng một lần, dùng `npx rea-unlock@latest` rồi thêm lệnh cần chạy.
 
 ## Cách REA hoạt động
 
@@ -170,27 +168,27 @@ Kiểm tra tĩnh JavaScript và .NET đọc các tệp được cung cấp mà k
 
 ## Các nghiên cứu điển hình
 
-[![Minh họa các ví dụ về cân bằng âm thanh DX-Ball, cầu nối bảng nhớ tạm Notion và vòng đạn TH04](../assets/rea-showcases.png)](https://rea.tools/vi/showcase/)
+[![Minh họa các ví dụ về cân bằng âm thanh DX-Ball, cầu nối bảng nhớ tạm Notion và vòng đạn TH04](../assets/rea-showcases.png)](https://github.com/zheedevVn/Rea-Unlock)
 
 ### DX-Ball: tái tạo phép tính phân bố âm thanh trái phải
 
 Lần theo lời gọi âm thanh đến hàm hỗ trợ chuyển vị trí thành giá trị phân bố âm thanh, kiểm tra các lệnh và chuyển mã giả chưa đầy đủ sang C. Bản tái tạo vượt qua 3.205 trường hợp kiểm thử với x86 gốc và tái tạo đủ 63 byte của hàm đã biên dịch.
 
-[Đọc nghiên cứu điển hình](https://rea.tools/vi/showcase/dx-ball/) · [Kho mã tái tạo](https://github.com/N0zoM1z0/dx-ball)
+[Đọc nghiên cứu điển hình](https://github.com/zheedevVn/Rea-Unlock) · [Kho mã tái tạo](https://github.com/N0zoM1z0/dx-ball)
 
 ### Notion: lần theo cầu nối clipboard của Electron
 
 Tìm API clipboard trong tiến trình kết xuất, lần theo qua preload và IPC đến tiến trình chính, rồi kiểm tra định dạng clipboard có dữ liệu định dạng phong phú.
 
-[Đọc nghiên cứu điển hình](https://rea.tools/vi/showcase/notion/)
+[Đọc nghiên cứu điển hình](https://github.com/zheedevVn/Rea-Unlock)
 
 ### TH04: khôi phục phép tính vòng đạn trong DOS
 
 Kiểm tra các lệnh 16 bit của trò chơi PC-98 gốc, khôi phục phép tính góc cố định và góc nhắm mục tiêu, rồi so sánh C++ được tái tạo với đầu ra của trình biên dịch thời đó.
 
-[Đọc nghiên cứu điển hình](https://rea.tools/vi/showcase/th04/) · [Kho mã tái tạo](https://github.com/N0zoM1z0/th04)
+[Đọc nghiên cứu điển hình](https://github.com/zheedevVn/Rea-Unlock) · [Kho mã tái tạo](https://github.com/N0zoM1z0/th04)
 
-Nếu bạn dùng REA cho một mục tiêu thú vị, chúng tôi muốn biết. Chia sẻ trường hợp của bạn qua [issue](https://github.com/morluto/rea/issues) hoặc [pull request](https://github.com/morluto/rea/pulls), nêu mục tiêu, câu hỏi, cách REA giúp bạn và những gì tìm được.
+Nếu bạn dùng REA cho một mục tiêu thú vị, chúng tôi muốn biết. Chia sẻ trường hợp của bạn qua [issue](https://github.com/zheedevVn/Rea-Unlock/issues) hoặc [pull request](https://github.com/zheedevVn/Rea-Unlock/pulls), nêu mục tiêu, câu hỏi, cách REA giúp bạn và những gì tìm được.
 
 ## Câu hỏi thường gặp
 
@@ -218,7 +216,7 @@ REA khởi chạy Hopper khi một thao tác cần đến nó. Trên macOS, hộ
 <details>
 <summary><strong>Cài skill từ skills.sh có tác dụng gì?</strong></summary>
 
-Skill cung cấp hướng dẫn điều tra cho tác nhân. Dùng `npx rea-agents setup` để đăng ký máy chủ MCP của REA và cài hướng dẫn tương ứng, sau đó khởi động lại tác nhân. Xem [chỉ cài skill](../installation.md#skill-only-installation).
+Skill cung cấp hướng dẫn điều tra cho tác nhân. Dùng `npx rea-unlock setup` để đăng ký máy chủ MCP của REA và cài hướng dẫn tương ứng, sau đó khởi động lại tác nhân. Xem [chỉ cài skill](../installation.md#skill-only-installation).
 
 </details>
 
@@ -250,16 +248,16 @@ rea update
 Với thiết lập tác nhân qua `npx`:
 
 ```bash
-npx rea-agents@latest setup
+npx rea-unlock@latest setup
 ```
 
-Nếu dùng tác nhân, hãy hoàn tất [làm mới thiết lập](#cập-nhật-rea) và khởi động lại nó. Thử lại cùng tác vụ. Nếu vấn đề vẫn còn, [mở issue](https://github.com/morluto/rea/issues) với phiên bản REA, loại mục tiêu, các bước tái hiện và đầu ra lỗi.
+Nếu dùng tác nhân, hãy hoàn tất [làm mới thiết lập](#cập-nhật-rea) và khởi động lại nó. Thử lại cùng tác vụ. Nếu vấn đề vẫn còn, [mở issue](https://github.com/zheedevVn/Rea-Unlock/issues) với phiên bản REA, loại mục tiêu, các bước tái hiện và đầu ra lỗi.
 
 </details>
 
 ## Tài liệu
 
-Bắt đầu với [hướng dẫn thực hành](https://rea.tools/vi/guides/) trên trang web. Để biết tùy chọn cụ thể, điều kiện tiên quyết và hợp đồng kết quả:
+Bắt đầu với [hướng dẫn thực hành](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) trên trang web. Để biết tùy chọn cụ thể, điều kiện tiên quyết và hợp đồng kết quả:
 
 - [Cài đặt và thiết lập](../installation.md): đăng ký tác nhân, cấu hình trình phân tích, cập nhật và gỡ cài đặt.
 - [Kiểm tra mức sẵn sàng và khắc phục sự cố](../installation.md#check-readiness-for-your-task): chẩn đoán một tác nhân hoặc bộ máy phân tích cụ thể.
@@ -276,11 +274,11 @@ Báo cáo lỗ hổng theo [SECURITY.md](../../SECURITY.md).
 
 Cảm ơn mọi người đã sử dụng REA, báo lỗi, đề xuất tính năng, kiểm thử bản dựng và đóng góp bản sửa lỗi.
 
-<a href="https://www.star-history.com/?repos=morluto%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date&amp;theme=dark&amp;legend=top-left" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
-    <img alt="Lịch sử sao GitHub của REA" src="https://api.star-history.com/chart?repos=morluto/rea&amp;type=date" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
+    <img alt="Lịch sử sao GitHub của REA" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
   </picture>
 </a>
 
@@ -296,7 +294,7 @@ applicable licenses.
 
 ## Đóng góp
 
-Chúng tôi hoan nghênh bạn giúp phát triển REA! [Mở issue](https://github.com/morluto/rea/issues) để báo lỗi hoặc đề xuất tính năng, hoặc [gửi pull request](https://github.com/morluto/rea/pulls) để cải thiện mã hay tài liệu.
+Chúng tôi hoan nghênh bạn giúp phát triển REA! [Mở issue](https://github.com/zheedevVn/Rea-Unlock/issues) để báo lỗi hoặc đề xuất tính năng, hoặc [gửi pull request](https://github.com/zheedevVn/Rea-Unlock/pulls) để cải thiện mã hay tài liệu.
 
 Xem [CONTRIBUTING.md](../../CONTRIBUTING.md) về thiết lập môi trường phát triển và các bước kiểm tra, [hướng dẫn kiểm thử](../testing.md) về các luồng xác minh và [sơ đồ kiến trúc](../architecture.mermaid) về cấu trúc dự án.
 

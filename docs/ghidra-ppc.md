@@ -2,7 +2,7 @@
 
 This lane extends native ELF analysis to 32-bit big-endian PowerPC; it does
 not execute PowerPC code. It is the first milestone of
-[#1741](https://github.com/morluto/rea/issues/1741). GameCube/Wii DOL
+[#1741](https://github.com/zheedevVn/Rea-Unlock/issues/1741). GameCube/Wii DOL
 executables, PPC64 and other PowerPC variants are separate follow-ups.
 
 ## Admission boundary

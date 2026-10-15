@@ -2424,7 +2424,7 @@ msgid "Terminal · refresh agent setup"
 msgstr "Terminal * aracı kurulumunu yenile"
 
 # Reviewed for readable setup and analysis terminology.
-#. {ph0}: <code>npx -y rea-agents@latest</code>
+#. {ph0}: <code>npx -y rea-unlock@latest</code>
 #: website/public/faq/index.html:299
 #, python-brace-format
 msgctxt "page:faq/index.html"
@@ -2750,7 +2750,7 @@ msgstr ""
 "{ph0}REA'YU güncelleyin{ph1}, aracınızı yeniden başlatın ve aynı görevi "
 "yeniden deneyin. Yeni bir sürüm sorunu zaten düzeltebilir."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/faq/index.html:513
 #, python-brace-format
@@ -2789,9 +2789,9 @@ msgctxt "page:faq/index.html"
 msgid "How can I share an example or contribute?"
 msgstr "Bir örneği nasıl paylaşabilir veya katkıda bulunabilirim?"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/pulls">
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/pulls">
 #. {ph3}: </a >
 #: website/public/faq/index.html:539
 #, python-brace-format
@@ -2807,7 +2807,7 @@ msgstr ""
 "nasıl kontrol ettiğinizi paylaşın. Kısa kod alıntıları ve rakamları, "
 "başkalarının soruşturmayı takip etmesine yardımcı olur."
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/faq/index.html:551
 #, python-brace-format
@@ -3775,7 +3775,7 @@ msgstr ""
 "{ph0}Bir ikili, bir Electron uygulaması ve bir tarayıcı için çalışılan bir "
 "araştırma kılavuzu seçin{ph1}{ph2}.{ph3}"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -3789,7 +3789,7 @@ msgstr ""
 "{ph0} GitHub sorunları{ph1}{ph2} Komut ve tanılama ile ilgili bir sorun "
 "bildirin.{ph3}"
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a >
 #. {ph2}: <span>
 #. {ph3}: </span>
@@ -7704,7 +7704,7 @@ msgstr ""
 #. squares-flag-checker/ctfcli.yaml" >
 #. {ph3}: </a >
 #. {ph4}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/ctf-masked-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/ctf-masked-
 #. squares.md" >
 #. {ph5}: </a >
 #: website/public/showcase/ctf/index.html:700
@@ -11415,7 +11415,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -11434,7 +11434,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="first-analysis-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -11457,7 +11457,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="agent-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -11476,7 +11476,7 @@ msgstr ""
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="home-install-prompt" >
-#. {ph3}: <span translate="no">npx rea-agents@latest setup</span>
+#. {ph3}: <span translate="no">npx rea-unlock@latest setup</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -11812,7 +11812,7 @@ msgctxt "runtime"
 msgid "Switch to dark mode"
 msgstr "Koyu temaya geç"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/web-network-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/web-network-
 #. captures.md" >
 #. {ph1}: </a >
 #: website/public/guides/browser/index.html:483
@@ -13183,7 +13183,7 @@ msgid "Back to top"
 msgstr "Başa dön"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/website/evidence/reverse-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/website/evidence/reverse-
 #. engineering-models.md" >
 #. {ph1}: </a >
 #: website/public/blog/reverse-engineering-models/index.html:779
@@ -13479,7 +13479,7 @@ msgstr "Claude Desktop · masaüstü sohbetini kullanın"
 
 #. {ph0}: <a href="https://claude.ai/download">
 #. {ph1}: </a>
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#claude-desktop" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:593
@@ -13556,11 +13556,11 @@ msgstr ""
 "derlenmiş bir sürüm veya bu entegrasyonları içeren bir yayımlanmış sürüm "
 "kullanın."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md" >
 #. {ph1}: </a >
 #. {ph2}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#released-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#released-
 #. package-and-main" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:722
@@ -13589,7 +13589,7 @@ msgstr ""
 "Grok Bot’un sohbetinde, Bot’un bilgisayarında şu komutu kullanarak {ph0} "
 "adlı özel bir MCP sunucusu eklemesini isteyin:"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/client-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/client-
 #. configuration.md#other-client-settings" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:753
@@ -13690,7 +13690,7 @@ msgstr "Kodlama ajanınız"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="setup-first-prompt" >
-#. {ph3}: <span translate="no" >https://rea.tools/examples/notes-
+#. {ph3}: <span translate="no" >https://github.com/zheedevVn/Rea-Unlock
 #. example.zip</span >
 #. {ph4}: <span translate="no">notes.csv</span>
 #. {ph5}: </span >
@@ -13877,7 +13877,7 @@ msgstr ""
 "deneyin."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#hopper"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#hopper"
 #. >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1061
@@ -13960,10 +13960,10 @@ msgstr ""
 " ve ajanınızı yeniden başlatın."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#ghidra"
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#ghidra"
 #. >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/windows-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/windows-
 #. ghidra-p0.md" >
 #. {ph3}: </a >
 #: website/public/get-started/index.html:1220
@@ -14014,7 +14014,7 @@ msgstr ""
 "Sağlayıcı kılavuzuyla hazırladığınız JSON bağlantı kayıt dosyasını kullanın,"
 " ardından kurulumu yeniden çalıştırın ve ajanınızı yeniden başlatın."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/ida-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/ida-
 #. provider.md" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1338
@@ -14164,13 +14164,13 @@ msgctxt "page:get-started/index.html"
 msgid "Process behavior"
 msgstr "Süreç davranışı"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/flutter-
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/flutter-
 #. analysis.md" >
 #. {ph1}: </a >
-#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/javascript-
+#. {ph2}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/javascript-
 #. artifact-reconstruction.md" >
 #. {ph3}: </a >
-#. {ph4}: <a href="https://github.com/morluto/rea/blob/main/docs/evm-
+#. {ph4}: <a href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/evm-
 #. bytecode.md" >
 #. {ph5}: </a >
 #. {ph6}: <a href="../guides/">
@@ -14262,7 +14262,7 @@ msgstr ""
 "çalıştırın, planını inceleyin ve istemcinizi yeniden başlatın."
 
 #. {ph0}: <code>rea update</code>
-#. {ph1}: <code>npx rea-agents@latest uninstall</code>
+#. {ph1}: <code>npx rea-unlock@latest uninstall</code>
 #: website/public/get-started/index.html:1768
 #, python-brace-format
 msgctxt "page:get-started/index.html"
@@ -14274,7 +14274,7 @@ msgstr ""
 "yapılandırmasını ve becerisini kaldırmak için {ph1} kullanın."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#diagnose-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#diagnose-
 #. update-and-remove" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1774
@@ -14506,7 +14506,7 @@ msgstr ""
 "Bilgisayarınıza uygun kılavuzu kullanın:"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#missing-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#missing-
 #. macos-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1178
@@ -14516,7 +14516,7 @@ msgid "{ph0}macOS · Intel{ph1}"
 msgstr "{ph0}macOS · Intel{ph1}"
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/docs/installation.md#macos-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/installation.md#macos-
 #. arm64-native-decompiler" >
 #. {ph1}: </a >
 #: website/public/get-started/index.html:1184
@@ -14777,7 +14777,7 @@ msgstr "Oyun yeniden yapılandırma istemini kopyala"
 #. {ph0}: <span class="prompt-symbol" aria-hidden="true">
 #. {ph1}: </span >
 #. {ph2}: <span id="website-project-prompt" >
-#. {ph3}: <span translate="no">https://rea.tools/</span>
+#. {ph3}: <span translate="no">https://github.com/zheedevVn/Rea-Unlock</span>
 #. {ph4}: </span >
 #. {ph5}: <span class="terminal-cursor" aria-hidden="true">
 #. {ph6}: </span>
@@ -14954,7 +14954,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Read the FAQ{ph1} — setup and common questions."
 msgstr "{ph0}SSS'yi oku{ph1} — kurulum ve sık sorulan sorular."
 
-#. {ph0}: <a href="https://discord.gg/GkcryMnJDM">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock">
 #. {ph1}: </a>
 #: website/public/index.html:1196
 #, python-brace-format
@@ -14962,7 +14962,7 @@ msgctxt "page:index.html"
 msgid "{ph0}Join Discord{ph1} — get help and discuss your investigations."
 msgstr "{ph0}Discord'a katıl{ph1} — yardım al ve incelemelerini paylaş."
 
-#. {ph0}: <a href="https://github.com/morluto/rea/issues/new/choose" >
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/issues/new/choose" >
 #. {ph1}: </a >
 #: website/public/index.html:1200
 #, python-brace-format
@@ -14996,7 +14996,7 @@ msgstr ""
 "çalıştır."
 
 #. {ph0}: <a
-#. href="https://github.com/morluto/rea/blob/main/CONTRIBUTING.md#development-
+#. href="https://github.com/zheedevVn/Rea-Unlock/blob/main/CONTRIBUTING.md#development-
 #. setup" >
 #. {ph1}: </a >
 #. {ph2}: <code>6.4.0</code>
@@ -15139,7 +15139,7 @@ msgctxt "page:contributors/index.html"
 msgid "Find a contributor"
 msgstr "Katkıda bulunan birini bul"
 
-#. {ph0}: <a href="https://github.com/morluto/rea/graphs/contributors">
+#. {ph0}: <a href="https://github.com/zheedevVn/Rea-Unlock/graphs/contributors">
 #. {ph1}: </a>
 #. {ph2}: <time datetime="2026-10-15" translate="no">2026-10-15</time>
 #: website/public/contributors/index.html:1110
@@ -16237,22 +16237,22 @@ msgstr "Katkıda bulunanlar: {count}"
 #~ msgctxt "page:first-investigation/index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}\"{ph1}{ph2}REA kurun ve npx rea-agents@latest setup kullanarak bu "
+#~ "{ph0}\"{ph1}{ph2}REA kurun ve npx rea-unlock@latest setup kullanarak bu "
 #~ "kodlama aracısına bağlayın. Onay için kurulum planını gösterin, ardından "
 #~ "kurulumu doğrulayın.{ph3}{ph4}{ph5}"
 
 #, python-brace-format
 #~ msgctxt "page:first-investigation/index.html"
 #~ msgid ""
-#~ "{ph0}›{ph1}{ph2}Download https://rea.tools/examples/notes-example.zip into a"
+#~ "{ph0}›{ph1}{ph2}Download https://github.com/zheedevVn/Rea-Unlock into a"
 #~ " new example folder and unpack it. Use REA to find what happens when I click"
 #~ " Export notes. Show where notes.csv is written, which fields it contains, "
 #~ "and the relevant files and lines.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}\"{ph1}{ph2}İndir https://rea.tools/examples/notes-example.zip ve "
+#~ "{ph0}\"{ph1}{ph2}İndir https://github.com/zheedevVn/Rea-Unlock ve "
 #~ "paketini açın. Notları Dışa Aktar'ı tıklattığımda ne olacağını bulmak için "
 #~ "REA kullanın. Notların nerede olduğunu göster.csv yazılır, hangi alanları "
 #~ "içerir ve ilgili dosyalar ve satırlar.{ph3}{ph4}{ph5}"
@@ -16261,10 +16261,10 @@ msgstr "Katkıda bulunanlar: {count}"
 #~ msgctxt "page:get-started/index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}\"{ph1}{ph2}REA kurun ve npx rea-agents@latest setup kullanarak bu "
+#~ "{ph0}\"{ph1}{ph2}REA kurun ve npx rea-unlock@latest setup kullanarak bu "
 #~ "kodlama aracısına bağlayın. Onay için kurulum planını gösterin, ardından "
 #~ "kurulumu doğrulayın.{ph3}{ph4}{ph5}"
 
@@ -16272,10 +16272,10 @@ msgstr "Katkıda bulunanlar: {count}"
 #~ msgctxt "page:index.html"
 #~ msgid ""
 #~ "{ph0}›{ph1}{ph2}Install REA and connect it to this coding agent using npx "
-#~ "rea-agents@latest setup. Show me the setup plan for approval, then verify "
+#~ "rea-unlock@latest setup. Show me the setup plan for approval, then verify "
 #~ "the installation.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}\"{ph1}{ph2}REA kurun ve npx rea-agents@latest setup kullanarak bu "
+#~ "{ph0}\"{ph1}{ph2}REA kurun ve npx rea-unlock@latest setup kullanarak bu "
 #~ "kodlama aracısına bağlayın. Onay için kurulum planını gösterin, ardından "
 #~ "kurulumu doğrulayın.{ph3}{ph4}{ph5}"
 
@@ -16294,10 +16294,10 @@ msgstr "Katkıda bulunanlar: {count}"
 #, python-brace-format
 #~ msgctxt "page:index.html"
 #~ msgid ""
-#~ "{ph0}›{ph1}{ph2}Use REA to inspect https://rea.tools/. Clone this website "
+#~ "{ph0}›{ph1}{ph2}Use REA to inspect https://github.com/zheedevVn/Rea-Unlock Clone this website "
 #~ "for me.{ph3}{ph4}{ph5}"
 #~ msgstr ""
-#~ "{ph0}\"{ph1}{ph2}İncelemek için REA kullanın https://rea.tools/. Bu web "
+#~ "{ph0}\"{ph1}{ph2}İncelemek için REA kullanın https://github.com/zheedevVn/Rea-Unlock Bu web "
 #~ "sitesini benim için klonla.{ph3}{ph4}{ph5}"
 
 #~ msgctxt "figure:ctf-mask-equation.svg"

@@ -34,7 +34,7 @@ let surface;
 let update;
 try {
   const publishedRoot = await installCanaryPackage(
-    `rea-agents@${version}`,
+    `rea-unlock@${version}`,
     canaryRoot,
     serverEnvironment,
   );
@@ -53,7 +53,7 @@ try {
   await rm(canaryRoot, { recursive: true, force: true });
 }
 process.stdout.write(
-  `${JSON.stringify({ verifier_run: await completeVerifierRun(verifierRun), package: "rea-agents", version, ...surface, update })}\n`,
+  `${JSON.stringify({ verifier_run: await completeVerifierRun(verifierRun), package: "rea-unlock", version, ...surface, update })}\n`,
 );
 
 async function verifyPublishedUpdate({
@@ -102,7 +102,7 @@ async function verifyPublishedUpdate({
       "--ignore-scripts",
       "--prefix",
       prefix,
-      `rea-agents@${previousVersion}`,
+      `rea-unlock@${previousVersion}`,
     ],
     { cwd: canaryRoot, env: environment, maxBuffer: 16 * 1024 * 1024 },
   );
@@ -121,7 +121,7 @@ async function verifyPublishedUpdate({
     `
 import { runUpdate } from ${JSON.stringify(pathToFileURL(join(updaterRoot, "dist/application/Update.js")).href)};
 import { systemUpdateHost } from ${JSON.stringify(pathToFileURL(join(updaterRoot, "dist/application/UpdateRuntime.js")).href)};
-const result = await runUpdate(${JSON.stringify(previousVersion)}, systemUpdateHost(${JSON.stringify(join(npmRoot, "rea-agents"))}, ${JSON.stringify(home)}), "structured");
+const result = await runUpdate(${JSON.stringify(previousVersion)}, systemUpdateHost(${JSON.stringify(join(npmRoot, "rea-unlock"))}, ${JSON.stringify(home)}), "structured");
 process.stdout.write(JSON.stringify(result));
 if (result.status === "failed") process.exitCode = 1;
 `,
@@ -137,14 +137,14 @@ if (result.status === "failed") process.exitCode = 1;
     result.previousVersion !== previousVersion ||
     result.latestVersion !== updateVersion ||
     result.installedVersion !== updateVersion ||
-    result.command.at(-1) !== `rea-agents@${updateVersion}`
+    result.command.at(-1) !== `rea-unlock@${updateVersion}`
   )
     throw new Error(
       `Published REA updater did not update ${previousVersion} to stable ${updateVersion}: ${stdout}`,
     );
 
   const installed = JSON.parse(
-    await readFile(join(npmRoot, "rea-agents", "package.json"), "utf8"),
+    await readFile(join(npmRoot, "rea-unlock", "package.json"), "utf8"),
   );
   if (installed.version !== updateVersion)
     throw new Error(
@@ -152,7 +152,7 @@ if (result.status === "failed") process.exitCode = 1;
     );
 
   const help = (
-    await execFileAsync(join(prefix, "bin", "rea-agents"), ["--help"], {
+    await execFileAsync(join(prefix, "bin", "rea-unlock"), ["--help"], {
       cwd: canaryRoot,
       env: environment,
     })
@@ -173,7 +173,7 @@ if (result.status === "failed") process.exitCode = 1;
 async function findPreviousPublishedVersion(targetVersion, cwd, environment) {
   const { stdout } = await execFileAsync(
     "npm",
-    ["view", "rea-agents", "versions", "--json"],
+    ["view", "rea-unlock", "versions", "--json"],
     { cwd, env: environment, maxBuffer: 16 * 1024 * 1024 },
   );
   const versions = JSON.parse(stdout);
@@ -188,7 +188,7 @@ async function findPreviousPublishedVersion(targetVersion, cwd, environment) {
     .sort(rcompare)[0];
   if (previous === undefined)
     throw new Error(
-      `No published rea-agents version precedes ${targetVersion}`,
+      `No published rea-unlock version precedes ${targetVersion}`,
     );
   return previous;
 }

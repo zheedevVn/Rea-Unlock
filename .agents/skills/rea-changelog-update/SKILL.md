@@ -14,13 +14,13 @@ notes; it does not authorize merging, tagging, or publishing.
 
 Fetch complete history and tags. Select the published baseline tag from
 `.release-please-manifest.json` on the release PR's **base branch**, and pin that
-branch's exact SHA as the editorial target. REA tags are `rea-agents-VERSION`.
+branch's exact SHA as the editorial target. REA tags are `rea-unlock-VERSION`.
 Use the proposed version, including its prerelease suffix; do not change the
 `always-bump-minor` strategy to imitate OpenClaw's calendar versions.
 
 ```bash
 node scripts/release-notes.mjs inventory \
-  --repository morluto/rea --base rea-agents-PREVIOUS \
+  --repository zheedevVn/Rea-Unlock --base rea-unlock-PREVIOUS \
   --target FULL_BASE_BRANCH_SHA --version VERSION \
   --manifest /tmp/rea-VERSION.contributions.json
 node scripts/release-notes.mjs record \
@@ -71,7 +71,7 @@ Direct-commit bullets carry the commit link and known human credit.
 Exclude GitHub bots and known agent accounts. REA's observed Anthropic, Cursor
 and Codex co-author trailers resolve to `@claude`, `@cursoragent` and `@codex`
 with GitHub type `User`; the credit policy excludes them while retaining their metadata.
-At the REA maintainer's request, omit `@morluto` self-thanks while preserving
+At the REA maintainer's request, omit `@zheedevVn` self-thanks while preserving
 authorship in the inventory. Other human contributors remain eligible.
 Use explicit GitHub links for cross-repository references to avoid ambiguous
 `#NNN` numbers. Unknown handles stay unknown; they are not fabricated credit.
