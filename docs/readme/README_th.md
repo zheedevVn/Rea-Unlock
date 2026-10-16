@@ -15,7 +15,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[เว็บไซต์](https://github.com/zheedevVn/Rea-Unlock) · [คู่มือ](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [ตัวอย่างการใช้งาน](https://github.com/zheedevVn/Rea-Unlock)**
 
 [เริ่มต้นอย่างรวดเร็ว](#เริ่มต้นอย่างรวดเร็ว) · [REA ทำงานอย่างไร](#rea-ทำงานอย่างไร) · [สิ่งที่วิเคราะห์ได้](#สิ่งที่วิเคราะห์ได้) · [ตัวอย่างการใช้งาน](#ตัวอย่างการใช้งาน) · [คำถามที่พบบ่อย](#คำถามที่พบบ่อย) · [เครื่องมือ GNU objdump และ Rizin](../reverse-engineering-tools.md) · [เอกสาร](#เอกสาร)
@@ -25,7 +24,7 @@
 </div>
 
 > [!IMPORTANT]
-> แหล่งทางการของ REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
+> แหล่งทางการของ REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > โปรดใช้ลิงก์ติดตั้งและรุ่นเผยแพร่จากแหล่งทางการเหล่านี้ ชื่อที่เก็บโค้ดที่คล้ายกันหรือ README ที่คัดลอกมาไม่ได้ยืนยันว่าไฟล์ดาวน์โหลดเป็นของทางการ
 
 <div align="center">
@@ -35,18 +34,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="REA เริ่มบริดจ์การวิเคราะห์ภายใน Hopper ขณะตรวจสอบไบนารีเนทีฟ" width="1200" />
 
 <br /><br />
-
-<table aria-label="ชุมชน REA">
-<tr>
-<td align="center" width="360">
-  <a href="https://github.com/zheedevVn/Rea-Unlock">
-    <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
-    <strong>เข้าร่วมชุมชนวิศวกรรมย้อนกลับ</strong>
-  </a><br />
-  <sub>Discord · ถามตอบ · แบ่งปันผลงาน</sub>
-</td>
-</tr>
-</table>
 
 <br />
 
@@ -274,7 +261,7 @@ npx rea-unlock@latest setup
 
 ขอบคุณทุกคนที่ใช้ REA รายงานบั๊ก เสนอฟีเจอร์ ทดสอบบิลด์ และช่วยแก้ไข
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />

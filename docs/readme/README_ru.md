@@ -15,7 +15,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[Сайт](https://github.com/zheedevVn/Rea-Unlock) · [Руководства](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Примеры](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Быстрый старт](#быстрый-старт) · [Как работает REA](#как-работает-rea) · [Что можно анализировать](#что-можно-анализировать) · [Примеры](#примеры) · [Частые вопросы](#частые-вопросы) · [Инструменты GNU objdump и Rizin](../reverse-engineering-tools.md) · [Документация](#документация)
@@ -25,7 +24,7 @@
 </div>
 
 > [!IMPORTANT]
-> Официальные источники REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
+> Официальные источники REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Используйте ссылки на установку и выпуски из этих официальных источников. Похожее название репозитория или скопированный README не подтверждают, что скачиваемый файл является официальным.
 
 <div align="center">
@@ -35,18 +34,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="REA запускает мост анализа внутри Hopper при исследовании нативного бинарного файла" width="1200" />
 
 <br /><br />
-
-<table aria-label="Сообщество REA">
-<tr>
-<td align="center" width="360">
-  <a href="https://github.com/zheedevVn/Rea-Unlock">
-    <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
-    <strong>Присоединяйтесь к сообществу реверс-инжиниринга</strong>
-  </a><br />
-  <sub>Discord · Вопросы и ответы · Обмен результатами</sub>
-</td>
-</tr>
-</table>
 
 <br />
 
@@ -274,7 +261,7 @@ npx rea-unlock@latest setup
 
 Спасибо всем, кто использует REA, сообщает об ошибках, предлагает новые функции, тестирует сборки и помогает с исправлениями.
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
