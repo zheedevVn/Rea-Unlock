@@ -15,7 +15,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[Site web](https://github.com/zheedevVn/Rea-Unlock) · [Guides](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Études de cas](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Démarrage rapide](#démarrage-rapide) · [Comment fonctionne REA](#comment-fonctionne-rea) · [Ce que vous pouvez analyser](#ce-que-vous-pouvez-analyser) · [Études de cas](#études-de-cas) · [Questions fréquentes](#questions-fréquentes) · [Outils GNU objdump et Rizin](../reverse-engineering-tools.md) · [Documentation](#documentation)
@@ -25,7 +24,7 @@
 </div>
 
 > [!IMPORTANT]
-> Sources officielles de REA : [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
+> Sources officielles de REA : [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Utilisez les liens d’installation et de publication de ces sources officielles. Un nom de dépôt similaire ou un README copié ne prouve pas qu’un téléchargement est officiel.
 
 <div align="center">
@@ -35,7 +34,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="REA lance son pont d'analyse dans Hopper pendant l'inspection d'un binaire natif" width="1200" />
 
 <br /><br />
-
 
 <br />
 
@@ -267,7 +265,7 @@ Signalez les vulnérabilités via [SECURITY.md](../../SECURITY.md).
 
 Merci à toutes les personnes qui utilisent REA, signalent des bugs, proposent des fonctionnalités, testent les builds et contribuent des correctifs.
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
