@@ -15,7 +15,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[وب‌سایت](https://github.com/zheedevVn/Rea-Unlock) · [راهنماها](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [نمونه‌های عملی](https://github.com/zheedevVn/Rea-Unlock)**
 
 [شروع سریع](#شروع-سریع) · [REA چگونه کار می‌کند؟](#rea-چگونه-کار-می‌کند) · [چه چیزهایی را میتوان تحلیل کرد؟](#چه-چیزهایی-را-می‌توان-تحلیل-کرد) · [نمونه‌های عملی](#نمونه‌های-عملی) · [پرسش‌های متداول](#پرسش‌های-متداول) · [ابزارهای GNU objdump و Rizin](../reverse-engineering-tools.md) · [مستندات](#مستندات)
@@ -25,7 +24,7 @@
 </div>
 
 > [!IMPORTANT]
-> منابع رسمی REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
+> منابع رسمی REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > از پیوندهای نصب و انتشار در این منابع رسمی استفاده کنید. نام مشابه مخزن یا README کپی‌شده ثابت نمی‌کند که فایل دانلودی رسمی است.
 
 <div align="center" dir="rtl">
@@ -35,8 +34,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="اجرای پل تحلیل REA در Hopper هنگام بررسی یک فایل باینری بومی" width="1200" />
 
 <br /><br />
-
-<table aria-label="انجمن REA"><tr><td align="center" width="360"><a href="https://github.com/zheedevVn/Rea-Unlock"><img    src="../assets/discord.svg" height="42" alt="Discord" /><br /><strong>به انجمن مهندسی معکوس بپیوندید</strong></a><br /><sub>دیسکورد · پرسش و پاسخ · نمایش دستاوردها</sub></td></tr></table>
 
 <br />
 
@@ -259,7 +256,7 @@ npx rea-unlock@latest setup
 
 از همهٔ کسانی که از REA استفاده می‌کنند، خطاها را گزارش می‌دهند، قابلیت‌های جدید پیشنهاد می‌کنند، buildها را آزمایش می‌کنند و در بهبود پروژه مشارکت دارند سپاسگزاریم.
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date"><picture><source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" /><source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" /><img alt="تاریخچهٔ ستاره‌های GitHub پروژهٔ REA" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" /></picture></a>
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date"><picture><source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" /><source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" /><img alt="تاریخچهٔ ستاره‌های GitHub پروژهٔ REA" src="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" /></picture></a>
 
 ## سلب مسئولیت
 
