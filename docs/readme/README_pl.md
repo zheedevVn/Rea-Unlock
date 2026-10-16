@@ -15,7 +15,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[Strona internetowa](https://github.com/zheedevVn/Rea-Unlock) · [Przewodniki](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Przykłady zastosowań](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Szybki start](#szybki-start) · [Jak działa REA](#jak-działa-rea) · [Co możesz analizować](#co-możesz-analizować) · [Przykłady zastosowań](#przykłady-zastosowań) · [FAQ](#faq) · [Narzędzia GNU objdump i Rizin](../reverse-engineering-tools.md) · [Dokumentacja](#dokumentacja)
@@ -25,7 +24,7 @@
 </div>
 
 > [!IMPORTANT]
-> Oficjalne źródła REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
+> Oficjalne źródła REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Korzystaj z odnośników do instalacji i wydań w tych oficjalnych źródłach. Podobna nazwa repozytorium lub skopiowany README nie potwierdzają, że pobierany plik jest oficjalny.
 
 <div align="center">
@@ -35,18 +34,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="REA uruchamia most analityczny w Hopperze podczas analizy natywnego pliku binarnego" width="1200" />
 
 <br /><br />
-
-<table aria-label="Społeczność REA">
-<tr>
-<td align="center" width="360">
-  <a href="https://github.com/zheedevVn/Rea-Unlock">
-    <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
-    <strong>Dołącz do społeczności inżynierii wstecznej</strong>
-  </a><br />
-  <sub>Discord · Pytania i odpowiedzi · Pokaż swój projekt</sub>
-</td>
-</tr>
-</table>
 
 <br />
 
@@ -274,7 +261,7 @@ Zgłaszaj podatności zgodnie z [SECURITY.md](../../SECURITY.md).
 
 Dziękujemy wszystkim, którzy używają REA, zgłaszają błędy, proponują nowe funkcje, testują kompilacje i przesyłają poprawki.
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />

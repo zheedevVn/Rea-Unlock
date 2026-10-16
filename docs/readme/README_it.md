@@ -15,7 +15,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[Sito web](https://github.com/zheedevVn/Rea-Unlock) · [Guide](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Showcase](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Avvio rapido](#avvio-rapido) · [Come funziona REA](#come-funziona-rea) · [Cosa puoi analizzare](#cosa-puoi-analizzare) · [Showcase](#showcase) · [FAQ](#faq) · [Strumenti GNU objdump e Rizin](../reverse-engineering-tools.md) · [Documentazione](#documentazione)
@@ -25,7 +24,7 @@
 </div>
 
 > [!IMPORTANT]
-> Fonti ufficiali di REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
+> Fonti ufficiali di REA: [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock), [rea-unlock](https://www.npmjs.com/package/rea-unlock) (npm).
 > Segui i link di installazione e delle versioni pubblicate da queste fonti ufficiali. Un nome di repository simile o un README copiato non dimostra che un download sia ufficiale.
 
 <div align="center">
@@ -35,18 +34,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="REA che avvia il suo bridge di analisi dentro Hopper mentre ispeziona un binario nativo" width="1200" />
 
 <br /><br />
-
-<table aria-label="Community REA">
-<tr>
-<td align="center" width="360">
-  <a href="https://github.com/zheedevVn/Rea-Unlock">
-    <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
-    <strong>Unisciti alla community di ingegneria inversa</strong>
-  </a><br />
-  <sub>Discord · Domande e risposte · Show and Tell</sub>
-</td>
-</tr>
-</table>
 
 <br />
 
@@ -278,7 +265,7 @@ Segnala vulnerabilità tramite [SECURITY.md](../../SECURITY.md).
 
 Grazie a tutti coloro che usano REA, segnalano bug, propongono funzionalità, testano le build e contribuiscono con correzioni.
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
