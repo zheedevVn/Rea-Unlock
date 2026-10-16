@@ -14,7 +14,6 @@
 [![skills.sh](https://skills.sh/b/zheedevVn/rea-unlock?style=flat-square)](https://skills.sh/zheedevVn/rea-unlock/reverse-engineer-anything)
 [![Άδεια MIT](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](../../LICENSE)
 
-
 **[Ιστότοπος](https://github.com/zheedevVn/Rea-Unlock) · [Οδηγοί](https://github.com/zheedevVn/Rea-Unlock/tree/main/docs) · [Μελέτες περίπτωσης](https://github.com/zheedevVn/Rea-Unlock)**
 
 [Γρήγορη εκκίνηση](#γρήγορη-εκκίνηση) · [Πώς λειτουργεί το REA](#πώς-λειτουργεί-το-rea) · [Τι μπορείς να αναλύσεις](#τι-μπορείς-να-αναλύσεις) · [Μελέτες περίπτωσης](#μελέτες-περίπτωσης) · [Συχνές ερωτήσεις](#συχνές-ερωτήσεις) · [Τεκμηρίωση](#τεκμηρίωση)
@@ -24,8 +23,7 @@
 </div>
 
 > [!IMPORTANT]
-> Κατέβασε το REA από το [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock),
-> το [github.com/zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock) ή το [πακέτο rea-unlock στο npm](https://www.npmjs.com/package/rea-unlock).
+> Κατέβασε το REA από το [zheedevVn/Rea-Unlock](https://github.com/zheedevVn/Rea-Unlock) ή το [πακέτο rea-unlock στο npm](https://www.npmjs.com/package/rea-unlock).
 > Ακολούθησε τους συνδέσμους εγκατάστασης και εκδόσεων από αυτές τις επίσημες πηγές.
 > Ένα παρόμοιο όνομα αποθετηρίου ή ένα αντιγραμμένο README δεν αποδεικνύει ότι
 > ένα αρχείο προς λήψη προέρχεται από επίσημη πηγή.
@@ -37,18 +35,6 @@
 <img src="../assets/rea-hopper-analysis.png" alt="Το REA ξεκινά τη γέφυρα ανάλυσής του μέσα στο Hopper κατά την εξέταση ενός δυαδικού αρχείου με κώδικα μηχανής" width="1200" />
 
 <br /><br />
-
-<table aria-label="Κοινότητα REA">
-<tr>
-<td align="center" width="360">
-  <a href="https://github.com/zheedevVn/Rea-Unlock">
-    <img src="../assets/discord.svg" height="42" alt="Discord" /><br />
-    <strong>Έλα στην κοινότητα αντίστροφης μηχανικής</strong>
-  </a><br />
-  <sub>Discord · Ερωτήσεις και απαντήσεις · Παρουσίαση έργων</sub>
-</td>
-</tr>
-</table>
 
 <br />
 
@@ -287,7 +273,7 @@ npx rea-unlock@latest setup
 
 Ευχαριστούμε όλους όσοι χρησιμοποιούν το REA, αναφέρουν σφάλματα, ζητούν νέες λειτουργίες, δοκιμάζουν builds και συνεισφέρουν διορθώσεις.
 
-<a href="https://www.star-history.com/?repos=zheedevVn%2Frea&amp;type=date">
+<a href="https://www.star-history.com/?repos=zheedevVn%2FRea-Unlock&amp;type=date">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date&amp;theme=dark&amp;legend=top-left" />
     <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zheedevVn/Rea-Unlock&amp;type=date" />
