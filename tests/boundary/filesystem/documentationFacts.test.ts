@@ -30,12 +30,12 @@ const README_LINK_DRIFT_MUTATIONS = [
     "(../installation.md#missing-agents)",
   ],
   [
-    "https://github.com/zheedevVn/Rea-Unlock/guides/",
+    "https://github.com/zheedevVn/Rea-Unlock/tree/main/docs",
     "https://github.com/zheedevVn/Rea-Unlock/missing/",
   ],
   [
-    "https://github.com/zheedevVn/Rea-Unlock/guides/",
-    "https://github.com/zheedevVn/Rea-Unlock/guides/?other=1",
+    "https://github.com/zheedevVn/Rea-Unlock/tree/main/docs",
+    "https://github.com/zheedevVn/Rea-Unlock/tree/main/docs?other=1",
   ],
   [
     'src="../assets/rea-hopper-analysis.png"',
