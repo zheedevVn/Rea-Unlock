@@ -6,7 +6,12 @@ import {
   evmInterfaceFixture,
 } from "../../../tests/fixtures/evm/interface.js";
 import { err, ok } from "../../domain/result.js";
-import { AnalysisCapabilityUnavailableError } from "../../domain/analysisErrorCore.js";
+import {
+  AnalysisCancelledError,
+  AnalysisCapabilityUnavailableError,
+  AnalysisOutputError,
+} from "../../domain/analysisErrorCore.js";
+import { parseEvidence } from "../../domain/evidence.js";
 
 it.each([
   { path: "relative.hex", encoding: "hex" },
@@ -83,18 +88,28 @@ it("preserves meaningful provider failure and cancellation before/after executio
       return Promise.resolve(ok(evmInterfaceExecution(observed)));
     },
   });
-  expect(
-    await cancelled.inspect(
-      { path: "/artifacts/source-owned.hex", encoding: "hex" },
-      { signal: controller.signal },
-    ),
-  ).toMatchObject({
+  const late = await cancelled.inspect(
+    { path: "/artifacts/source-owned.hex", encoding: "hex" },
+    { signal: controller.signal },
+  );
+  expect(late).toMatchObject({
     ok: false,
     error: {
       _tag: "AnalysisCancelledError",
       capturedOutput: observed.diagnostics,
+      partialObservation: {
+        operation: "inspect_evm_interface",
+        normalized_result: observed,
+      },
     },
   });
+  if (!late.ok) {
+    expect(late.error).toBeInstanceOf(AnalysisCancelledError);
+    expect(parseEvidence(late.error.partialObservation)).toMatchObject({
+      operation: "inspect_evm_interface",
+      normalized_result: observed,
+    });
+  }
   const untouched = new EvmInterfaceService({
     inspect: () => {
       throw new Error("must not start");
@@ -106,4 +121,21 @@ it("preserves meaningful provider failure and cancellation before/after executio
       { signal: controller.signal },
     ),
   ).toMatchObject({ ok: false, error: { _tag: "AnalysisCancelledError" } });
+});
+
+it("keeps malformed interface output ahead of a late cancellation", async () => {
+  const controller = new AbortController();
+  const malformed = evmInterfaceFixture();
+  malformed.artifact.path = "/artifacts/other.hex";
+  const result = await new EvmInterfaceService({
+    inspect: () => {
+      controller.abort();
+      return Promise.resolve(ok(evmInterfaceExecution(malformed)));
+    },
+  }).inspect(
+    { path: "/artifacts/source-owned.hex", encoding: "hex" },
+    { signal: controller.signal },
+  );
+  expect(result.ok).toBe(false);
+  if (!result.ok) expect(result.error).toBeInstanceOf(AnalysisOutputError);
 });

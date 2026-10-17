@@ -55,6 +55,10 @@ export interface WorkflowSnapshotRecordInput {
 export abstract class BinarySessionRecords {
   readonly #records: InvestigationRecords;
   readonly #writeResources = new ArtifactResourceScope();
+
+  protected get hasPendingFileResources(): boolean {
+    return this.#writeResources.hasPending;
+  }
   readonly #snapshot = new AnalysisSnapshotCache();
   #snapshotInvalidated = false;
   readonly #snapshotListeners = new Set<() => void | Promise<void>>();

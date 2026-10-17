@@ -16,6 +16,7 @@ import {
 import { createEvidence, type Evidence } from "../../domain/evidence.js";
 import { analysisInputErrorFromIssues } from "../../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 const OPERATION = "inspect_electron_fuses";
 
@@ -49,8 +50,6 @@ export class ElectronFuseService {
       );
     const inspected = await this.provider.inspect(input.data, options);
     if (!inspected.ok) return inspected;
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(OPERATION));
     const report = electronFuseReportSchema.safeParse(inspected.value);
     if (
       !report.success ||
@@ -64,7 +63,7 @@ export class ElectronFuseService {
       );
     const value = report.data;
     const architecture = subjectArchitecture(value);
-    return ok(
+    return completeProviderEvidence(
       createEvidence(
         {
           path: value.artifact.resolved_path,
@@ -82,6 +81,7 @@ export class ElectronFuseService {
           locations: locationsFor(value),
         },
       ),
+      options?.signal,
     );
   }
 }

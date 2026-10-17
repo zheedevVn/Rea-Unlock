@@ -12,7 +12,8 @@ import {
 import type { AnalysisError } from "../../domain/analysisErrorBase.js";
 import { createEvidence, type Evidence } from "../../domain/evidence.js";
 import { jsonObjectSchema } from "../../domain/jsonValue.js";
-import { err, ok, type Result } from "../../domain/result.js";
+import { err, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 /** Shared CLI/MCP validation and Evidence composition for arbitrary firmware files. */
 export class FirmwareAnalysisService {
@@ -43,7 +44,7 @@ export class FirmwareAnalysisService {
           "Firmware execution did not bind its source artifact",
         ),
       );
-    return ok(
+    return completeProviderEvidence(
       createEvidence(execution.subject, execution.provider, {
         operation,
         parameters: jsonObjectSchema.parse(parsed.data.input),
@@ -53,6 +54,7 @@ export class FirmwareAnalysisService {
         limitations: execution.limitations,
         confidence: "observed",
       }),
+      options?.signal,
     );
   }
 }

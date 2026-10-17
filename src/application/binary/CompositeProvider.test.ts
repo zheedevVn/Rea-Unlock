@@ -9,6 +9,7 @@ import {
   type ProviderIdentity,
 } from "../AnalysisProvider.js";
 import { ProviderCleanupError } from "../../domain/providerCleanupError.js";
+import { projectAnalysisError } from "../../domain/analysisErrorProjection.js";
 import { err, ok } from "../../domain/result.js";
 import { CompositeProvider } from "./CompositeProvider.js";
 
@@ -44,10 +45,15 @@ const failingProvider = (
   resource: string,
 ) => {
   const providerIdentity = identity(id);
-  const cleanupError = new ProviderCleanupError(id, [resource], {
-    reason: `${id} cleanup is unresolved`,
-    child_marker: `${id}-detail`,
-  });
+  const cleanupError = new ProviderCleanupError(
+    id,
+    [resource],
+    {
+      reason: `${id} cleanup is unresolved`,
+      child_marker: `${id}-detail`,
+    },
+    { remediationAction: `Resolve ${resource} before retrying ${id}.` },
+  );
   const close = vi.fn(async () => err(cleanupError));
   const provider: AnalysisProvider = {
     identity: () => providerIdentity,
@@ -98,6 +104,13 @@ it("retains every failed child resource across composite cleanup retries", async
       },
     });
     expect(closed.error).toBeInstanceOf(ProviderCleanupError);
+    const projected = projectAnalysisError(closed.error);
+    expect(projected.remediation.action).toContain(
+      "Resolve left-db before retrying provider-left.",
+    );
+    expect(projected.remediation.action).toContain(
+      "Resolve right-db before retrying provider-right.",
+    );
     expect(closed.error.diagnostics).toMatchObject({
       failures: [
         {
@@ -127,3 +140,97 @@ it("preserves one child's typed cleanup error unchanged", async () => {
   if (closed.ok) throw new Error("Expected child cleanup failure");
   expect(closed.error).toBe(child.cleanupError);
 });
+
+it("does not close a child again after its cleanup succeeded", async () => {
+  const firstIdentity = identity("provider-first");
+  const secondIdentity = identity("provider-second");
+  let secondCloseAttempts = 0;
+  const firstClose = vi.fn(async () => ok(null));
+  const secondClose = vi.fn(async () => {
+    secondCloseAttempts += 1;
+    return secondCloseAttempts === 1
+      ? err(new ProviderCleanupError("provider-second", ["second-db"], {}))
+      : ok(null);
+  });
+  const makeProvider = (
+    providerIdentity: ProviderIdentity,
+    operation: Exclude<AnalysisOperation, "health">,
+    close: AnalysisClient["close"],
+  ): AnalysisProvider => ({
+    identity: () => providerIdentity,
+    capabilities: () => [operationCapability(providerIdentity, operation)],
+    createClient: () => ({
+      execute: async () => ok(createAnalysisExecution(null, providerIdentity)),
+      close,
+    }),
+  });
+  const client = new CompositeProvider([
+    makeProvider(firstIdentity, "address_name", firstClose),
+    makeProvider(secondIdentity, "procedure_info", secondClose),
+  ]).createClient(executableTarget);
+  await client.execute("address_name", {});
+  await client.execute("procedure_info", {});
+
+  expect((await client.close({ retainDocument: true })).ok).toBe(false);
+  expect((await client.close()).ok).toBe(true);
+  expect(firstClose).toHaveBeenCalledTimes(1);
+  expect(secondClose).toHaveBeenCalledTimes(2);
+  expect((await client.close({ retainDocument: true })).ok).toBe(true);
+  expect(firstClose).toHaveBeenCalledTimes(1);
+  expect(secondClose).toHaveBeenCalledTimes(2);
+});
+
+it.each(["busy", "unknown", "idle", undefined] as const)(
+  "keeps partial health truthful with child state %s and an unobserved peer",
+  async (state) => {
+    const observedIdentity = identity("provider-observed");
+    const unobservedIdentity = identity("provider-unobserved");
+    const observed: AnalysisProvider = {
+      identity: () => observedIdentity,
+      capabilities: () => [
+        operationCapability(observedIdentity, "address_name"),
+      ],
+      createClient: () => ({
+        execute: async () =>
+          ok(createAnalysisExecution(null, observedIdentity)),
+        operationHealthSnapshot: () =>
+          state === undefined
+            ? undefined
+            : {
+                state,
+                stage: state === "idle" ? null : "analysis",
+                retryAction:
+                  state === "busy"
+                    ? "wait"
+                    : state === "idle"
+                      ? null
+                      : "unknown",
+                exitCode: null,
+                requests: [],
+              },
+        close: async () => ok(null),
+      }),
+    };
+    const unobserved: AnalysisProvider = {
+      identity: () => unobservedIdentity,
+      capabilities: () => [
+        operationCapability(unobservedIdentity, "procedure_info"),
+      ],
+      createClient: () => ({
+        execute: async () =>
+          ok(createAnalysisExecution(null, unobservedIdentity)),
+        close: async () => ok(null),
+      }),
+    };
+    const client = new CompositeProvider([observed, unobserved]).createClient(
+      executableTarget,
+    );
+    await client.execute("address_name", {});
+    await client.execute("procedure_info", {});
+
+    if (state === "idle" || state === undefined)
+      expect(client.operationHealthSnapshot?.()).toBeUndefined();
+    else expect(client.operationHealthSnapshot?.()).toMatchObject({ state });
+    expect((await client.close()).ok).toBe(true);
+  },
+);

@@ -15,6 +15,7 @@ import {
 } from "../../domain/native/recordedCrash.js";
 import { analysisInputErrorFromIssues } from "../../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 const OPERATION = "inspect_recorded_crash";
 
@@ -80,8 +81,6 @@ export class RecordedCrashService {
     const outputOptions = diagnostics.success
       ? { capturedOutput: diagnostics.data }
       : undefined;
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(OPERATION, outputOptions));
     const report = recordedCrashSchema.safeParse(inspected.value);
     if (
       !report.success ||
@@ -97,7 +96,7 @@ export class RecordedCrashService {
         ),
       );
     const value = report.data;
-    return ok(
+    return completeProviderEvidence(
       createEvidence(
         {
           path: value.artifact.path,
@@ -120,6 +119,8 @@ export class RecordedCrashService {
           locations: [{ kind: "artifact-path", path: value.artifact.path }],
         },
       ),
+      options?.signal,
+      outputOptions?.capturedOutput,
     );
   }
 }

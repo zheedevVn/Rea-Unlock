@@ -16,6 +16,7 @@ import {
 } from "../../domain/native/peResources.js";
 import { analysisInputErrorFromIssues } from "../../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 /** Shared caller validation, output parsing and Evidence provenance for CLI/MCP. */
 export class PeResourcesService {
@@ -51,8 +52,6 @@ export class PeResourcesService {
       );
     const result = await this.provider.inspect(input.data, options);
     if (!result.ok) return result;
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(operation));
     const report = peResourcesSchema.safeParse(result.value);
     if (
       !report.success ||
@@ -70,7 +69,7 @@ export class PeResourcesService {
         ),
       );
     const value = report.data;
-    return ok(
+    return completeProviderEvidence(
       createEvidence(
         {
           path: value.artifact.path,
@@ -87,6 +86,7 @@ export class PeResourcesService {
           locations: [{ kind: "artifact-path", path: value.artifact.path }],
         },
       ),
+      options?.signal,
     );
   }
 }

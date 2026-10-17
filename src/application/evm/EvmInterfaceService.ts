@@ -15,6 +15,7 @@ import {
 } from "../../domain/evm/evmInterface.js";
 import { analysisInputErrorFromIssues } from "../../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 const OPERATION = "inspect_evm_interface";
 const diagnosticsSchema = z.object({
@@ -59,8 +60,6 @@ export class EvmInterfaceService {
     const outputOptions = diagnostics.success
       ? { capturedOutput: diagnostics.data.diagnostics }
       : undefined;
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(OPERATION, outputOptions));
     const execution = inspected.value;
     const report = evmInterfaceSchema.safeParse(execution.result);
     if (
@@ -78,7 +77,7 @@ export class EvmInterfaceService {
           outputOptions,
         ),
       );
-    return ok(
+    return completeProviderEvidence(
       createEvidence(execution.subject, execution.provider, {
         operation: OPERATION,
         parameters: input.data,
@@ -90,6 +89,8 @@ export class EvmInterfaceService {
         locations: execution.locations,
         limitations: execution.limitations,
       }),
+      options?.signal,
+      outputOptions?.capturedOutput,
     );
   }
 }

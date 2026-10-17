@@ -1,6 +1,7 @@
 import { AnalysisCapabilityUnavailableError } from "../../domain/analysisErrorCore.js";
 import { ProviderCleanupError } from "../../domain/providerCleanupError.js";
 import { ProviderAdapterError } from "../../domain/providerAdapterError.js";
+import { projectAnalysisError } from "../../domain/analysisErrorProjection.js";
 import { err, ok } from "../../domain/result.js";
 import type { BinaryTarget } from "../../domain/binaryTargetTypes.js";
 import type { AnalysisProfileCommitment } from "../../domain/analysisProfile.js";
@@ -27,18 +28,20 @@ const compositeProviderIdentity = (
   version: null,
 });
 
-const closeCompositeClients =
-  (
-    identity: ProviderIdentity,
-    clients: ReadonlyMap<AnalysisProvider, AnalysisClient>,
-  ): AnalysisClient["close"] =>
-  async (options) => {
+const closeCompositeClients = (
+  identity: ProviderIdentity,
+  clients: ReadonlyMap<AnalysisProvider, AnalysisClient>,
+): AnalysisClient["close"] => {
+  const completed = new Set<AnalysisClient>();
+  return async (options) => {
     const outcomes = await Promise.all(
-      [...clients.entries()].map(([provider, client]) =>
-        closeAnalysisClient(client, provider.identity().id, options).then(
-          (result) => ({ providerId: provider.identity().id, result }),
-        ),
-      ),
+      [...clients.entries()].map(async ([provider, client]) => {
+        const providerId = provider.identity().id;
+        if (completed.has(client)) return { providerId, result: ok(null) };
+        const result = await closeAnalysisClient(client, providerId, options);
+        if (result.ok) completed.add(client);
+        return { providerId, result };
+      }),
     );
     const failures = outcomes.flatMap(({ providerId, result }) =>
       result.ok ? [] : [{ providerId, error: result.error }],
@@ -68,6 +71,13 @@ const closeCompositeClients =
           })),
         },
         {
+          remediationAction: [
+            ...new Set(
+              failures.map(
+                ({ error }) => projectAnalysisError(error).remediation.action,
+              ),
+            ),
+          ].join("\n"),
           cause: new AggregateError(
             failures.map(({ error }) => error),
             "Composed provider cleanup failed.",
@@ -76,6 +86,7 @@ const closeCompositeClients =
       ),
     );
   };
+};
 
 const executeCompositeHealth = async (
   identity: ProviderIdentity,
@@ -213,13 +224,21 @@ export class CompositeProvider implements AnalysisProvider {
         const snapshots = [...clients.values()].map((client) =>
           client.operationHealthSnapshot?.(),
         );
+        const failed = snapshots.find(
+          (snapshot) =>
+            snapshot !== undefined &&
+            (snapshot.state === "exited" ||
+              snapshot.state === "unreachable" ||
+              snapshot.state === "not_started"),
+        );
+        if (failed !== undefined) return failed;
+        const nonIdle = snapshots.find(
+          (snapshot) => snapshot !== undefined && snapshot.state !== "idle",
+        );
+        if (nonIdle !== undefined) return nonIdle;
         if (snapshots.some((snapshot) => snapshot === undefined))
           return undefined;
-        return (
-          snapshots.find(
-            (snapshot) => snapshot !== undefined && snapshot.state !== "idle",
-          ) ?? snapshots[0]
-        );
+        return snapshots[0];
       },
       close,
     };

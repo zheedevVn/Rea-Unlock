@@ -6,6 +6,11 @@ import { inspectPeResourcesInputSchema } from "../../domain/native/peResources.j
 import { parsePeResources } from "../../native/pe/PeResourceParser.js";
 import { peResourceFixture } from "../../native/pe/PeResources.fixture.js";
 import { ok } from "../../domain/result.js";
+import { parseEvidence } from "../../domain/evidence.js";
+import {
+  AnalysisCancelledError,
+  AnalysisOutputError,
+} from "../../domain/analysisErrorCore.js";
 
 const observedReport = () => {
   const { bytes } = peResourceFixture();
@@ -45,7 +50,7 @@ it.each([
   },
 );
 
-it("discards an observation if the caller cancels while the provider completes", async () => {
+it("retains a completed observation on late cancellation and keeps output errors primary", async () => {
   const report = await observedReport();
   const controller = new AbortController();
   const service = new PeResourcesService({
@@ -55,10 +60,34 @@ it("discards an observation if the caller cancels while the provider completes",
       return Promise.resolve(ok(report));
     },
   });
-  expect(
-    await service.inspect(
-      { path: report.artifact.path },
-      { signal: controller.signal },
-    ),
-  ).toMatchObject({ ok: false, error: { _tag: "AnalysisCancelledError" } });
+  const late = await service.inspect(
+    { path: report.artifact.path },
+    { signal: controller.signal },
+  );
+  expect(late).toMatchObject({
+    ok: false,
+    error: { _tag: "AnalysisCancelledError" },
+  });
+  if (!late.ok) {
+    expect(parseEvidence(late.error.partialObservation)).toMatchObject({
+      operation: "inspect_pe_resources",
+      normalized_result: report,
+    });
+  }
+
+  const malformed = await observedReport();
+  malformed.artifact.path = "/other.exe";
+  const outputController = new AbortController();
+  const invalid = await new PeResourcesService({
+    identity: PE_RESOURCES_PROVIDER,
+    inspect: () => {
+      outputController.abort();
+      return Promise.resolve(ok(malformed));
+    },
+  }).inspect(
+    { path: "/fixtures/example.exe" },
+    { signal: outputController.signal },
+  );
+  expect(invalid.ok).toBe(false);
+  if (!invalid.ok) expect(invalid.error).toBeInstanceOf(AnalysisOutputError);
 });

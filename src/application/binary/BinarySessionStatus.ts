@@ -30,6 +30,7 @@ interface BinarySessionStatusInput {
   readonly runtimeLineageSnapshots: readonly ProviderRuntimeLineageSnapshot[];
   readonly requestActivitySnapshots: readonly ProviderRequestActivitySnapshot[];
   readonly providerOperationHealth?: ProviderOperationHealth | null;
+  readonly cleanupPending?: boolean;
 }
 
 /** Project internal provider routing state into the caller-visible session status. */
@@ -42,6 +43,7 @@ export const binarySessionStatus = ({
   runtimeLineageSnapshots,
   requestActivitySnapshots,
   providerOperationHealth,
+  cleanupPending = false,
 }: BinarySessionStatusInput): JsonValue => {
   const routeCapabilities = [...route.capabilities.values()]
     .filter(({ operation }) => operation !== "inventory_artifact")
@@ -84,6 +86,7 @@ export const binarySessionStatus = ({
       ),
     }));
   const common = {
+    cleanup_pending: cleanupPending,
     capabilities,
     analysis_provider_binding: analysisProviderBinding,
     analysis_provider_candidates: analysisProviderCandidates,
