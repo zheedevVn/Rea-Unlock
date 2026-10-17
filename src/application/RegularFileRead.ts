@@ -43,13 +43,15 @@ export type RegularFileReadOutcome<Value> = RegularFileOperationOutcome<Value>;
 export const retryRegularFileCleanup = async <Value>(
   failure: RegularFileCleanupFailure<Value>,
   resources: ArtifactResourceScope,
+  signal?: AbortSignal,
 ): Promise<{
   readonly outcome: RegularFileReadOutcome<Value>;
   readonly cleanup?: AnalysisCleanupObservation;
 }> => {
   const outcome: RegularFileReadOutcome<Value> =
     failure.outcome.kind === "failed" &&
-    failure.outcome.cause instanceof RegularFileOperationCancelled
+    failure.outcome.cause instanceof RegularFileOperationCancelled &&
+    !(signal?.aborted === true && failure.outcome.cause === signal.reason)
       ? { kind: "failed", cause: failure.outcome.cause.reason }
       : failure.outcome;
   const released = await resources.release({
@@ -106,6 +108,9 @@ export const withRegularFile = async <Value>(
         },
       );
     } catch (cause: unknown) {
+      // Caller reasons are opaque, including objects shaped like file failures.
+      // They do not transfer ownership of any descriptor to this operation.
+      if (signal?.aborted === true && cause === signal.reason) throw cause;
       if (cause instanceof RegularFileOperationCancelled) throw cause.reason;
       if (
         cause instanceof RegularFileCancelled &&
@@ -117,7 +122,7 @@ export const withRegularFile = async <Value>(
         resources === undefined
       )
         throw cause;
-      const retry = await retryRegularFileCleanup(cause, resources);
+      const retry = await retryRegularFileCleanup(cause, resources, signal);
       if (retry.cleanup !== undefined) throw cause;
       if (retry.outcome.kind === "failed") throw retry.outcome.cause;
       return retry.outcome.value;

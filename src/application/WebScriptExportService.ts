@@ -236,8 +236,10 @@ const readCapture = async (
   try {
     return ok({ bytes: await readRegularFile(path, { signal }) });
   } catch (cause: unknown) {
+    if (signal?.aborted === true && cause === signal.reason)
+      return err(captureReadFailure(path, cause, signal));
     if (cause instanceof RegularFileCleanupFailure) {
-      const retry = await retryRegularFileCleanup(cause, resources);
+      const retry = await retryRegularFileCleanup(cause, resources, signal);
       const cleanup = {
         reason: retry.cleanup?.reason ?? errorMessage(cause.cleanupCause),
         incomplete: retry.cleanup !== undefined,

@@ -1,3 +1,12 @@
+import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
+import { AnalysisError } from "../domain/analysisErrorBase.js";
+import { AnalysisCancelledError } from "../domain/analysisErrorCore.js";
+import { ProviderCleanupError } from "../domain/providerCleanupError.js";
+import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.js";
+import { bindArtifactFileCleanup } from "../artifacts/ArtifactFileOperation.js";
+import { ArtifactReaderFailure } from "../artifacts/ArtifactReader.js";
+import { AnalysisCleanupLease } from "../artifacts/AnalysisCleanupLease.js";
+import { STARTUP_OWNER_CLOSED } from "../process/SharedStartupAttempt.js";
 import { constants } from "node:fs";
 import { access, readdir, stat } from "node:fs/promises";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
@@ -9,7 +18,7 @@ import { analysisErrorRemediationAction } from "../domain/analysisErrorPresentat
 import { BinaryTargetError } from "../domain/configurationErrors.js";
 import { parseBinaryTarget } from "./BinaryTargetResolver.js";
 import { execFileOutput } from "../process/ExecFileOutput.js";
-import type { JsonValue } from "../domain/jsonValue.js";
+import { jsonValueSchema, type JsonValue } from "../domain/jsonValue.js";
 import {
   javaScriptRuntime,
   type JavaScriptRuntime,
@@ -93,6 +102,7 @@ export interface DoctorProviderInspection {
 }
 /** Read-only host capabilities required by diagnostics. */
 export interface DoctorHost {
+  readonly signal?: AbortSignal;
   readonly platform: NodeJS.Platform;
   readonly architecture: NodeJS.Architecture;
   readonly runtime: JavaScriptRuntime;
@@ -203,15 +213,36 @@ export const runDoctorOwned = async (
     report = await inspectDoctor(target, host, requestedScope);
   } catch (cause: unknown) {
     const cleanup = await closeDoctorHost(host);
+    if (cleanup !== undefined && cause instanceof AnalysisError) {
+      const cleanupError =
+        typeof cleanup === "string"
+          ? new ProviderCleanupError(
+              "rea",
+              [],
+              { reason: cleanup },
+              { operation: "doctor" },
+            )
+          : cleanup;
+      throw analysisErrorWithCleanupFailure(
+        cause,
+        cleanupError,
+        "doctor",
+      ).bindCleanupDependencies([cause, cleanupError]);
+    }
     if (cleanup !== undefined)
       throw new AggregateError(
-        [cause, new Error(cleanup)],
+        [cause, typeof cleanup === "string" ? new Error(cleanup) : cleanup],
         "Doctor failed and its resource cleanup remains incomplete.",
         { cause },
       );
     throw cause;
   }
   const cleanup = await closeDoctorHost(host);
+  if (cleanup === undefined && report.healthy && host.signal?.aborted)
+    throw new AnalysisCancelledError("doctor", {
+      cause: host.signal.reason,
+      diagnostics: { doctor_report: jsonValueSchema.parse(report) },
+    });
   return cleanup === undefined
     ? report
     : doctorReportWithCleanup(report, cleanup);
@@ -222,6 +253,8 @@ const inspectDoctor = async (
   host: DoctorHost,
   requestedScope?: DoctorScope,
 ): Promise<DoctorReport> => {
+  if (host.signal?.aborted)
+    throw new AnalysisCancelledError("doctor", { cause: host.signal.reason });
   const scope = normalizeDoctorScope(requestedScope, target);
   const {
     checks: diagnosticChecks,
@@ -283,23 +316,30 @@ const registrationAdvisoryChecks = (
 
 const closeDoctorHost = async (
   host: DoctorHost,
-): Promise<string | undefined> => {
+): Promise<string | AnalysisError | undefined> => {
   try {
     return await host.close?.();
   } catch (cause: unknown) {
+    if (cause instanceof AnalysisError) return cause;
     return `Doctor host cleanup failed: ${cause instanceof Error ? cause.message : String(cause)}`;
   }
 };
 
 const doctorReportWithCleanup = (
   report: DoctorReport,
-  detail: string,
+  cleanup: string | AnalysisError,
 ): DoctorReport => {
   const check: DoctorCheck = {
     name: "doctor-resource-cleanup",
     ok: false,
     classification: "config_drift",
-    detail,
+    detail:
+      typeof cleanup === "string"
+        ? cleanup
+        : `${cleanup.message} ${cleanup.cleanupResources.join(", ")}`,
+    ...(typeof cleanup === "string"
+      ? {}
+      : { details: { cleanup_failure: projectAnalysisError(cleanup) } }),
     remediation: "Resolve the reported cleanup failure, then rerun rea doctor.",
   };
   return {
@@ -340,7 +380,10 @@ const collectDoctorIdentity = async (
       cli_package_version: PRODUCT_IDENTITY.packageVersion,
       expected_skill_version: PRODUCT_IDENTITY.skillVersion,
       sdk: SDK_IDENTITY,
-      catalog: CATALOG_IDENTITY,
+      catalog: {
+        counts: CATALOG_IDENTITY.counts,
+        digests: CATALOG_IDENTITY.digests,
+      },
       live_server: {
         state: "unknown",
         remediation:
@@ -430,12 +473,14 @@ const installationState = (
 
 /** Optional outer-adapter diagnostics composed without reversing dependencies. */
 export interface SystemDoctorHostOptions {
+  readonly signal?: AbortSignal;
   readonly platform?: NodeJS.Platform;
   readonly architecture?: NodeJS.Architecture;
   readonly environment?: NodeJS.ProcessEnv;
   readonly execFileOutput?: typeof execFileOutput;
   readonly providerInspections?: (
     fileCloseResources: FileCloseResourceOwner,
+    signal: AbortSignal,
   ) => Promise<readonly DoctorProviderInspection[]>;
   readonly providerRegistrationEnvironment?: () => Readonly<
     Record<string, string>
@@ -449,6 +494,11 @@ export const systemDoctorHost = (
   options: SystemDoctorHostOptions = {},
 ): DoctorHost => {
   const resources = new ArtifactResourceScope();
+  const controller = new AbortController();
+  const inspectionSignal =
+    options.signal === undefined
+      ? controller.signal
+      : AbortSignal.any([options.signal, controller.signal]);
   const platform = options.platform ?? process.platform;
   const architecture = options.architecture ?? process.arch;
   const environment = options.environment ?? process.env;
@@ -460,11 +510,12 @@ export const systemDoctorHost = (
       resources.retain({
         kind: "lease",
         resource,
-        lease: { release: () => owner.close() },
+        lease: new AnalysisCleanupLease(() => owner.close(), [resource]),
       }),
     run: (operation) => resources.run(operation),
   };
   return {
+    ...(options.signal === undefined ? {} : { signal: options.signal }),
     platform,
     architecture,
     runtime: javaScriptRuntime(process.versions),
@@ -561,7 +612,12 @@ export const systemDoctorHost = (
       ? {}
       : {
           providerInspections: () =>
-            options.providerInspections!(fileCloseResources),
+            resources.run(() =>
+              options.providerInspections!(
+                fileCloseResources,
+                inspectionSignal,
+              ),
+            ),
         }),
     ...(options.providerRegistrationEnvironment === undefined
       ? {}
@@ -612,11 +668,23 @@ export const systemDoctorHost = (
         resources,
       ),
     close: async () => {
+      controller.abort(STARTUP_OWNER_CLOSED);
       try {
         await resources.close();
         return undefined;
       } catch (cause: unknown) {
-        return `Doctor resource cleanup failed: ${cause instanceof Error ? cause.message : String(cause)}`;
+        const observation = ArtifactReaderFailure.cleanupObservation(
+          cause,
+          "doctor resources",
+        );
+        const failure = new ProviderCleanupError(
+          "rea",
+          observation.resources,
+          { reason: observation.reason },
+          { cause, operation: "doctor" },
+        );
+        bindArtifactFileCleanup(cause, failure);
+        throw failure;
       }
     },
     clientRegistrations: () =>

@@ -21,7 +21,7 @@ export const runSessionStatus = async (
   if (!config.ok) return { error: projectAnalysisError(config.error) };
   const session = await dependencies.createBinarySession(config.value, logger);
   try {
-    const status = jsonObjectSchema.parse(session.status());
+    const status = jsonObjectSchema.parse(await session.status());
     return {
       ...status,
       capabilities: [

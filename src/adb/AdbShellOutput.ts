@@ -181,21 +181,30 @@ export const parseWmDensityOutput = (
   return { physical: physical ?? bare, override };
 };
 
-/** Parse focus declarations from `dumpsys window windows` or `displays`. */
+interface WindowFocusDeclaration {
+  readonly value: string | null;
+  readonly rawLine: string;
+}
+
+/** A missing declaration differs from a declared null object reference. */
 export const parseWindowFocusOutput = (
   stdout: string,
 ): {
-  focusedWindow: string | null;
-  focusedApp: string | null;
+  focusedWindow: WindowFocusDeclaration | null;
+  focusedApp: WindowFocusDeclaration | null;
 } => {
-  let focusedWindow = null;
-  let focusedApp = null;
+  let focusedWindow: WindowFocusDeclaration | null = null;
+  let focusedApp: WindowFocusDeclaration | null = null;
   for (const line of stdout.split(/\r?\n/u)) {
     const trimmed = line.trim();
-    if (focusedWindow === null && trimmed.startsWith("mCurrentFocus="))
-      focusedWindow = trimmed.slice("mCurrentFocus=".length).trim();
-    if (focusedApp === null && trimmed.startsWith("mFocusedApp="))
-      focusedApp = trimmed.slice("mFocusedApp=".length).trim();
+    if (focusedWindow === null && trimmed.startsWith("mCurrentFocus=")) {
+      const value = trimmed.slice("mCurrentFocus=".length).trim();
+      focusedWindow = { value: value === "null" ? null : value, rawLine: line };
+    }
+    if (focusedApp === null && trimmed.startsWith("mFocusedApp=")) {
+      const value = trimmed.slice("mFocusedApp=".length).trim();
+      focusedApp = { value: value === "null" ? null : value, rawLine: line };
+    }
   }
   return { focusedWindow, focusedApp };
 };

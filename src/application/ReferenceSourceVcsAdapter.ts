@@ -88,8 +88,9 @@ const resolveSourceHead = async (
     try {
       return await readRegularFile(path, { signal });
     } catch (cause: unknown) {
+      if (signal?.aborted === true && cause === signal.reason) throw cause;
       if (!(cause instanceof RegularFileCleanupFailure)) throw cause;
-      const retry = await retryRegularFileCleanup(cause, resources);
+      const retry = await retryRegularFileCleanup(cause, resources, signal);
       if (
         retry.outcome.kind === "failed" &&
         errorCode(retry.outcome.cause) !== "ENOENT"

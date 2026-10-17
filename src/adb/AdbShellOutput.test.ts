@@ -1,6 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAmStartOutput, parseWmDensityOutput } from "./AdbShellOutput.js";
+import {
+  parseAmStartOutput,
+  parseWmDensityOutput,
+  parseWindowFocusOutput,
+} from "./AdbShellOutput.js";
+
+describe("parseWindowFocusOutput", () => {
+  it("separates missing declarations from explicit absence and retains source lines", () => {
+    expect(parseWindowFocusOutput("no declarations\n")).toEqual({
+      focusedWindow: null,
+      focusedApp: null,
+    });
+    expect(
+      parseWindowFocusOutput("  mCurrentFocus=null\nmFocusedApp=null\n"),
+    ).toEqual({
+      focusedWindow: { value: null, rawLine: "  mCurrentFocus=null" },
+      focusedApp: { value: null, rawLine: "mFocusedApp=null" },
+    });
+  });
+
+  it("does not reinterpret later declarations after the first explicitly absent one", () => {
+    expect(
+      parseWindowFocusOutput(
+        "mCurrentFocus=null\nmCurrentFocus=Window{later}\nmFocusedApp=ActivityRecord{current}\n",
+      ),
+    ).toEqual({
+      focusedWindow: { value: null, rawLine: "mCurrentFocus=null" },
+      focusedApp: {
+        value: "ActivityRecord{current}",
+        rawLine: "mFocusedApp=ActivityRecord{current}",
+      },
+    });
+  });
+});
 
 describe("parseWmDensityOutput", () => {
   it("reads labeled physical and override densities", () => {
