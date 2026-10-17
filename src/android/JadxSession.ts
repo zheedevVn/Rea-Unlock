@@ -69,8 +69,10 @@ export class JadxSession {
     readonly jarHash: string;
     readonly bridgeHash: string;
     readonly signal: AbortSignal;
+    /** Selected whole-operation deadline; also bounds each upstream call. */
+    readonly timeoutMs: number;
   }): Promise<AnalysisExecution> {
-    const { request, target, snapshot, jarHash, signal } = context;
+    const { request, target, snapshot, jarHash, signal, timeoutMs } = context;
     this.#partialContext = {
       operation: request.operation,
       selectedPath: request.input.path,
@@ -105,7 +107,7 @@ export class JadxSession {
           request.operation,
           `Expected ${JADX_BRIDGE_IDENTITY.name} ${JADX_BRIDGE_IDENTITY.version}; server reported ${server?.name ?? "unknown"} ${server?.version ?? "unknown"}.`,
         );
-      const tools = this.#tools(request, target, signal);
+      const tools = this.#tools(request, target, signal, timeoutMs);
       const runtime = jadxRuntimeSchema.parse(
         await tools.json("rea_jvm_status", {}),
       );
@@ -206,15 +208,17 @@ export class JadxSession {
     request: AndroidRequest,
     target: BinaryTarget,
     signal: AbortSignal,
+    timeoutMs: number,
   ): JadxToolPort {
     const call = async (
       name: string,
       input: Readonly<Record<string, JsonValue>>,
     ): Promise<string> => {
       signal.throwIfAborted();
+      // Keep an explicit bound: omitting it falls back to the SDK's 60-second default.
       const response = await this.#client.callTool(
         { name, arguments: input },
-        { timeout: 120_000, signal },
+        { timeout: timeoutMs, signal },
       );
       const observedResponse = jsonValueSchema.parse(response);
       const call = { operation: name, input, response: observedResponse };

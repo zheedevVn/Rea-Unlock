@@ -23,6 +23,12 @@ export const JADX_JAVA_RUNTIME_REMEDIATION =
 export const JADX_JVM_OPTIONS_REMEDIATION =
   "Set REA_JADX_HEAP_MIB to a positive integer (heap size in MiB) and REA_JADX_ACTIVE_PROCESSOR_COUNT to a positive integer within the JVM's signed 32-bit range.";
 
+/** Whole-operation deadline used when REA_JADX_OPERATION_TIMEOUT_MS is unset. */
+export const DEFAULT_JADX_OPERATION_TIMEOUT_MS = 120_000;
+
+/** Remediation when the JADX operation deadline override is malformed. */
+export const JADX_OPERATION_TIMEOUT_REMEDIATION = `Set REA_JADX_OPERATION_TIMEOUT_MS to a decimal millisecond count from 1 to 2147483647, or unset it to keep the ${String(DEFAULT_JADX_OPERATION_TIMEOUT_MS)} ms default.`;
+
 /** Remediation when the host cannot run the Android JADX subprocess. */
 export const JADX_UNSUPPORTED_HOST_REMEDIATION =
   "Use Linux, macOS, or Windows x64 with its bundled native controls for Android JADX analysis.";

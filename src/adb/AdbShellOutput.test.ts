@@ -1,6 +1,49 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAmStartOutput } from "./AdbShellOutput.js";
+import { parseAmStartOutput, parseWmDensityOutput } from "./AdbShellOutput.js";
+
+describe("parseWmDensityOutput", () => {
+  it("reads labeled physical and override densities", () => {
+    expect(
+      parseWmDensityOutput("Physical density: 420\nOverride density: 480\n"),
+    ).toEqual({ physical: 420, override: 480 });
+    expect(parseWmDensityOutput("Physical density: 420\n")).toEqual({
+      physical: 420,
+      override: null,
+    });
+  });
+
+  // Older builds print the physical density as a bare number
+  // (zheedevVn/Rea-Unlock#3942); it must not be lost as an unread declaration.
+  it("reads a bare numeric density as the physical density", () => {
+    expect(parseWmDensityOutput("420\n")).toEqual({
+      physical: 420,
+      override: null,
+    });
+    expect(parseWmDensityOutput("420\r\n")).toEqual({
+      physical: 420,
+      override: null,
+    });
+  });
+
+  it("prefers a labeled physical density over a bare number", () => {
+    expect(parseWmDensityOutput("560\nPhysical density: 420\n")).toEqual({
+      physical: 420,
+      override: null,
+    });
+  });
+
+  it("reports no density for unrecognized output", () => {
+    expect(parseWmDensityOutput("")).toEqual({
+      physical: null,
+      override: null,
+    });
+    expect(parseWmDensityOutput("420dpi\n")).toEqual({
+      physical: null,
+      override: null,
+    });
+  });
+});
 
 const starting =
   "Starting: Intent { act=android.intent.action.MAIN cmp=com.example/.Main }";

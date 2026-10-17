@@ -10,6 +10,7 @@ import {
 } from "../domain/analysisErrorCore.js";
 import {
   openRegularFile,
+  assertRegularFileActive,
   sameRegularFileState,
 } from "../filesystem/RegularFile.js";
 import type { AndroidOperation } from "../domain/android/androidAnalysis.js";
@@ -25,7 +26,7 @@ export const snapshotAndroidTarget = async (
   const snapshot = join(root, "target.apk");
   try {
     await copyAndroidSnapshot(path, snapshot, sha256, signal);
-    signal?.throwIfAborted();
+    assertRegularFileActive(signal);
     await chmod(snapshot, 0o400);
     return snapshot;
   } catch (cause: unknown) {
@@ -51,7 +52,7 @@ export const snapshotAndroidEngine = async (
   const path = join(root, "engine.jar");
   try {
     const observed = await copyAndroidSnapshot(source, path, sha256, signal);
-    signal?.throwIfAborted();
+    assertRegularFileActive(signal);
     await chmod(path, 0o400);
     return { path, sha256: observed };
   } catch (cause: unknown) {
@@ -71,7 +72,7 @@ const copyAndroidSnapshot = async (
   expectedSha256: string,
   signal?: AbortSignal,
 ): Promise<string> => {
-  signal?.throwIfAborted();
+  assertRegularFileActive(signal);
   const source = await openRegularFile(sourcePath, {
     symlinks: "follow",
     signal,
@@ -84,7 +85,7 @@ const copyAndroidSnapshot = async (
   const hash = createHash("sha256");
   try {
     const initial = await source.stat();
-    signal?.throwIfAborted();
+    assertRegularFileActive(signal);
     const digest = new Transform({
       transform(
         chunk: Buffer,
@@ -106,7 +107,7 @@ const copyAndroidSnapshot = async (
     });
     try {
       destination = await open(snapshotPath, "wx", 0o600);
-      signal?.throwIfAborted();
+      assertRegularFileActive(signal);
       inputStream = source.createReadStream({
         start: 0,
         end: initial.size,
@@ -114,7 +115,7 @@ const copyAndroidSnapshot = async (
       });
       outputStream = destination.createWriteStream({ autoClose: false });
       await pipeline(inputStream, digest, outputStream, { signal });
-      signal?.throwIfAborted();
+      assertRegularFileActive(signal);
       await verifySourceState(source, sourcePath, initial, copiedBytes);
       const observedSha256 = hash.digest("hex");
       if (observedSha256 !== expectedSha256)
