@@ -435,6 +435,9 @@ Provider calls receive the request cancellation signal. Artifact traversal,
 hashing, version comparisons, Hopper requests, and process capture
 check the same signal. Cancellation is distinct from timeout. A cleanup failure
 uses `cleanup_incomplete` and lists only the owned resource kinds that remain.
+Once those owners confirm cleanup, composed failures recover their original
+typed primary outcome and recovery guidance. Historical composition diagnostics
+remain in `details.cleanup_history`, separate from the primary diagnostics.
 An atomic Evidence bundle or snapshot write can publish its complete output
 before staging cleanup fails. In that case, `details.published: true`,
 `details.published_path`, and `details.bytes` retain the publication receipt.
