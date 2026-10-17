@@ -159,10 +159,10 @@ const claudeDesktopLocation = (
 };
 
 const claudeCodeConfigDirectory = ({ home, env }: ClientPathContext): string =>
-  env.CLAUDE_CONFIG_DIR ?? home;
+  env.CLAUDE_CONFIG_DIR || home;
 
 const claudeCodeMarkerDirectory = ({ home, env }: ClientPathContext): string =>
-  env.CLAUDE_CONFIG_DIR ?? join(home, ".claude");
+  env.CLAUDE_CONFIG_DIR || join(home, ".claude");
 
 const codexDirectory = ({ home, env }: ClientPathContext): string =>
   env.CODEX_HOME || join(home, ".codex");
@@ -486,8 +486,8 @@ export const SUPPORTED_CLIENT_DEFINITIONS = [
   {
     name: "claude_code",
     displayName: "Claude Code",
-    skillPath: ({ home, env }: ClientPathContext) =>
-      join(env.CLAUDE_CONFIG_DIR ?? join(home, ".claude"), "skills"),
+    skillPath: (context: ClientPathContext) =>
+      join(claudeCodeMarkerDirectory(context), "skills"),
     configPath: (context: ClientPathContext) =>
       join(claudeCodeConfigDirectory(context), ".claude.json"),
     markerPath: claudeCodeMarkerDirectory,

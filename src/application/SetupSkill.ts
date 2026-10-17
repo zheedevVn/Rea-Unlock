@@ -17,7 +17,7 @@ import {
   withRegularFile,
 } from "./RegularFileRead.js";
 import { clientSkillDirectories } from "./SupportedClients.js";
-import { selectCurrentRecoveryBackup } from "./SetupRecoveryBackup.js";
+import { preserveCurrentRecoveryBackup } from "./SetupRecoveryBackup.js";
 
 export const MANAGED_SKILL_FILES = [
   "SKILL.md",
@@ -153,15 +153,8 @@ const systemSkillInstallFileOperations: SkillInstallFileOperations = {
   mkdir: async (path) => {
     await mkdir(path, { recursive: true });
   },
-  backup: async (source, destination) => {
-    try {
-      await copyFile(source, destination, fsConstants.COPYFILE_EXCL);
-    } catch (cause: unknown) {
-      if (cause instanceof Error && "code" in cause && cause.code === "EEXIST")
-        return;
-      throw cause;
-    }
-  },
+  backup: (source, destination) =>
+    copyFile(source, destination, fsConstants.COPYFILE_EXCL),
   write: (path, content, mode) =>
     writeFileAtomic(path, content, { encoding: "utf8", mode }),
   remove: (path) => rm(path, { force: true }),
@@ -445,7 +438,7 @@ const inspectCanonicalSkill = async (
       }
     }
     if (clientIds !== undefined || rootHasFiles || rootIssues.length > 0) {
-      installedDestination = true;
+      installedDestination ||= rootHasFiles;
       canonical = canonical && rootCanonical;
       issues.push(...rootIssues);
     }
@@ -513,32 +506,6 @@ const restoreSkillFiles = async (
   return failures;
 };
 
-const preserveCurrentSkillBackup = async (
-  destination: string,
-  original: Buffer,
-  operations: SkillInstallFileOperations,
-): Promise<string> => {
-  const firstBackupPath = `${destination}.rea.backup`;
-  const selection = await selectCurrentRecoveryBackup(
-    firstBackupPath,
-    original,
-  );
-  if (!selection.ok) throw new Error(selection.error.detail);
-  if (selection.value.present) return selection.value.backupPath;
-
-  await operations.backup(destination, selection.value.backupPath);
-  const verified = await selectCurrentRecoveryBackup(firstBackupPath, original);
-  if (
-    !verified.ok ||
-    verified.value.backupPath !== selection.value.backupPath ||
-    !verified.value.present
-  )
-    throw new Error(
-      `The current file was not preserved at ${selection.value.backupPath}`,
-    );
-  return verified.value.backupPath;
-};
-
 /** Transactionally install the canonical skill bundle and optional references. */
 export const installCanonicalSkill = async (
   home: string,
@@ -571,14 +538,17 @@ export const installCanonicalSkill = async (
       failingPath = destination;
       await operations.mkdir(dirname(destination));
       if (original !== undefined) {
-        recoveryPaths.set(
+        const preserved = await preserveCurrentRecoveryBackup(
+          `${destination}.rea.backup`,
           destination,
-          await preserveCurrentSkillBackup(
-            destination,
-            original.bytes,
-            operations,
-          ),
+          original.bytes,
+          {
+            copy: operations.backup,
+            ...(resources === undefined ? {} : { resources }),
+          },
         );
+        if (!preserved.ok) throw new Error(preserved.error.detail);
+        recoveryPaths.set(destination, preserved.value);
       }
     }
     stage = "write";
@@ -646,7 +616,6 @@ export const readInstalledSkillIdentity = async (
     ? inspection.value.manifest
     : inspection.error.manifest;
   const issues = inspection.ok ? [] : inspection.error.issues;
-  if (content === undefined && issues.length === 0) return undefined;
   const toolCount =
     content === undefined
       ? undefined
