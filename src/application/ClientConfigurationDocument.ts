@@ -14,12 +14,14 @@ import {
 } from "./HermesConfigurationYaml.js";
 import {
   applyEdits,
+  createScanner,
   findNodeAtLocation,
   modify,
   parse as parseJsonc,
   parseTree,
   printParseErrorCode,
   type ParseError,
+  type SyntaxKind,
 } from "jsonc-parser";
 import { z } from "zod";
 
@@ -1247,44 +1249,27 @@ const tomlTextHolds = (
   }
 };
 
-/** Comments in the trivia between two properties. `undefined` when there are none. */
-const commentsBetweenProperties = (gap: string): string | undefined => {
-  const pieces: string[] = [];
-  let index = 0;
-  while (index < gap.length) {
-    const line = gap.indexOf("//", index);
-    const block = gap.indexOf("/*", index);
-    if (line < 0 && block < 0) break;
-    const start = line < 0 ? block : block < 0 ? line : Math.min(line, block);
-    const lineComment = start === line;
-    const close = lineComment
-      ? gap.indexOf("\n", start)
-      : gap.indexOf("*/", start + 2);
-    if (!lineComment && close < 0) return undefined;
-    const end = lineComment ? (close < 0 ? gap.length : close) : close + 2;
-    const comment = gap.slice(start, end);
-    const lineBreak = gap.lastIndexOf("\n", start - 1);
-    if (lineBreak < 0) pieces.push(` ${comment}`);
-    else {
-      const prefix = gap.slice(lineBreak + 1, start);
-      let indentEnd = 0;
-      while (prefix[indentEnd] === " " || prefix[indentEnd] === "\t")
-        indentEnd += 1;
-      const newline =
-        lineBreak > 0 && gap[lineBreak - 1] === "\r" ? "\r\n" : "\n";
-      pieces.push(`${newline}${prefix.slice(0, indentEnd)}${comment}`);
-    }
-    index = end;
-  }
-  return pieces.length === 0 ? undefined : pieces.join("");
+// jsonc-parser declares SyntaxKind as an ambient const enum, so keep its token
+// code local and type-checked as in the JSON scanner used by IDA diagnostics.
+const JSON_COMMA = 5 satisfies SyntaxKind;
+
+/** Find the next non-trivia JSONC token at or after `offset`. */
+const nextJsoncToken = (
+  text: string,
+  offset: number,
+): { readonly kind: SyntaxKind; readonly offset: number } => {
+  const scanner = createScanner(text, true);
+  scanner.setPosition(offset);
+  const kind = scanner.scan();
+  return { kind, offset: scanner.getTokenOffset() };
 };
 
 /**
- * Delete an object property without taking a comment from the gap before it.
- * jsonc-parser's removal span includes that gap, so a trailing comment on the
- * previous property would disappear. Returns `undefined` to keep the stock edit.
+ * Delete a property by its JSONC AST span and the separator needed to keep its
+ * parent object valid. All whitespace and comments outside those tokens stay
+ * byte-for-byte in place.
  */
-const deleteJsonPropertyPreservingComments = (
+const deleteJsonProperty = (
   text: string,
   path: readonly string[],
 ): string | undefined => {
@@ -1301,54 +1286,26 @@ const deleteJsonPropertyPreservingComments = (
   )
     return undefined;
   const propertyIndex = parent.children.indexOf(property);
+  if (propertyIndex < 0) return undefined;
   const previous = parent.children[propertyIndex - 1];
-  if (propertyIndex <= 0 || previous === undefined) return undefined;
-  const comments = commentsBetweenProperties(
-    text.slice(previous.offset + previous.length, property.offset),
-  );
-  if (comments === undefined) return undefined;
-  let removeEnd = property.offset + property.length;
-  const hasNext = parent.children[propertyIndex + 1] !== undefined;
-  if (hasNext) {
-    let comma = removeEnd;
-    while (comma < text.length) {
-      const char = text[comma];
-      if (char === " " || char === "\t" || char === "\r" || char === "\n") {
-        comma += 1;
-        continue;
-      }
-      if (text.startsWith("/*", comma)) {
-        const close = text.indexOf("*/", comma + 2);
-        if (close < 0) return undefined;
-        comma = close + 2;
-        continue;
-      }
-      if (text.startsWith("//", comma)) {
-        while (
-          comma < text.length &&
-          text[comma] !== "\n" &&
-          text[comma] !== "\r"
-        )
-          comma += 1;
-        continue;
-      }
-      break;
-    }
-    if (text[comma] !== ",") return undefined;
-    removeEnd = comma + 1;
+  const next = parent.children[propertyIndex + 1];
+  let commaOffset: number | undefined;
+  if (previous !== undefined) {
+    const comma = nextJsoncToken(text, previous.offset + previous.length);
+    if (comma.kind !== JSON_COMMA) return undefined;
+    commaOffset = comma.offset;
+  } else {
+    const token = nextJsoncToken(text, property.offset + property.length);
+    if (token.kind === JSON_COMMA) commaOffset = token.offset;
+    else if (next !== undefined) return undefined;
   }
-  // A line comment runs to the next break. Keep the following token outside it.
-  const remainder = text.slice(removeEnd);
-  let suffix = `${hasNext ? "," : ""}${comments}`;
-  if (
-    suffix.includes("//") &&
-    !suffix.endsWith("\n") &&
-    !suffix.endsWith("\r") &&
-    !remainder.startsWith("\n") &&
-    !remainder.startsWith("\r")
-  )
-    suffix += "\n";
-  return `${text.slice(0, previous.offset + previous.length)}${suffix}${remainder}`;
+  const edits = [
+    { offset: property.offset, length: property.length, content: "" },
+    ...(commaOffset === undefined
+      ? []
+      : [{ offset: commaOffset, length: 1, content: "" }]),
+  ];
+  return applyEdits(text, edits);
 };
 
 /** Serialize a validated client document, retaining JSONC and TOML comments. */
@@ -1377,7 +1334,7 @@ export const serializeClientConfiguration = (
     return editedPaths.reduce((text, path) => {
       const value = valueAt(document, path);
       if (value === undefined) {
-        const preserved = deleteJsonPropertyPreservingComments(text, path);
+        const preserved = deleteJsonProperty(text, path);
         if (preserved !== undefined) return preserved;
       }
       return applyEdits(

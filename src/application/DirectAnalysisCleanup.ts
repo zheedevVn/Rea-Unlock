@@ -46,10 +46,13 @@ export const directAnalysisCleanupFailure = (
         ...primary.data,
         code: "cleanup_incomplete",
         retryable: false,
+        remediation: cleanup.remediation,
         details: {
+          // Primary fields describe the original failure; the later close
+          // assessment, including its resources, belongs to cleanup_error.
+          resources: error.cleanupResources.slice(),
           ...primary.data.details,
           cleanup: "incomplete",
-          resources: error.cleanupResources.slice(),
           execution_failure:
             primary.data.details !== undefined &&
             "execution_failure" in primary.data.details
@@ -86,6 +89,7 @@ export const managedAnalysisCleanupFailure = (
       "close_binary",
       {
         cause: error,
+        remediationAction: cleanup.remediation.action,
         cleanup: { reason: cleanup.message, resources: error.cleanupResources },
         diagnostics: {
           cleanup_error: cleanup,

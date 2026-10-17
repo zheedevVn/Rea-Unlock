@@ -19,8 +19,9 @@ const PROCESS_VIEW_PROBES = 8;
  */
 export const CLAUDE_DESKTOP_PACKAGE_FAMILY = "Claude_pzs8sxrjxfjjc";
 
-/** `Claude_` plus a 13-character Crockford base32 MSIX publisher ID. */
-const CLAUDE_PACKAGE_FAMILY = /^Claude_[0-9a-hjkmnp-tv-z]{13}$/iu;
+/** Observed Claude package names plus Windows' 13-character publisher ID. */
+const CLAUDE_PACKAGE_FAMILY =
+  /^(?:AnthropicPBC\.)?Claude_[0-9a-hjkmnp-tv-z]{13}$/iu;
 
 /** The configuration Claude Desktop reads and the evidence that it is installed. */
 export interface ClaudeDesktopLocation {
@@ -52,8 +53,8 @@ const systemFileSystem: ClaudeDesktopLocationFileSystem = {
  * Resolve the `claude_desktop_config.json` that Windows Claude Desktop reads.
  * Without its MSIX package storage, that is the AppData file. With it, the
  * package reads its private copy when one exists and the AppData file
- * otherwise; a new registration goes to the private copy. A `Claude_*`
- * package from another publisher leaves the reader unknown.
+ * otherwise; a new registration goes to the private copy. Other Claude
+ * package identities and deployments leave the reader unknown.
  */
 export const resolveWindowsClaudeDesktopLocation = (
   home: string,
@@ -84,7 +85,7 @@ export const resolveWindowsClaudeDesktopLocation = (
   if (foreign.length > 0)
     return err({
       path: join(packagesDirectory, foreign[0] ?? ""),
-      message: `MSIX package storage ${foreign.map((name) => join(packagesDirectory, name)).join(", ")} uses Claude Desktop's package name with an unrecognized publisher (Claude Desktop is ${CLAUDE_DESKTOP_PACKAGE_FAMILY}). REA cannot establish which ${CONFIG_FILE} that package reads and does not fall back to ${appDataConfigPath}. Remove the unrecognized package, or register REA in the configuration it reads.`,
+      message: `MSIX package storage ${foreign.map((name) => join(packagesDirectory, name)).join(", ")} has an unrecognized Claude Desktop package identity or deployment (the supported identity is ${CLAUDE_DESKTOP_PACKAGE_FAMILY}). REA cannot establish which ${CONFIG_FILE} that package reads and does not fall back to ${appDataConfigPath}. Quit Claude Desktop fully and register REA in the configuration the installed app reads.`,
     });
   const family = families[0];
   if (family === undefined)
