@@ -46,7 +46,10 @@ Equivalent MCP input:
 ```
 
 Each selected regular file is read through the existing stable artifact reader;
-symlinks, changing files and files over 8 MiB fail closed. WASM bytes are copied
+symlinks, changing files and files over 8 MiB fail closed. An oversized input
+returns `resource_constraint` with resource `file-size` and its fixed byte
+allowance in `reported_limits.maximum_input_bytes`; retrying the unchanged file
+does not raise that allowance. WASM bytes are copied
 into a private workspace as read-only `module.wasm`; its digest is rechecked
 before and after each tool. WABT validates with `--enable-all`,
 reports sections through `wasm-objdump -h -x`, and decodes through
