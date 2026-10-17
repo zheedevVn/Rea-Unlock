@@ -323,3 +323,6 @@ disposition but does not silently count it as verified.
 The tool returns every obligation inline. Its `ledger_id` and `closure_digest`
 identify the complete result, including summaries, reports, ownership and
 dependency graphs, Evidence links, and limitations.
+
+For named boundaries with explicit verifier contracts and package-proof kinds,
+see [reconstruction coverage](reconstruction-coverage.md).
