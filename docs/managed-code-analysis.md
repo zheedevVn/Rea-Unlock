@@ -352,7 +352,7 @@ install it or its toolchain. The [NativeAOT guide](ghidra-nativeaot.md) defines
 these routes, their layout/host restrictions, derived-memory provenance, and
 verification coverage.
 
-REA's experimental Windows Ghidra boundary admits native x86 and x86-64 PE
+REA's experimental Windows Ghidra boundary admits native x86, x86-64, ARMNT (Thumb-2) and ARM64 PE
 applications and DLLs for static analysis. For x64 PE NativeAOT, the read-only
 parser also runs there; the [NativeAOT guide](ghidra-nativeaot.md) lists what a
 Windows host covers.

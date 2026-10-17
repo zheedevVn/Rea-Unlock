@@ -111,8 +111,12 @@ list does not establish that the target has no procedures.
 Suggestions are Unicode-normalized, case-insensitive prefix matches. The server
 deduplicates them and sorts by code point for deterministic results. Procedure
 completion derives candidates from the complete inventory, so a name is offered
-only when it identifies one address in that inventory. Completion returns all
-matching values; it does not expose paging controls.
+only when it identifies one address in that inventory. A completion reply
+carries at most 100 values, the MCP limit. `total` counts every match and
+`hasMore` is `true` when values were omitted. Completion has no paging
+controls. A longer prefix reaches an omitted value only when it excludes other
+matches; matching uses normalized, case-insensitive forms, so a value can stay
+unreachable when more than 100 matches share its normalized prefix.
 
 ## Lifecycle and safety
 
