@@ -69,6 +69,12 @@ Pass a returned MethodTable address to `inspect_native_data_type`. A direct PE
 query also derives the snapshot metadata from the authenticated Ghidra session
 handshake, so it does not require a preceding load-image call. In a persistent
 MCP session, load-image followed by type inspection reuses that same derivation.
+The bridge resolves the caller's address spelling once; metadata lookup uses
+its canonical default-space identity. Bare hexadecimal, prefixed hexadecimal,
+and encoded default-space selectors therefore select the same MethodTable.
+Other address spaces and unresolved identities are not matched by offset alone.
+Metadata already supplied by the engine is retained without reading or deriving
+an additional source snapshot.
 The database result remains `unavailable` when Ghidra has no DataType at that
 address; its `metadata_recovery.source` is `read-only-derived-overlay` and
 carries related type, interface, slot, and target observations. Generated

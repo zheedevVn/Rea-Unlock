@@ -39,8 +39,8 @@ container format, architecture, word size and byte order. A recognized
 - `module.dependencies`, with the same fields and their original order;
 - `module.settings`, retaining ordered key/value entries and duplicate keys;
 - `module.unparsed_lines`, `module.unparsed_line_bytes_base64` and
-  `module.complete`, so unfamiliar, malformed, conflicting or undecodable records
-  do not disappear behind a complete result.
+  `module.complete`, which says whether every present module-text line was
+  parsed. It does not establish that the dependency inventory is complete.
 
 Missing checksums are `null`; empty fields and development/local replacement
 versions remain unchanged. Build settings such as `GOOS`, `GOARCH` or `vcs.revision`
@@ -49,6 +49,13 @@ Go strings may contain arbitrary bytes. Non-UTF-8 records remain available as
 base64 while other decodable module records are still reported; the reader does
 not insert replacement characters or reject the entire artifact for those
 strings.
+
+When no main-module (`mod`) record was decoded, `module.main` is `null` and
+dependency coverage is unknown. Successfully decoded dependency records remain
+visible. GOPATH-mode builds may contain only a package `path` and build settings;
+their empty dependency array does not establish the absence of dependencies.
+The result's limitations state this explicitly. A module-mode build with a main
+module record and no dependency records has an observed empty dependency list.
 
 ## Supported boundary
 

@@ -139,6 +139,19 @@ overview merely because its source artifact is unchanged.
 
 ## Admitted function-analysis semantics
 
+Concurrent callers share one startup while retaining independent cancellation.
+Only the final departing caller abandons startup and waits for its cleanup.
+New attempts wait for that cleanup; failed cleanup retains its original error
+and owned directories until a successful close. Closing the provider reports a
+provider-state failure to live callers rather than cancelling their signals.
+
+Configured analysis extensions and seeds use owned file reads during profile
+resolution and launch snapshots. A changed read extent or descriptor state
+refuses the commitment. Failed source or snapshot descriptor closes remain
+owned and block new admission until cleanup succeeds; the physical failure
+and exact cancellation reason remain available. Provider shutdown joins all
+profile stages before retrying their retained descriptors.
+
 | Concern                 | Ghidra contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Decompiler lifetime     | One persistent `DecompInterface` is opened for the imported Program and disposed during bridge shutdown. Native decompilation has no fixed per-function deadline. External functions or functions without bodies return `null`; cancellation and native failure remain distinct.                                                                                                                                                                                                                                                                                                                                           |
@@ -193,7 +206,11 @@ these tools before compilation. Keeping this matrix separate lets Linux
 host/provider acceptance run with only the host compiler.
 
 `npm run verify:ghidra:windows` checks source-owned native x86-64 PE applications;
-`-- --x86` selects x86 and `-- --dll` selects DLLs, and the flags can be combined.
+`-- --x86`, `-- --arm`, or `-- --arm64` selects another target architecture;
+`-- --dll` selects DLLs. Choose one architecture and optionally combine it with
+`--dll`. These static fixtures contain source-owned encoded instructions; they
+are not compiler-produced programs. See the [Windows verification scope](windows-ghidra-p0.md#native-authority-and-target-identity)
+for real-provider coverage and exclusions.
 These lanes check all 26 read-only operations, target/snapshot/import SHA-256 linkage,
 and project, endpoint, process, and runtime cleanup. The independent native
 lane checks DACLs, handle admission, cancellation, and Job Object lifecycle.
