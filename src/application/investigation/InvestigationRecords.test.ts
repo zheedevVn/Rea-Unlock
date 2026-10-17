@@ -230,3 +230,41 @@ it("retains complete mutation intent and distinguishes independent update reques
   });
   expect(mutations[0]?.evidence_id).not.toBe(mutations[1]?.evidence_id);
 });
+
+it("rejects changed creation intent after the original unknown was updated", () => {
+  const records = new InvestigationRecords();
+  const input = unknownInput("Which observation explains this result?");
+  const created = records.recordEvidenceWithUnknown(evidence, input);
+  if (!created.ok) throw created.error;
+  if (created.value === null) throw new Error("Expected a new unknown");
+  const { question: _question, domain: _domain, ...details } = input;
+  const updated = records.updateUnknown({
+    ...details,
+    unknown_id: created.value.unknown_id,
+    expected_revision: 1,
+    status: "investigating",
+    severity: "high",
+    resolution: null,
+  });
+  if (!updated.ok) throw updated.error;
+  const retained = records.exportEvidenceBundle();
+  const addition = createEvidence(undefined, provider, {
+    operation: "another-derived-result",
+    parameters: {},
+    result: true,
+    confidence: "derived",
+    authority: "analyst-inference",
+  });
+  for (const result of [evidence, addition]) {
+    expect(
+      records.recordEvidenceWithUnknown(result, {
+        ...input,
+        severity: "high",
+      }),
+    ).toMatchObject({
+      ok: false,
+      error: { _tag: "UnknownRegistryError", reason: "already-exists" },
+    });
+    expect(records.exportEvidenceBundle()).toEqual(retained);
+  }
+});

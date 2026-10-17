@@ -15,6 +15,7 @@ import {
 } from "../../domain/go/goBinary.js";
 import { analysisInputErrorFromIssues } from "../../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 const OPERATION = "inspect_go_binary";
 const architectureForSubject = (architecture: string) => {
@@ -64,8 +65,6 @@ export class GoBinaryService {
       );
     const inspected = await this.provider.inspect(input.data, options);
     if (!inspected.ok) return inspected;
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(OPERATION));
     const report = goBinarySchema.safeParse(inspected.value);
     if (!report.success || report.data.artifact.path !== input.data.path)
       return err(
@@ -76,7 +75,7 @@ export class GoBinaryService {
       );
     const value = report.data;
     const architecture = architectureForSubject(value.architecture);
-    return ok(
+    return completeProviderEvidence(
       createEvidence(
         {
           path: value.artifact.path,
@@ -105,6 +104,7 @@ export class GoBinaryService {
           ],
         },
       ),
+      options?.signal,
     );
   }
 }

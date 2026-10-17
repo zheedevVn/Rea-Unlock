@@ -98,13 +98,28 @@ const addBrowserWindow = (
           web_preferences: value.web_preferences,
           preload_path: value.preload_path,
           preload_resolution_context: value.preload_resolution_context,
+          ...(value.resolution_sources === undefined
+            ? {}
+            : {
+                resolution_sources: value.resolution_sources.map(
+                  (location) => ({
+                    source: file.path,
+                    ...location,
+                  }),
+                ),
+              }),
           absence_means_default: false,
         },
-        evidence: astObservationEvidence({
+        evidence: (value.resolution_sources === undefined
+          ? astObservationEvidence
+          : staticInferenceEvidence)({
           sha256: file.sha256,
           path: file.path,
           range: value.location,
-          operation: "observe-browser-window-construction",
+          operation:
+            value.resolution_sources === undefined
+              ? "observe-browser-window-construction"
+              : "resolve-browser-window-constant-options",
           coverage,
           limitations: [
             "Only explicitly present webPreferences are reported; omitted properties are not interpreted as Electron defaults.",

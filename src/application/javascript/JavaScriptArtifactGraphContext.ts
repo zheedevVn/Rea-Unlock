@@ -12,6 +12,7 @@ import type { JavaScriptSourceRange } from "../../domain/javascript/javascriptSt
 import type {
   JavaScriptHtmlInlineScriptsObservation,
   JavaScriptModuleArtifactAnalysis,
+  JavaScriptArtifactAnalysisScope,
 } from "./JavaScriptArtifactAnalysisTypes.js";
 import type { JavaScriptUnanalyzedArtifactLookup } from "../../domain/javascript/javascriptArtifactFiles.js";
 import { HTML_INLINE_SCRIPT_LOCATION_LIMIT } from "../../domain/javascript/htmlArtifactReferences.js";
@@ -25,7 +26,7 @@ import {
   artifactObservationEvidence,
   astObservationEvidence,
   staticInferenceEvidence,
-  unavailableAstEvidence,
+  unavailableStaticEvidence,
 } from "./JavaScriptArtifactGraphEvidence.js";
 import {
   artifactPathResolutionProperties,
@@ -106,11 +107,12 @@ export interface RoleAssetLinkInput {
   readonly coverage?: JavaScriptArtifactGraphCoverage;
 }
 
-/** Explicit package, JavaScript, or source-map parse gap. */
+/** An explicit processing/selection gap with the applicable phase's authority. */
 export interface UnavailableParseInput {
   readonly file: JavaScriptArtifactFile;
   readonly asset: ApplicationNode;
   readonly operation: string;
+  readonly authority: JavaScriptArtifactAnalysisScope["authority"];
   readonly limitation: string;
   readonly failure?: JsonValue;
   readonly limits?: JavaScriptArtifactGraphCoverage["limits"];
@@ -230,7 +232,8 @@ export const addUnavailableStaticParseScope = (
             ? {}
             : { analysis_failure: input.failure }),
         },
-        evidence: unavailableAstEvidence({
+        evidence: unavailableStaticEvidence({
+          authority: input.authority,
           sha256: input.file.sha256,
           path: input.file.path,
           operation: input.operation,
