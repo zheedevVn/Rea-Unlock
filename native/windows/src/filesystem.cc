@@ -642,9 +642,10 @@ static void completeSnapshot(napi_env env, napi_status status, void* pointer) {
       disposeSnapshot(*work->root, work->destination, work->path);
       napi_reject_deferred(env, work->deferred, failureValue(env, failure));
     } catch (const Failure& cleanupFailure) {
-      const Failure combined(
-          failure.constraint + "; incomplete snapshot cleanup failed: " + cleanupFailure.constraint,
-          work->path, cleanupFailure.win32);
+      Failure combined = failure;
+      combined.cleanupConstraint = cleanupFailure.constraint;
+      combined.cleanupWin32 = cleanupFailure.win32;
+      combined.cleanupPath = cleanupFailure.path;
       napi_reject_deferred(env, work->deferred, failureValue(env, combined));
     }
   };
