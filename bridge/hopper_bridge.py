@@ -1057,6 +1057,10 @@ def _serve_connection(connection):
                 ):
                     raise PermissionError("Invalid bridge capability")
                 authenticated = True
+                # The connection grace period only bounds unauthenticated idle
+                # clients. Native analysis and a connected owner's idle time
+                # remain unbounded after capability validation.
+                connection.settimeout(None)
                 _write_message(file, {"id": request_id, "event": {
                     "type": "progress",
                     "phase": "hopper_bridge",
@@ -1148,13 +1152,17 @@ def _run():
     server.bind(REA_SOCKET)
     os.chmod(REA_SOCKET, 0o600)
     server.listen(1)
+    # A bridge can start after its caller's startup/cleanup deadline. Bound
+    # the first accept as well as reconnects so an orphan cannot pin Hopper's
+    # dedicated Python thread and prevent later documents from starting REA.
+    server.settimeout(REA_RECONNECT_TIMEOUT_SECONDS)
     try:
         while True:
             try:
                 connection, _ = server.accept()
             except socket.timeout:
                 break
-            connection.settimeout(None)
+            connection.settimeout(REA_RECONNECT_TIMEOUT_SECONDS)
             if _serve_connection(connection):
                 break
             # Match REA's cleanup handshake budget without pinning Hopper's

@@ -28,9 +28,9 @@ if os.name == "nt":
 import cutter
 
 try:
-    from PySide6.QtCore import QObject, Signal
+    from PySide6.QtCore import QCoreApplication, QObject, Signal
 except ImportError:
-    from PySide2.QtCore import QObject, Signal
+    from PySide2.QtCore import QCoreApplication, QObject, Signal
 
 
 MAX_FRAME_BYTES = 16 * 1024 * 1024
@@ -326,15 +326,16 @@ class _RequestDispatcher(QObject):
         self._receipt_lock = threading.Lock()
         self.current_file = self._read_current_file()
         try:
-            self.cutter_version = str(cutter.core().getVersionInformation())
+            value = QCoreApplication.applicationVersion()
+            self.cutter_version = value if isinstance(value, str) and value else None
         except Exception:
             self.cutter_version = None
 
     @staticmethod
     def _read_current_file() -> str | None:
         try:
-            value = cutter.core().currentlyOpenFile()
-            return str(value) if value else None
+            value = cutter.core().getConfig("file.path")
+            return value if isinstance(value, str) and value else None
         except Exception:
             return None
 
