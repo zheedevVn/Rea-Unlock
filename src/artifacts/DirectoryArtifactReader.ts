@@ -20,7 +20,7 @@ import {
 import { hostExecutableMarking } from "./hostExecutableMarking.js";
 import { OwnedDirectoryHandle } from "../filesystem/OwnedDirectoryHandle.js";
 import { OwnedFileHandle } from "../filesystem/OwnedFileHandle.js";
-import { readFileHandleChunks } from "../filesystem/readFileHandleChunks.js";
+import { readArtifactFileChunks } from "./readArtifactFileChunks.js";
 
 interface DirectoryTraversalOptions extends ArtifactTraversalOptions {
   readonly descendInto?: (path: string) => boolean;
@@ -377,7 +377,7 @@ const mapStableFileRead = async function* (
         "integrity",
         `Directory entry has no captured file state: ${entry.path}`,
       );
-    for await (const chunk of readFileHandleChunks(handle, {
+    for await (const chunk of readArtifactFileChunks(handle, {
       // Include one extra byte so a growing file cannot make this read unbounded.
       end: expectedBytes,
       signal,
@@ -404,12 +404,6 @@ const mapStableFileRead = async function* (
         `Directory entry changed during read: ${entry.path}`,
       );
   } catch (cause: unknown) {
-    if (signal?.aborted === true)
-      throw new ArtifactReaderFailure(
-        "cancelled",
-        "Directory artifact read cancelled",
-        { cause },
-      );
     if (
       cause instanceof Error &&
       "code" in cause &&
@@ -443,6 +437,7 @@ const abortIfNeeded = (signal?: AbortSignal): void => {
     throw new ArtifactReaderFailure(
       "cancelled",
       "Artifact traversal cancelled",
+      { cause: signal.reason },
     );
 };
 

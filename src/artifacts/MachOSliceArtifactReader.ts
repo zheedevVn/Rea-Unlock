@@ -1,3 +1,4 @@
+import { assertArtifactReadActive } from "./ArtifactFileOperation.js";
 import { lstat } from "node:fs/promises";
 import type { FileHandle } from "node:fs/promises";
 import { Readable } from "node:stream";
@@ -30,7 +31,7 @@ import {
   sameRegularFileState,
   type StableRegularFileDescriptor,
 } from "../filesystem/RegularFile.js";
-import { readFileHandleChunks } from "../filesystem/readFileHandleChunks.js";
+import { readArtifactFileChunks } from "./readArtifactFileChunks.js";
 
 /** Read-only universal Mach-O slice reader backed by native lipo metadata. */
 export class MachOSliceArtifactReader implements ArtifactReader {
@@ -225,7 +226,9 @@ export class MachOSliceArtifactReader implements ArtifactReader {
   async open(entry: ArtifactEntry, signal?: AbortSignal): Promise<Readable> {
     if (signal?.aborted === true)
       return Promise.reject(
-        new ArtifactReaderFailure("cancelled", "Mach-O slice read cancelled"),
+        new ArtifactReaderFailure("cancelled", "Mach-O slice read cancelled", {
+          cause: signal.reason,
+        }),
       );
     const produced = this.#entries.get(entry.adapterKey);
     if (produced === undefined || !sameArtifactEntry(entry, produced))
@@ -257,48 +260,109 @@ export class MachOSliceArtifactReader implements ArtifactReader {
         "integrity",
         `Mach-O slice range is outside the artifact: ${entry.path}`,
       );
-    const sourceStream = readFileHandleChunks(source.handle, {
+    const sourceStream = readArtifactFileChunks(source.handle, {
       start: offset,
       end: offset + size - 1,
       ...(signal === undefined ? {} : { signal }),
     });
     const verifySource = () => this.#verifySource(source);
-    return Readable.from(
+    let validatingSource = false;
+    const completionFailure = (): ArtifactReaderFailure | undefined => {
+      const coverage = sourceStream.readCoverage();
+      if (coverage.kind !== "complete")
+        return new ArtifactReaderFailure(
+          "integrity",
+          `Mach-O slice read coverage is incomplete: ${entry.path}`,
+        );
+      if (coverage.bytes !== BigInt(size))
+        return new ArtifactReaderFailure(
+          "integrity",
+          `Mach-O slice size disagrees with lipo metadata: ${entry.path}`,
+        );
+      if (signal?.aborted)
+        return new ArtifactReaderFailure(
+          "cancelled",
+          "Mach-O slice read cancelled",
+          { cause: signal.reason },
+        );
+      return undefined;
+    };
+    const output = Readable.from(
       (async function* () {
-        let observedBytes = 0;
         try {
           for await (const raw of sourceStream) {
             const chunk = streamChunkToBuffer(raw);
-            observedBytes += chunk.byteLength;
-            if (observedBytes > size)
-              throw new ArtifactReaderFailure(
-                "integrity",
-                `Mach-O slice exceeded its reported size: ${entry.path}`,
-              );
+            if (
+              sourceStream.readCoverage().kind === "complete" &&
+              signal?.aborted
+            ) {
+              const failure = completionFailure();
+              if (failure !== undefined) throw failure;
+            }
             yield chunk;
           }
         } catch (cause: unknown) {
           if (cause instanceof ArtifactReaderFailure) throw cause;
-          if (signal?.aborted === true)
-            throw new ArtifactReaderFailure(
-              "cancelled",
-              "Mach-O slice read cancelled",
-              { cause },
-            );
           throw new ArtifactReaderFailure(
             "integrity",
             `Could not read Mach-O slice range: ${entry.path}`,
             { cause },
           );
         }
-        if (observedBytes !== size)
-          throw new ArtifactReaderFailure(
-            "integrity",
-            `Mach-O slice size disagrees with lipo metadata: ${entry.path}`,
-          );
-        await verifySource();
+        validatingSource = true;
+        const failure = completionFailure();
+        if (failure !== undefined) throw failure;
+        try {
+          await verifySource();
+          assertArtifactReadActive(signal);
+        } finally {
+          validatingSource = false;
+        }
       })(),
     );
+    const onSourceError = (cause: unknown): void => {
+      const completedCancellation =
+        cause instanceof ArtifactReaderFailure &&
+        cause.reason === "cancelled" &&
+        sourceStream.readCoverage().kind === "complete" &&
+        !validatingSource
+          ? completionFailure()
+          : undefined;
+      output.destroy(
+        completedCancellation ??
+          (cause instanceof ArtifactReaderFailure
+            ? cause
+            : new ArtifactReaderFailure(
+                "integrity",
+                `Could not read Mach-O slice range: ${entry.path}`,
+                { cause },
+              )),
+      );
+    };
+    sourceStream.on("error", onSourceError);
+    sourceStream.once("close", () =>
+      sourceStream.removeListener("error", onSourceError),
+    );
+    const onAbort = (): void => {
+      if (
+        sourceStream.readCoverage().kind === "complete" &&
+        (sourceStream.errored === null ||
+          (sourceStream.errored instanceof ArtifactReaderFailure &&
+            sourceStream.errored.reason === "cancelled")) &&
+        !validatingSource &&
+        !output.destroyed
+      ) {
+        const failure = completionFailure();
+        if (failure !== undefined) output.destroy(failure);
+      }
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+    output.once("close", () => {
+      signal?.removeEventListener("abort", onAbort);
+      if (!sourceStream.destroyed) sourceStream.destroy();
+    });
+    if (signal?.aborted) onAbort();
+    return output;
   }
 
   provenance(): readonly ArtifactCommand[] {

@@ -1,9 +1,9 @@
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
-import { writeFile } from "node:fs/promises";
+import { truncate, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { describe, expect, it, onTestFinished } from "vitest";
+import { describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { createTestTempDirectory } from "../../tests/fixtures/temporaryDirectory.js";
 import { CPU, fatImage, machoImage } from "./apple/MachoImage.fixture.js";
@@ -155,7 +155,7 @@ describe("Mach-O command cleanup lifecycle", () => {
 });
 
 describe("MachOSliceArtifactReader", () => {
-  it("keeps a borrowed source usable after a cancelled slice read", async () => {
+  it("keeps a borrowed source usable after idle and active cancelled slice reads", async () => {
     const root = await createTestTempDirectory("rea-slices-cancelled-");
     const binary = join(root, "fat");
     const x86 = machoImage({ cpu: CPU.x86_64 });
@@ -202,6 +202,18 @@ describe("MachOSliceArtifactReader", () => {
     const armEntry = entries.find((entry) => entry.path === "slices/arm64");
     if (armEntry === undefined) throw new Error("Expected an arm64 slice");
 
+    const idleController = new AbortController();
+    const idle = await reader.open(armEntry, idleController.signal);
+    const idleFailure = new Promise<Error>((resolve) =>
+      idle.once("error", resolve),
+    );
+    idleController.abort(null);
+    await expect(idleFailure).resolves.toMatchObject({
+      reason: "cancelled",
+      cancellation: { reason: null },
+    });
+    expect((await handle.stat()).isFile()).toBe(true);
+
     const controller = new AbortController();
     const cancelledRead = await reader.open(armEntry, controller.signal);
     const iterator = cancelledRead[Symbol.asyncIterator]();
@@ -224,6 +236,32 @@ describe("MachOSliceArtifactReader", () => {
     for await (const chunk of verifiedRead)
       verifiedChunks.push(Buffer.from(chunk));
     expect(Buffer.concat(verifiedChunks)).toEqual(arm);
+
+    const truncatedController = new AbortController();
+    const truncated = await reader.open(
+      verifiedArmEntry,
+      truncatedController.signal,
+    );
+    await truncate(binary, 8193);
+    let readEOF = false;
+    const read = handle.read.bind(handle);
+    vi.spyOn(handle, "read").mockImplementation((async (...args: unknown[]) => {
+      const result = (await Reflect.apply(read, handle, args)) as {
+        bytesRead: number;
+        buffer: Buffer;
+      };
+      if (result.bytesRead === 0) readEOF = true;
+      return result;
+    }) as typeof handle.read);
+    const failed = new Promise<Error>((resolve) =>
+      truncated.once("error", resolve),
+    );
+    truncated.read(0);
+    await expect.poll(() => readEOF).toBe(true);
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(truncated.readableLength).toBeGreaterThan(0);
+    truncatedController.abort(null);
+    await expect(failed).resolves.toMatchObject({ reason: "integrity" });
   });
 });
 
