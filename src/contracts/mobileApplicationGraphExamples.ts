@@ -1,18 +1,28 @@
-import { digestCanonicalValue } from "../domain/canonicalDigest.js";
 import { createEvidence } from "../domain/evidence.js";
-import { jsonValueSchema } from "../domain/jsonValue.js";
+import {
+  artifactInventoryResultSchema,
+  type ArtifactNode,
+  type ArtifactOccurrence,
+} from "../domain/artifactGraph.js";
+import {
+  artifactGraphDigest,
+  artifactIdForContent,
+  artifactManifestId,
+  occurrenceIdForLocation,
+} from "../domain/artifactIdentity.js";
 
 const inventory = (
   format: "apk" | "ipa" | "directory" | "hap",
   digit: string,
 ) => {
   const sha = digit.repeat(64);
-  const artifactId = `art_${digestCanonicalValue({ sha256: sha }, "Artifact inventory")}`;
-  const occurrenceId = `occ_${digestCanonicalValue(
-    { root: artifactId },
-    "Artifact inventory",
-  )}`;
-  const nodes = [
+  const artifactId = artifactIdForContent(sha);
+  const occurrenceId = occurrenceIdForLocation({
+    rootArtifactId: artifactId,
+    logicalPath: ".",
+    entryKind: "file",
+  });
+  const nodes: ArtifactNode[] = [
     {
       artifact_id: artifactId,
       format: format === "directory" ? "directory" : "zip",
@@ -24,7 +34,7 @@ const inventory = (
       limitations: [],
     },
   ];
-  const occurrences = [
+  const occurrences: ArtifactOccurrence[] = [
     {
       occurrence_id: occurrenceId,
       artifact_id: artifactId,
@@ -42,24 +52,15 @@ const inventory = (
       limitations: [],
     },
   ];
-  const graphSha256 = digestCanonicalValue(
-    {
-      nodes,
-      occurrences,
-      edges: [],
-      integrity_contradictions: [],
-    },
-    "Artifact inventory",
-  );
-  return jsonValueSchema.parse({
+  const graphSha256 = artifactGraphDigest({
+    nodes,
+    occurrences,
+    edges: [],
+    contradictions: [],
+  });
+  return artifactInventoryResultSchema.parse({
     manifest: {
-      manifest_id: `agm_${digestCanonicalValue(
-        {
-          root_artifact_id: artifactId,
-          graph_sha256: graphSha256,
-        },
-        "Artifact inventory",
-      )}`,
+      manifest_id: artifactManifestId(artifactId, graphSha256),
       root_artifact_id: artifactId,
       root_sha256: sha,
       root_format: format,
@@ -72,6 +73,8 @@ const inventory = (
     occurrences,
     edges: [],
     provenance: [],
+    integrity_contradictions: [],
+    coverage: { scope: "root", status: "complete" },
     limitations: [],
   });
 };

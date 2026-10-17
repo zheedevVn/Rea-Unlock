@@ -110,7 +110,30 @@ type Environment = Omit<
 /** Parse individual settings before layered registration fragments are merged. */
 export const parseEnvironmentValues = (
   environment: Readonly<Record<string, string | undefined>>,
+  unresolvedSettings: ReadonlySet<string> = new Set(),
 ): Result<Environment, ConfigurationError> => {
+  // Unknown client-specific entries are preserved by registration owners and
+  // still cross the child-process boundary. Check their byte admission before
+  // the known-setting schema strips them; never include rejected values.
+  // Cordis expression values stay unknown, but their literal names are known.
+  const keys = new Set([...Object.keys(environment), ...unresolvedSettings]);
+  const invalidEntries = [...keys]
+    .filter(
+      (key) =>
+        key.includes("\0") ||
+        (Object.hasOwn(environment, key) && environment[key]?.includes("\0")),
+    )
+    .map((setting) => ({
+      setting,
+      constraint:
+        "Environment variable names and values must not contain NUL bytes",
+    }));
+  if (invalidEntries.length > 0)
+    return err(
+      new ConfigurationError("Invalid REA environment configuration", {
+        settings: invalidEntries,
+      }),
+    );
   const parsed = environmentSchema.safeParse(environment);
   if (!parsed.success) {
     // Zod messages name the constraint, never the rejected value.
@@ -150,7 +173,7 @@ export const parseEnvironment = (
   // Registration expressions are not evaluated; their absence is not proven.
   unresolvedSettings: ReadonlySet<string> = new Set(),
 ): Result<Environment, ConfigurationError> => {
-  const parsed = parseEnvironmentValues(environment);
+  const parsed = parseEnvironmentValues(environment, unresolvedSettings);
   if (!parsed.ok) return parsed;
   const env = parsed.value;
   // Ghidra's analyzeHeadless accepts -cspec only together with -processor.

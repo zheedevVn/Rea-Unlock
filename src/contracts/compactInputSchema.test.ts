@@ -191,10 +191,19 @@ describe("compact advertised input schema", () => {
     const properties = schema.properties as Record<string, unknown>;
     expect(properties.normalized_result).toEqual({
       type: ["null", "boolean", "object", "array", "number", "string"],
+      items: {},
     });
     expect(properties.literal).toEqual({ const: {} });
     const validate = new Ajv2020({ strict: false }).compile(schema);
-    for (const normalized_result of [null, true, {}, [], 42, "result"])
+    for (const normalized_result of [
+      null,
+      true,
+      {},
+      [],
+      42,
+      "result",
+      [[null, true, 42, "nested"], { values: [[], [false]] }],
+    ])
       expect(validate({ normalized_result })).toBe(true);
   });
 
@@ -267,12 +276,20 @@ describe("compact input schema budget and reduction", () => {
         type: "array",
         items: {
           type: ["null", "boolean", "object", "array", "number", "string"],
+          items: {},
         },
       },
       label: { type: ["string", "null"] },
     });
     const validate = new Ajv2020({ strict: false }).compile(schema);
     expect(validate({ capture: {}, observations: [], label: null })).toBe(true);
+    expect(
+      validate({
+        capture: {},
+        observations: [[[null, true, 42, "nested"], { values: [[], [false]] }]],
+        label: null,
+      }),
+    ).toBe(true);
     expect(validate({ capture: {}, observations: [], label: "capture" })).toBe(
       true,
     );

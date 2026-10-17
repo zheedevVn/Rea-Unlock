@@ -43,7 +43,12 @@ export const defaultHopperLauncherPath = (
 export const parseConfig = (
   environment: Readonly<Record<string, string | undefined>>,
 ): Result<AppConfig, ConfigurationError> => {
-  const parsed = parseEnvironment(environment);
+  // JEB validates its own timeout during optional provider composition. It is
+  // not an AppConfig setting and must not prevent unrelated CLI/MCP startup.
+  // Registration validation still checks the complete environment directly.
+  const { REA_JEB_MCP_TIMEOUT_MS: _jebTimeout, ...appEnvironment } =
+    environment;
+  const parsed = parseEnvironment(appEnvironment);
   if (!parsed.ok) return parsed;
   const env = parsed.value;
   return ok({

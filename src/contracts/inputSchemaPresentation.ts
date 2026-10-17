@@ -146,6 +146,195 @@ const inputGroup = (branch: Readonly<Record<string, unknown>>): string => {
   return [...required, ...optional].join(" + ");
 };
 
+type SchemaNormalization = {
+  readonly schema: unknown;
+  readonly changed: boolean;
+};
+
+const isBooleanLiteralSchema = (schema: unknown): boolean =>
+  isObject(schema) &&
+  (typeof schema.const === "boolean" ||
+    (Array.isArray(schema.enum) &&
+      schema.enum.length > 0 &&
+      schema.enum.every((value) => typeof value === "boolean")));
+
+const isBooleanSchema = (schema: unknown): boolean =>
+  isObject(schema) &&
+  (schema.type === "boolean" || isBooleanLiteralSchema(schema));
+
+const preserveSharedDefault = (
+  schema: Record<string, unknown>,
+  branches: readonly unknown[],
+): void => {
+  if (schema.default !== undefined) return;
+  const defaults = branches
+    .filter(isObject)
+    .map((branch) => branch.default)
+    .filter((value) => value !== undefined);
+  if (
+    defaults.length > 0 &&
+    defaults.every((value) => isDeepStrictEqual(value, defaults[0]))
+  )
+    schema.default = defaults[0];
+};
+
+const normalizeAdvertisedSchema = (value: unknown): SchemaNormalization => {
+  if (!isObject(value)) return { schema: value, changed: false };
+
+  const node: Record<string, unknown> = { ...value };
+  let changed = false;
+  const normalizeMap = (map: Readonly<Record<string, unknown>>) =>
+    Object.fromEntries(
+      Object.entries(map).map(([name, child]) => {
+        const result = normalizeAdvertisedSchema(child);
+        changed ||= result.changed;
+        return [name, result.schema];
+      }),
+    );
+  const normalizeList = (list: readonly unknown[]) =>
+    list.map((child) => {
+      const result = normalizeAdvertisedSchema(child);
+      changed ||= result.changed;
+      return result;
+    });
+
+  for (const [key, child] of Object.entries(value)) {
+    if (schemaMaps.has(key) && isObject(child)) {
+      node[key] = normalizeMap(child);
+    } else if (
+      schemaArrays.has(key) &&
+      key !== "anyOf" &&
+      key !== "oneOf" &&
+      Array.isArray(child)
+    ) {
+      node[key] = normalizeList(child).map((result) => result.schema);
+    } else if (
+      schemaChildren.has(key) &&
+      key !== "not" &&
+      key !== "if" &&
+      key !== "then" &&
+      key !== "else"
+    ) {
+      const results = Array.isArray(child)
+        ? normalizeList(child)
+        : [normalizeAdvertisedSchema(child)];
+      const nestedChanged = results.some((result) => result.changed);
+      if (
+        key === "contains" &&
+        nestedChanged &&
+        value.maxContains !== undefined
+      ) {
+        delete node.contains;
+        delete node.minContains;
+        delete node.maxContains;
+        changed = true;
+      } else {
+        node[key] = Array.isArray(child)
+          ? results.map((result) => result.schema)
+          : results[0]?.schema;
+        changed ||= nestedChanged;
+      }
+    }
+  }
+
+  if (typeof node.const === "boolean") {
+    delete node.const;
+    if (node.type === undefined) node.type = "boolean";
+    changed = true;
+  }
+  if (
+    Array.isArray(node.enum) &&
+    node.enum.length > 0 &&
+    node.enum.every((item) => typeof item === "boolean")
+  ) {
+    delete node.enum;
+    if (node.type === undefined) node.type = "boolean";
+    changed = true;
+  }
+
+  const negated = Object.hasOwn(value, "not")
+    ? normalizeAdvertisedSchema(value.not)
+    : undefined;
+  if (negated?.changed) {
+    // Widening a predicate under `not` narrows the containing schema.
+    changed = true;
+    delete node.not;
+  } else if (negated !== undefined) {
+    node.not = negated.schema;
+  }
+
+  const conditional = Object.hasOwn(value, "if")
+    ? normalizeAdvertisedSchema(value.if)
+    : undefined;
+  const thenBranch = Object.hasOwn(value, "then")
+    ? normalizeAdvertisedSchema(value.then)
+    : undefined;
+  const elseBranch = Object.hasOwn(value, "else")
+    ? normalizeAdvertisedSchema(value.else)
+    : undefined;
+  if (conditional?.changed) {
+    // Changing the predicate can route canonical-valid inputs into a rejecting branch.
+    changed = true;
+    delete node.if;
+    delete node.then;
+    delete node.else;
+  } else {
+    if (conditional !== undefined) node.if = conditional.schema;
+    if (thenBranch !== undefined) {
+      node.then = thenBranch.schema;
+      changed ||= thenBranch.changed;
+    }
+    if (elseBranch !== undefined) {
+      node.else = elseBranch.schema;
+      changed ||= elseBranch.changed;
+    }
+  }
+
+  for (const combinator of ["anyOf", "oneOf"] as const) {
+    const branches = value[combinator];
+    if (!Array.isArray(branches)) continue;
+    const normalized = normalizeList(branches);
+    const schemas = normalized.map((result) => result.schema);
+    const branchesChanged = normalized.some((result) => result.changed);
+    if (combinator === "oneOf" && branchesChanged) {
+      const booleanLiteralsOnly = branches.every(isBooleanLiteralSchema);
+      if (booleanLiteralsOnly) {
+        node.type = "boolean";
+        preserveSharedDefault(node, schemas);
+        delete node.oneOf;
+        changed = true;
+        continue;
+      }
+      // `anyOf` retains branch guidance without allowing widened branches to
+      // reject inputs that were accepted by exactly one canonical branch.
+      delete node.oneOf;
+      if (Array.isArray(node.anyOf)) {
+        const existingAllOf = Array.isArray(node.allOf) ? node.allOf : [];
+        node.allOf = [...existingAllOf, { anyOf: schemas }];
+      } else {
+        node.anyOf = schemas;
+      }
+      changed = true;
+      continue;
+    }
+    if (
+      branchesChanged &&
+      schemas.length > 0 &&
+      schemas.every(isBooleanSchema)
+    ) {
+      node.type = "boolean";
+      preserveSharedDefault(node, schemas);
+      delete node[combinator];
+      changed = true;
+      continue;
+    }
+    node[combinator] = schemas;
+    changed ||= branchesChanged;
+  }
+
+  return { schema: node, changed };
+};
+
 // Anthropic tool input schemas reject anyOf, oneOf, and allOf at the root, and
 // clients then drop the tool or advertise it without parameters. Present a
 // root union of strict object groups as one object whose properties are the
@@ -215,7 +404,11 @@ export const presentInputJsonSchema = (
 ): Record<string, unknown> => {
   const flattened = flattenRootObjectUnion(root);
   const described = describeSchema(flattened, flattened, describeProperty);
-  if (!isObject(described)) return flattened;
+  if (!isObject(described))
+    return normalizeAdvertisedSchema(flattened).schema as Record<
+      string,
+      unknown
+    >;
   const {
     dependencies: _dependencies,
     dependentRequired: _dependentRequired,
@@ -237,85 +430,19 @@ export const presentInputJsonSchema = (
               ]
             : [],
         );
-  if (dependencyGuidance.length === 0) return presentation;
+  if (dependencyGuidance.length === 0)
+    return normalizeAdvertisedSchema(presentation).schema as Record<
+      string,
+      unknown
+    >;
   const description = [
     typeof presentation.description === "string"
       ? presentation.description
       : undefined,
     ...dependencyGuidance,
   ].filter((text) => text !== undefined);
-  return { ...presentation, description: description.join(" ") };
+  return normalizeAdvertisedSchema({
+    ...presentation,
+    description: description.join(" "),
+  }).schema as Record<string, unknown>;
 };
-
-/**
- * Clients that render advertised inputs into SDK declarations expand
- * schema-local references with a shared per-input budget: Pi 1.1.0 code-mode
- * allows 32 expansions and degrades every later reference to `unknown`
- * (zheedevVn/Rea-Unlock#1632), hiding the fields those references describe. The budget
- * counts conservatively — every resolvable, non-cyclic reference occurrence
- * in every schema position — so any reference-resolving client stays within
- * its measured limit.
- */
-export const advertisedReferenceExpansionBudget = 32;
-
-const definitionKeys = new Set(["$defs", "definitions"]);
-
-const countReferenceExpansions = (
-  node: unknown,
-  root: Readonly<Record<string, unknown>>,
-  active: ReadonlySet<string>,
-  count: { value: number },
-): void => {
-  if (Array.isArray(node)) {
-    node.forEach((child) =>
-      countReferenceExpansions(child, root, active, count),
-    );
-    return;
-  }
-  if (!isObject(node)) return;
-  if (typeof node.$ref === "string" && !active.has(node.$ref)) {
-    const target = resolveReference(root, node.$ref);
-    if (target !== undefined) {
-      count.value += 1;
-      countReferenceExpansions(
-        target,
-        root,
-        new Set([...active, node.$ref]),
-        count,
-      );
-      return;
-    }
-  }
-  for (const [key, value] of Object.entries(node)) {
-    if (definitionKeys.has(key)) continue;
-    if (schemaMaps.has(key) && isObject(value)) {
-      for (const child of Object.values(value))
-        countReferenceExpansions(child, root, active, count);
-    } else if (schemaArrays.has(key) || schemaChildren.has(key)) {
-      countReferenceExpansions(value, root, active, count);
-    }
-  }
-};
-
-/** Conservative client expansion count over every schema position. */
-export const countLocalReferenceExpansions = (
-  schema: Record<string, unknown>,
-): number => {
-  const count = { value: 0 };
-  countReferenceExpansions(schema, schema, new Set(), count);
-  return count.value;
-};
-
-/**
- * Keep the shared-definition form of an advertised input while clients can
- * still resolve it. Once rendering would exhaust the reference budget, fall
- * back to the inline projection, which carries no shared definitions for the
- * nonrecursive schemas this repository advertises, so every field renders
- * with complete structure in every reference-resolving client.
- */
-export const inputSchemaWithinReferenceExpansionBudget = (
-  shared: Record<string, unknown>,
-  inline: () => Record<string, unknown>,
-  budget: number,
-): Record<string, unknown> =>
-  countLocalReferenceExpansions(shared) <= budget ? shared : inline();
