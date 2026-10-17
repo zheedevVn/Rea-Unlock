@@ -13,7 +13,7 @@ import type {
   ExecutionOptions,
   ProviderIdentity,
 } from "../AnalysisProvider.js";
-import { closeAnalysisClient } from "./AnalysisClientCleanup.js";
+import { closeAnalysisClient } from "../../providers/AnalysisClientCleanup.js";
 import { compareUnicodeCodePoints } from "../../domain/unicodeCodePointOrder.js";
 
 /** Synthetic identity for a deterministic provider set. */
@@ -83,6 +83,10 @@ const closeCompositeClients = (
             "Composed provider cleanup failed.",
           ),
         },
+      ).bindCleanupDependencies(
+        failures
+          .map(({ error }) => error)
+          .filter((error) => error.cleanupIncomplete),
       ),
     );
   };
@@ -181,18 +185,29 @@ export class CompositeProvider implements AnalysisProvider {
       clients.set(provider, created);
       return created;
     };
-    const close = closeCompositeClients(this.#identity, clients);
+    let closed = false;
+    const closeClients = closeCompositeClients(this.#identity, clients);
+    const close: AnalysisClient["close"] = (options) => {
+      closed = true;
+      return closeClients(options);
+    };
     return {
       executeIfReady: (operation, parameters, options) => {
         const provider = this.#providerByOperation.get(operation);
         const client =
-          provider === undefined ? undefined : clients.get(provider);
+          provider === undefined || closed ? undefined : clients.get(provider);
         return (
           client?.executeIfReady?.(operation, parameters, options) ??
           Promise.resolve(undefined)
         );
       },
       execute: async (operation, parameters, options) => {
+        if (closed)
+          return err(
+            new ProviderAdapterError(this.#identity.id, operation, {
+              diagnostics: { reason: "client_closed" },
+            }),
+          );
         if (operation === "health")
           return executeCompositeHealth(this.#identity, clients, options);
         const provider = this.#providerByOperation.get(operation);
@@ -220,6 +235,16 @@ export class CompositeProvider implements AnalysisProvider {
           .sort((left, right) =>
             compareUnicodeCodePoints(left.provider.id, right.provider.id),
           ),
+      reuseReadiness: () => {
+        if (closed) return "blocked";
+        const states = [...clients.values()].map(
+          (client) => client.reuseReadiness?.() ?? "unknown",
+        );
+        if (states.some((state) => state === "blocked")) return "blocked";
+        return states.some((state) => state === "unknown")
+          ? "unknown"
+          : "ready";
+      },
       operationHealthSnapshot: () => {
         const snapshots = [...clients.values()].map((client) =>
           client.operationHealthSnapshot?.(),

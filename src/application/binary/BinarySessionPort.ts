@@ -87,7 +87,7 @@ export interface BinarySessionPort
     overwrite: boolean,
     options?: Pick<ExecutionOptions, "progress">,
   ): Promise<Result<SavedAnalysisSnapshot, AnalysisError>>;
-  status(): JsonValue;
+  status(options?: { readonly signal?: AbortSignal }): Promise<JsonValue>;
   activeTarget(): BinaryTarget | undefined;
   exportAnalysisSnapshot(): Result<AnalysisSnapshot, AnalysisError>;
   importAnalysisSnapshot(

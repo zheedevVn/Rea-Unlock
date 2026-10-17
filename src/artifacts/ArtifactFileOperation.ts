@@ -10,6 +10,7 @@ import {
 import { ArtifactReaderFailure } from "./ArtifactReader.js";
 import {
   ArtifactResourceRetryFailure,
+  type ArtifactResourceOwner,
   type ArtifactResourceScope,
 } from "./ArtifactResourceScope.js";
 import {
@@ -179,7 +180,11 @@ export const assertArtifactReadActive = (
 /** Admit a regular file without blocking on pipes, retaining failed admission closes. */
 export const withArtifactRegularFile = async <Value>(
   path: string,
-  resources: ArtifactResourceScope,
+  resources: {
+    retain(
+      owner: Extract<ArtifactResourceOwner, { readonly kind: "lease" }>,
+    ): void;
+  },
   signal: AbortSignal | undefined,
   operation: (file: FileHandle) => Promise<Value>,
   symlinks: "follow" | "reject" = "reject",

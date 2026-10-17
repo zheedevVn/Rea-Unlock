@@ -21,7 +21,7 @@ import { compareUnicodeCodePoints } from "../../domain/unicodeCodePointOrder.js"
 interface BinarySessionStatusInput {
   readonly target: BinaryTarget | undefined;
   readonly route: SessionProviderRoute;
-  readonly router: SessionProviderRouter;
+  readonly router: Pick<SessionProviderRouter, "candidateStatuses">;
   readonly runtimeUnavailability: ReadonlyMap<
     string,
     { readonly reason: string }
@@ -31,10 +31,11 @@ interface BinarySessionStatusInput {
   readonly requestActivitySnapshots: readonly ProviderRequestActivitySnapshot[];
   readonly providerOperationHealth?: ProviderOperationHealth | null;
   readonly cleanupPending?: boolean;
+  readonly signal?: AbortSignal;
 }
 
 /** Project internal provider routing state into the caller-visible session status. */
-export const binarySessionStatus = ({
+export const binarySessionStatus = async ({
   target,
   route,
   router,
@@ -44,7 +45,8 @@ export const binarySessionStatus = ({
   requestActivitySnapshots,
   providerOperationHealth,
   cleanupPending = false,
-}: BinarySessionStatusInput): JsonValue => {
+  signal,
+}: BinarySessionStatusInput): Promise<JsonValue> => {
   const routeCapabilities = [...route.capabilities.values()]
     .filter(({ operation }) => operation !== "inventory_artifact")
     .sort((left, right) =>
@@ -69,22 +71,22 @@ export const binarySessionStatus = ({
           selection_source: route.binding.selectionSource,
           analysis_profile: structuredClone(route.binding.profile),
         };
-  const analysisProviderCandidates = router
-    .candidateStatuses(route)
-    .map((candidate) => ({
-      provider: providerSummary(candidate.provider),
-      availability: structuredClone(candidate.availability),
-      target_support: structuredClone(candidate.targetSupport),
-      selected: candidate.selected,
-      capabilities: providerCapabilitySets(
-        candidate.capabilities
-          .slice()
-          .filter(({ operation }) => operation !== "inventory_artifact")
-          .sort((left, right) =>
-            compareUnicodeCodePoints(left.operation, right.operation),
-          ),
-      ),
-    }));
+  const analysisProviderCandidates = (
+    await router.candidateStatuses(route, signal)
+  ).map((candidate) => ({
+    provider: providerSummary(candidate.provider),
+    availability: structuredClone(candidate.availability),
+    target_support: structuredClone(candidate.targetSupport),
+    selected: candidate.selected,
+    capabilities: providerCapabilitySets(
+      candidate.capabilities
+        .slice()
+        .filter(({ operation }) => operation !== "inventory_artifact")
+        .sort((left, right) =>
+          compareUnicodeCodePoints(left.operation, right.operation),
+        ),
+    ),
+  }));
   const common = {
     cleanup_pending: cleanupPending,
     capabilities,

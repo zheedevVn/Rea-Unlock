@@ -6,6 +6,7 @@ import type {
 } from "../AnalysisProvider.js";
 import {
   expandProviderCapabilities,
+  sessionProvider,
   type ProviderCapabilitySet,
 } from "../../contracts/toolOutputSchemaPrimitives.js";
 import { compareUnicodeCodePoints } from "../../domain/unicodeCodePointOrder.js";
@@ -16,16 +17,10 @@ import type {
 } from "./SessionProviderRouter.js";
 import { binarySessionStatus } from "./BinarySessionStatus.js";
 
-type ProjectedStatus = {
-  capabilities: ProviderCapabilitySet[];
-  analysis_provider_candidates: {
-    provider: ProviderIdentity;
-    availability: unknown;
-    target_support: unknown;
-    selected: boolean;
-    capabilities: ProviderCapabilitySet[];
-  }[];
-};
+const projectedStatusSchema = sessionProvider.pick({
+  capabilities: true,
+  analysis_provider_candidates: true,
+});
 
 const providerA: ProviderIdentity = {
   id: "provider-a",
@@ -117,32 +112,40 @@ const candidate = (
   capabilities,
 });
 
-const project = (
+const project = async (
   routeCapabilities: readonly CapabilityDescriptor[],
   candidates: readonly AnalysisProviderCandidateStatus[],
   runtimeUnavailability: ReadonlyMap<
     string,
     { readonly reason: string }
   > = new Map(),
-): ProjectedStatus => {
-  const route = {
+) => {
+  const route: SessionProviderRoute = {
+    identity: providerA,
+    profile: null,
+    selection: undefined,
+    createClient: () => {
+      throw new Error("Projection does not create clients");
+    },
     capabilities: new Map(
       routeCapabilities.map((capability) => [capability.operation, capability]),
     ),
     binding: null,
-  } as unknown as SessionProviderRoute;
-  const router = {
-    candidateStatuses: () => candidates,
-  } as unknown as SessionProviderRouter;
-  return binarySessionStatus({
-    target: undefined,
-    route,
-    router,
-    runtimeUnavailability,
-    runId: undefined,
-    runtimeLineageSnapshots: [],
-    requestActivitySnapshots: [],
-  }) as unknown as ProjectedStatus;
+  };
+  const router: Pick<SessionProviderRouter, "candidateStatuses"> = {
+    candidateStatuses: async () => candidates,
+  };
+  return projectedStatusSchema.parse(
+    await binarySessionStatus({
+      target: undefined,
+      route,
+      router,
+      runtimeUnavailability,
+      runId: undefined,
+      runtimeLineageSnapshots: [],
+      requestActivitySnapshots: [],
+    }),
+  );
 };
 
 const expandCanonicalCapabilities = (sets: readonly ProviderCapabilitySet[]) =>
@@ -323,10 +326,10 @@ const expectedExpandedCandidateCapabilities = [
 ];
 
 describe("binary session provider capability projection", () => {
-  it("preserves provider scope and route overlays while factoring exact prefixes", () => {
+  it("preserves provider scope and route overlays while factoring exact prefixes", async () => {
     const selectedBefore = structuredClone(selectedCapabilities);
     const otherBefore = structuredClone(otherCapabilities);
-    const status = project(
+    const status = await project(
       selectedCapabilities,
       [
         candidate(providerA, selectedCapabilities),
@@ -355,13 +358,13 @@ describe("binary session provider capability projection", () => {
     ).toEqual(expectedExpandedCandidateCapabilities[1]);
   });
 
-  it("keeps empty route and candidate capability collections empty", () => {
-    const status = project([], [candidate(providerA, [])]);
+  it("keeps empty route and candidate capability collections empty", async () => {
+    const status = await project([], [candidate(providerA, [])]);
     expect(status.capabilities).toEqual([]);
     expect(status.analysis_provider_candidates[0]?.capabilities).toEqual([]);
   });
 
-  it("preserves repeated limitations in their original order", () => {
+  it("preserves repeated limitations in their original order", async () => {
     const capabilities = [
       descriptor(providerA, "procedure_info", [
         "Repeated",
@@ -370,7 +373,7 @@ describe("binary session provider capability projection", () => {
       ]),
       descriptor(providerA, "xrefs", ["Repeated", "Repeated", "right detail"]),
     ];
-    const status = project(capabilities, []);
+    const status = await project(capabilities, []);
 
     expect(status.capabilities[0]).toMatchObject({
       shared_limitations: ["Repeated", "Repeated"],

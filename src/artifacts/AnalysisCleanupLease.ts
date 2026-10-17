@@ -6,6 +6,11 @@ export class AnalysisCleanupLease {
   #errors: WeakRef<AnalysisError>[] = [];
   readonly #groups = new Set<AnalysisCleanupLeaseGroup>();
 
+  /** Whether this exact owner has confirmed release. */
+  get released(): boolean {
+    return this.#released;
+  }
+
   readonly cleanupResources: readonly string[] | undefined;
 
   constructor(

@@ -98,10 +98,17 @@ export class SessionProviderRouter {
   }
 
   /** Candidate status authoritative for the active or target-free route. */
-  candidateStatuses(
+  async candidateStatuses(
     route: SessionProviderRoute,
-  ): readonly AnalysisProviderCandidateStatus[] {
-    return route.selection?.candidates ?? this.registry.candidates();
+    signal?: AbortSignal,
+  ): Promise<readonly AnalysisProviderCandidateStatus[]> {
+    return (
+      route.selection?.candidates ??
+      this.registry.candidates(
+        undefined,
+        signal === undefined ? {} : { signal },
+      )
+    );
   }
 
   /** Produce exact candidate rejections for an intentionally unbound route. */

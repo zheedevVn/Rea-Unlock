@@ -78,6 +78,26 @@ const executableTarget = {
   availableArchitectures: ["x86_64"],
 } as const;
 
+it("does not create a previously unused child after the composite closes", async () => {
+  const child = failingProvider("provider-only", "address_name", "one-db");
+  const create = vi.spyOn(child.provider, "createClient");
+  const client = new CompositeProvider([child.provider]).createClient(
+    executableTarget,
+  );
+  expect(await client.close()).toEqual(ok(null));
+  expect(client.reuseReadiness?.()).toBe("blocked");
+  expect(await client.executeIfReady?.("address_name", {})).toBeUndefined();
+  expect(await client.execute("address_name", {})).toMatchObject({
+    ok: false,
+    error: {
+      _tag: "ProviderAdapterError",
+      diagnostics: { reason: "client_closed" },
+    },
+  });
+  expect(create).not.toHaveBeenCalled();
+  expect(child.close).not.toHaveBeenCalled();
+});
+
 it("retains every failed child resource across composite cleanup retries", async () => {
   const left = failingProvider("provider-left", "address_name", "left-db");
   const right = failingProvider("provider-right", "procedure_info", "right-db");
