@@ -1,8 +1,10 @@
 import { expect, it } from "vitest";
 import {
+  AnalysisCancelledError,
   AnalysisInputError,
   AnalysisOutputError,
 } from "../../domain/analysisErrorCore.js";
+import { parseEvidence } from "../../domain/evidence.js";
 import type { RustBinary } from "../../domain/rust/rustBinary.js";
 import { ok } from "../../domain/result.js";
 import { RustBinaryService } from "./RustBinaryService.js";
@@ -111,6 +113,51 @@ it("rejects a cycle claim the package dependencies do not contain", async () => 
   if (!result.ok) expect(result.error).toBeInstanceOf(AnalysisOutputError);
 });
 
+it("retains completed Rust Evidence on late cancellation and keeps output failure precedence", async () => {
+  const controller = new AbortController();
+  const service = new RustBinaryService({
+    identity,
+    inspect: () => {
+      controller.abort();
+      return Promise.resolve(ok(report));
+    },
+  });
+  const cancelled = await service.inspect(
+    { path: report.artifact.path },
+    { signal: controller.signal },
+  );
+  expect(cancelled).toMatchObject({
+    ok: false,
+    error: {
+      _tag: "AnalysisCancelledError",
+      partialObservation: { normalized_result: report },
+    },
+  });
+
+  const invalidController = new AbortController();
+  const mismatched: RustBinary = {
+    ...report,
+    artifact: { ...report.artifact, path: "/artifacts/other" },
+  };
+  const invalid = await new RustBinaryService({
+    identity,
+    inspect: () => {
+      invalidController.abort();
+      return Promise.resolve(ok(mismatched));
+    },
+  }).inspect(
+    { path: report.artifact.path },
+    { signal: invalidController.signal },
+  );
+  expect(invalid).toMatchObject({
+    ok: false,
+    error: { _tag: "AnalysisOutputError" },
+  });
+  expect(cancelled.ok).toBe(false);
+  if (!cancelled.ok)
+    expect(cancelled.error).toBeInstanceOf(AnalysisCancelledError);
+});
+
 it.each([
   { from_index: 1, to_index: 0 },
   { from_index: 0, to_index: 1 },
@@ -129,4 +176,41 @@ it.each([
   }).inspect({ path: report.artifact.path });
   expect(result.ok).toBe(false);
   if (!result.ok) expect(result.error).toBeInstanceOf(AnalysisOutputError);
+});
+
+it("retains a completed report on late cancellation and keeps output errors primary", async () => {
+  const controller = new AbortController();
+  const completed = await new RustBinaryService({
+    identity,
+    inspect: () => {
+      controller.abort();
+      return Promise.resolve(ok(report));
+    },
+  }).inspect({ path: report.artifact.path }, { signal: controller.signal });
+  expect(completed.ok).toBe(false);
+  if (!completed.ok) {
+    expect(completed.error).toBeInstanceOf(AnalysisCancelledError);
+    expect(parseEvidence(completed.error.partialObservation)).toMatchObject({
+      operation: "inspect_rust_binary",
+      normalized_result: report,
+    });
+  }
+
+  const malformed = {
+    ...report,
+    artifact: { ...report.artifact, path: "/artifacts/other" },
+  };
+  const outputController = new AbortController();
+  const invalid = await new RustBinaryService({
+    identity,
+    inspect: () => {
+      outputController.abort();
+      return Promise.resolve(ok(malformed));
+    },
+  }).inspect(
+    { path: report.artifact.path },
+    { signal: outputController.signal },
+  );
+  expect(invalid.ok).toBe(false);
+  if (!invalid.ok) expect(invalid.error).toBeInstanceOf(AnalysisOutputError);
 });

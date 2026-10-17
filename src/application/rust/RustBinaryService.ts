@@ -15,6 +15,7 @@ import {
 } from "../../domain/rust/rustBinary.js";
 import { analysisInputErrorFromIssues } from "../../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 const OPERATION = "inspect_rust_binary";
 
@@ -34,6 +35,10 @@ const architectureForSubject = (architecture: string) => {
 /** Shared exact input validation and artifact-bound Evidence for CLI and MCP. */
 export class RustBinaryService {
   constructor(readonly provider: RustBinaryPort) {}
+
+  close(): Promise<void> {
+    return this.provider.close?.() ?? Promise.resolve();
+  }
 
   /** Inspect one explicitly selected file without acquiring a binary session. */
   async inspect(
@@ -61,8 +66,6 @@ export class RustBinaryService {
       );
     const inspected = await this.provider.inspect(input.data, options);
     if (!inspected.ok) return inspected;
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(OPERATION));
     const report = rustBinarySchema.safeParse(inspected.value);
     if (!report.success || report.data.artifact.path !== input.data.path)
       return err(
@@ -71,7 +74,10 @@ export class RustBinaryService {
           "Rust dependency reader returned malformed metadata or changed the selected artifact identity.",
         ),
       );
-    return ok(evidenceFor(this.provider.identity, input.data, report.data));
+    return completeProviderEvidence(
+      evidenceFor(this.provider.identity, input.data, report.data),
+      options?.signal,
+    );
   }
 }
 

@@ -2,7 +2,6 @@ import { createHash, randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { stat as statPath } from "node:fs/promises";
 import type { Stats } from "node:fs";
-import { resolve } from "node:path";
 
 import {
   AnalysisAccessDeniedError,
@@ -37,6 +36,7 @@ import {
   runOwnedCommand,
 } from "../../process/OwnedCommand.js";
 import type { ProviderProcessSupervisor } from "../../process/ProviderProcess.js";
+import { absoluteCallerPath } from "../../filesystem/callerPath.js";
 
 export type ReverseEngineeringOperation =
   | "inspect_with_objdump"
@@ -291,7 +291,8 @@ export class ReverseEngineeringService {
     if (signal?.aborted) return err(new AnalysisCancelledError(operation));
     const cleanup = await this.retryCleanup(operation);
     if (!cleanup.ok) return cleanup;
-    const absolutePath = path === undefined ? undefined : resolve(path);
+    const absolutePath =
+      path === undefined ? undefined : absoluteCallerPath(path);
     let digest: string | undefined;
     try {
       if (absolutePath !== undefined)

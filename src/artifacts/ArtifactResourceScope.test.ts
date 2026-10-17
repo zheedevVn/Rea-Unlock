@@ -42,7 +42,7 @@ it("waits for admitted operations and shares concurrent close", async () => {
   expect(closed).toBe(true);
 });
 
-it("retains the same failed reader owner and retries before admitting work", async () => {
+it("retains the same failed reader owner in a retry failure and retries before admitting work", async () => {
   const scope = new ArtifactResourceScope();
   let closeAttempts = 0;
   const reader = {
@@ -59,6 +59,7 @@ it("retains the same failed reader owner and retries before admitting work", asy
   await expect(scope.run(async () => "must not run")).rejects.toMatchObject({
     reason: "unavailable",
     message: "Artifact cleanup remains incomplete: fixture reader",
+    failedOwners: [owner],
   });
   expect(closeAttempts).toBe(2);
   await expect(scope.close()).rejects.toMatchObject({
@@ -67,6 +68,44 @@ it("retains the same failed reader owner and retries before admitting work", asy
   expect(closeAttempts).toBe(3);
   await scope.close();
   expect(closeAttempts).toBe(4);
+});
+
+it("reports only owners whose cleanup failed during a mixed retry", async () => {
+  const scope = new ArtifactResourceScope();
+  let firstAttempts = 0;
+  let secondAttempts = 0;
+  const first = {
+    kind: "lease" as const,
+    resource: "first lease",
+    lease: {
+      async release() {
+        firstAttempts += 1;
+        if (firstAttempts === 1) throw new Error("first initial close");
+      },
+    },
+  };
+  const second = {
+    kind: "lease" as const,
+    resource: "second lease",
+    lease: {
+      async release() {
+        secondAttempts += 1;
+        if (secondAttempts < 3) throw new Error("second close still denied");
+      },
+    },
+  };
+  expect(await scope.release(first)).toMatchObject({ kind: "failed" });
+  expect(await scope.release(second)).toMatchObject({ kind: "failed" });
+
+  await expect(scope.retryCleanup()).rejects.toMatchObject({
+    failedOwners: [second],
+    cleanup: { resources: ["second lease"] },
+  });
+  expect(firstAttempts).toBe(2);
+  expect(secondAttempts).toBe(2);
+  await scope.close();
+  expect(firstAttempts).toBe(2);
+  expect(secondAttempts).toBe(3);
 });
 
 it("retains a failed source analyzer until shutdown can verify its release", async () => {

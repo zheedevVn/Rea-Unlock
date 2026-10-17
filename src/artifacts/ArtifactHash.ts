@@ -24,6 +24,7 @@ export const abortIfNeeded = (signal?: AbortSignal): void => {
     throw new ArtifactReaderFailure(
       "cancelled",
       "Artifact inventory cancelled",
+      { cause: signal.reason },
     );
 };
 
@@ -63,5 +64,6 @@ export const hashReadable = async (
       xmlProbe.write(selected);
     }
   }
+  abortIfNeeded(signal);
   return { sha256: hash.digest("hex"), bytes, prefix: Buffer.concat(prefixes) };
 };

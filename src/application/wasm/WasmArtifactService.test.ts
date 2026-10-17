@@ -77,3 +77,51 @@ it("cancels before provider work and delivers observed Evidence on success", asy
     value: { confidence: "observed", normalized_result: value },
   });
 });
+
+it("retains completed Evidence when cancellation arrives after provider return", async () => {
+  const value = wasmArtifactFixture();
+  const controller = new AbortController();
+  const service = new WasmArtifactService({
+    close: () => Promise.resolve(),
+    inspect: async () => {
+      controller.abort();
+      return ok(wasmArtifactExecution(value));
+    },
+  });
+
+  expect(
+    await service.inspect(
+      { path: value.artifact.path },
+      { signal: controller.signal },
+    ),
+  ).toMatchObject({
+    ok: false,
+    error: {
+      _tag: "AnalysisCancelledError",
+      partialObservation: { normalized_result: value },
+    },
+  });
+});
+
+it("preserves malformed-output failure when cancellation arrives with it", async () => {
+  const value = wasmArtifactFixture();
+  const controller = new AbortController();
+  const malformed = { ...wasmArtifactExecution(value), result: {} };
+  const service = new WasmArtifactService({
+    close: () => Promise.resolve(),
+    inspect: async () => {
+      controller.abort();
+      return ok(malformed);
+    },
+  });
+
+  expect(
+    await service.inspect(
+      { path: value.artifact.path },
+      { signal: controller.signal },
+    ),
+  ).toMatchObject({
+    ok: false,
+    error: { _tag: "AnalysisOutputError" },
+  });
+});
