@@ -6,6 +6,7 @@ import {
   AnalysisOutputError,
   AnalysisUnsupportedTargetError,
   AnalysisResourceConstraintError,
+  AnalysisTimeoutError,
 } from "./analysisErrorCore.js";
 import { ArtifactOperationError } from "./artifactOperationError.js";
 import {
@@ -27,14 +28,25 @@ import {
   HopperTimeoutError,
 } from "./hopperErrors.js";
 import { ProviderSelectionError } from "./providerSelectionError.js";
+import { ProviderAdapterError } from "./providerAdapterError.js";
 import { UnknownRegistryError } from "./unknownRegistryError.js";
 import { providerRetryAction } from "./providerOperationHealth.js";
-import type { AnalysisError, AnalysisErrorTag } from "./analysisErrorBase.js";
+import {
+  resolvedAnalysisError,
+  type AnalysisError,
+  type AnalysisErrorTag,
+} from "./analysisErrorBase.js";
 import type { AnalysisErrorProjection } from "./analysisErrorProjection.js";
 
 export const analysisErrorRemediationAction = (
   error: AnalysisError,
 ): string => {
+  error = resolvedAnalysisError(error);
+  if (
+    error instanceof ProviderAdapterError &&
+    error.remediationAction !== undefined
+  )
+    return error.remediationAction;
   if (
     error instanceof BrowserObservationError &&
     error.reason === "service_worker_blocked"
@@ -64,9 +76,14 @@ export const analysisErrorRemediationAction = (
               ? "Review the reported worker file-size limits and write failure. Retry with a sufficient file-size allowance for the evidence reply; REA retains tighter inherited limits."
               : "Review the reported worker memory limits and available host memory. Retry with sufficient memory or a smaller artifact; REA retains tighter inherited limits.")
     );
+  if (
+    error instanceof AnalysisTimeoutError &&
+    error.remediationAction !== undefined
+  )
+    return error.remediationAction;
   if (error instanceof HopperTimeoutError)
     return error.operation === undefined
-      ? "Inspect Hopper for a loader or license dialog and review details.launcher. Correct the loader configuration or complete Hopper setup, then open the target again."
+      ? "Review details.launcher and inspect Hopper for ongoing initial analysis or a pending loader, demo, or license dialog. For a large target, increase REA_HOPPER_STARTUP_TIMEOUT_MS in the environment that starts REA and allow at least that long in the MCP client. Resolve retained cleanup before reopening."
       : error.providerState === "busy"
         ? "Check binary_session.analysis_activity, wait for the active Hopper request to finish, then retry."
         : "Check binary_session for Hopper health, then retry the operation.";
@@ -126,6 +143,7 @@ export const analysisErrorRemediationAction = (
 export const analysisErrorCategory = (
   error: AnalysisError,
 ): AnalysisErrorProjection["category"] => {
+  error = resolvedAnalysisError(error);
   if (error instanceof AnalysisCapabilityUnavailableError && error.retryable)
     return "unavailable";
   if (
@@ -222,6 +240,7 @@ const STATIC_ERROR_CATEGORIES: Readonly<
 };
 
 export const analysisErrorUserMessage = (error: AnalysisError): string => {
+  error = resolvedAnalysisError(error);
   if (error instanceof AnalysisSnapshotMismatchError) return error.message;
   if (error instanceof AnalysisUnsupportedTargetError) return error.message;
   if (error instanceof AnalysisResourceConstraintError) return error.reason;
@@ -287,7 +306,7 @@ export const analysisErrorUserMessage = (error: AnalysisError): string => {
 const hopperErrorUserMessage = (error: AnalysisError): string | undefined => {
   if (error instanceof HopperTimeoutError) {
     if (error.operation === undefined)
-      return "REA timed out waiting for Hopper bridge readiness. Hopper may be waiting for a loader or license dialog; inspect its window and the captured launcher outcome before retrying.";
+      return "REA timed out waiting for Hopper bridge readiness, which includes initial analysis. Hopper may still be analyzing the target or waiting for a loader, demo, or license dialog. Review the captured launcher outcome and resolve retained cleanup before retrying.";
     const request = error.operation;
     return error.providerState === "busy"
       ? `Hopper timed out during ${request} while the provider remained busy. Check binary_session.analysis_activity, wait for the active request to finish, then retry.`

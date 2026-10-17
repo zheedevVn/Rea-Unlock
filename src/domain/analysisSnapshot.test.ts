@@ -17,7 +17,10 @@ import {
 } from "./analysisSnapshot.fixture.js";
 import { createEvidence } from "./evidence.js";
 import { createEvidenceBundle } from "./evidenceBundle.js";
-import type { BinaryTarget } from "./binaryTargetTypes.js";
+import {
+  RAW_ONLY_ARCHITECTURES,
+  type BinaryTarget,
+} from "./binaryTargetTypes.js";
 
 const snapshotWithHistoricalEvidence = () => {
   const target = snapshotTarget(ANALYSIS_SNAPSHOT_TARGET);
@@ -71,26 +74,29 @@ const snapshotWithHistoricalEvidence = () => {
 };
 
 describe("analysis snapshot target identity", () => {
-  it("keeps 6502 confined to executable raw snapshots", () => {
-    const target = {
-      sha256: ANALYSIS_SNAPSHOT_TARGET.sha256,
-      kind: "executable",
-      architecture: "6502",
-    };
-    expect(
-      analysisSnapshotSchema.shape.target.safeParse({
-        ...target,
-        format: "pe",
-      }).success,
-    ).toBe(false);
-    expect(
-      analysisSnapshotSchema.shape.target.safeParse({
-        ...target,
-        format: "raw-binary",
-        entry_point: "0x8001",
-      }).success,
-    ).toBe(true);
-  });
+  it.each(RAW_ONLY_ARCHITECTURES)(
+    "keeps %s confined to executable raw snapshots",
+    (architecture) => {
+      const target = {
+        sha256: ANALYSIS_SNAPSHOT_TARGET.sha256,
+        kind: "executable",
+        architecture,
+      };
+      expect(
+        analysisSnapshotSchema.shape.target.safeParse({
+          ...target,
+          format: "pe",
+        }).success,
+      ).toBe(false);
+      expect(
+        analysisSnapshotSchema.shape.target.safeParse({
+          ...target,
+          format: "raw-binary",
+          entry_point: "0x8000",
+        }).success,
+      ).toBe(true);
+    },
+  );
 
   it("partitions raw snapshots and query identities by the canonical entry", () => {
     const target: BinaryTarget = {
@@ -142,45 +148,48 @@ describe("analysis snapshot target identity", () => {
 });
 
 describe("analysis snapshot nested subject contract", () => {
-  it("rejects raw-only 6502 in nested detected execution subjects", () => {
-    const { snapshot } = snapshotWithHistoricalEvidence();
-    const entry = snapshot.entries[0];
-    if (entry === undefined) throw new Error("Fixture has no snapshot entry");
-    const malformedSubject = {
-      ...entry.execution.subject,
-      format: "pe",
-      architecture: "6502",
-    };
-    expect(
-      analysisSnapshotSchema.safeParse({
-        ...snapshot,
-        entries: [
-          {
-            ...entry,
-            execution: {
-              ...entry.execution,
-              subject: malformedSubject,
+  it.each(RAW_ONLY_ARCHITECTURES)(
+    "rejects raw-only %s in nested detected execution subjects",
+    (architecture) => {
+      const { snapshot } = snapshotWithHistoricalEvidence();
+      const entry = snapshot.entries[0];
+      if (entry === undefined) throw new Error("Fixture has no snapshot entry");
+      const malformedSubject = {
+        ...entry.execution.subject,
+        format: "pe",
+        architecture,
+      };
+      expect(
+        analysisSnapshotSchema.safeParse({
+          ...snapshot,
+          entries: [
+            {
+              ...entry,
+              execution: {
+                ...entry.execution,
+                subject: malformedSubject,
+              },
             },
-          },
-        ],
-      }).success,
-    ).toBe(false);
-    expect(
-      analysisSnapshotSchema.safeParse({
-        ...snapshot,
-        workflow_entries: [
-          {
-            ...entry,
-            execution: {
-              ...entry.execution,
-              analysis_profile: snapshot.binding.analysis_profile,
-              subject: malformedSubject,
+          ],
+        }).success,
+      ).toBe(false);
+      expect(
+        analysisSnapshotSchema.safeParse({
+          ...snapshot,
+          workflow_entries: [
+            {
+              ...entry,
+              execution: {
+                ...entry.execution,
+                analysis_profile: snapshot.binding.analysis_profile,
+                subject: malformedSubject,
+              },
             },
-          },
-        ],
-      }).success,
-    ).toBe(false);
-  });
+          ],
+        }).success,
+      ).toBe(false);
+    },
+  );
 });
 
 describe("analysis snapshot contract", () => {

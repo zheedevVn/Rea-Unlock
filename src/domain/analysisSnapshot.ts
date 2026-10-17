@@ -17,6 +17,7 @@ import {
 } from "./analysisProfile.js";
 import {
   BINARY_ARCHITECTURES,
+  RAW_ONLY_ARCHITECTURES,
   type BinaryTarget,
 } from "./binaryTargetTypes.js";
 import {
@@ -93,7 +94,9 @@ const subjectFormatSchema = z.enum([
 const subjectSchema = z.discriminatedUnion("format", [
   subjectBaseSchema.extend({
     format: subjectFormatSchema.exclude(["raw-binary"]),
-    architecture: architectureSchema.exclude(["6502"]).nullable(),
+    architecture: architectureSchema
+      .exclude([...RAW_ONLY_ARCHITECTURES])
+      .nullable(),
   }),
   subjectBaseSchema.extend({
     format: z.literal("raw-binary"),
@@ -110,7 +113,9 @@ const targetSchema = z.discriminatedUnion("format", [
     format: z.enum(
       formatSchema.options.filter((format) => format !== "raw-binary"),
     ),
-    architecture: architectureSchema.exclude(["6502"]).nullable(),
+    architecture: architectureSchema
+      .exclude([...RAW_ONLY_ARCHITECTURES])
+      .nullable(),
   }),
   targetIdentitySchema.extend({
     format: z.literal("raw-binary"),
