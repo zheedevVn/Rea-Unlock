@@ -2,7 +2,7 @@ import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { exec, json, run } from "./lib/verify-package-core.mjs";
+import { exec, execNpm, json, run } from "./lib/verify-package-core.mjs";
 
 /** Install the packed CLI globally with and without optional dependencies and verify PTY degradation. */
 export async function verifyPackageInstall({
@@ -11,8 +11,7 @@ export async function verifyPackageInstall({
   workspace,
   environment,
 }) {
-  await exec(
-    "npm",
+  await execNpm(
     [
       "install",
       "--global",
@@ -53,8 +52,7 @@ export async function verifyPackageInstall({
       `packaged PTY backend failed without lifecycle scripts: ${JSON.stringify(processCaptureCapability)}`,
     );
   const noOptionalPrefix = join(workspace, "prefix-no-optional");
-  await exec(
-    "npm",
+  await execNpm(
     [
       "install",
       "--global",
@@ -108,7 +106,7 @@ export async function verifyPackageInstall({
 const verifyInstalledPackageCanRepack = async (prefix, environment) => {
   const installedPackageRoot = join(prefix, "lib/node_modules/rea-unlock");
   const repackedTarball = (
-    await exec("npm", ["pack", "--silent"], {
+    await execNpm(["pack", "--silent"], {
       cwd: installedPackageRoot,
       env: environment,
     })

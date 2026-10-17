@@ -6,6 +6,11 @@ import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import {
+  schemaArrays,
+  schemaChildren,
+  schemaMaps,
+} from "../dist/contracts/inputSchemaPresentation.js";
+import {
   TOOL_CONTRACTS,
   toolContract,
 } from "../dist/contracts/toolContracts.js";
@@ -17,6 +22,8 @@ const repo = fileURLToPath(new URL("..", import.meta.url));
 const runtimeRoot = process.env.REA_VERIFY_RUNTIME_ROOT ?? repo;
 const command = process.env.REA_VERIFY_GEMINI_COMMAND ?? "gemini";
 const mode = process.argv[2] ?? "call";
+const schemaProfile = process.env.REA_VERIFY_GEMINI_SCHEMA_PROFILE ?? "full";
+assert(["full", "compact"].includes(schemaProfile));
 // npm installs of Gemini CLI provide a JavaScript entry point; on Windows only a gemini.cmd shim reaches
 // PATH, which Node does not spawn without a shell, so a selected .js entry runs under this Node. It is
 // resolved once, because the preflight runs from the caller's directory and the client from the workspace.
@@ -60,6 +67,7 @@ const environment = {
   GEMINI_CLI_NO_RELAUNCH: "1",
   GEMINI_CLI_TRUST_WORKSPACE: "true",
   REA_PROCESS_RUN_ID: verifier.run_id,
+  REA_MCP_INPUT_SCHEMA_PROFILE: schemaProfile,
 };
 let clientVersion;
 try {
@@ -161,8 +169,43 @@ let skillRequested = false;
 let finalSeen = false;
 let catalogSize = 0;
 let schemasChecked = 0;
+let examplesChecked = 0;
 let artifactDigest;
 const schemaValidator = new Ajv2020({ strict: false, validateFormats: false });
+const booleanLiteralPath = (schema, path = "$", seen = new Set()) => {
+  if (!schema || typeof schema !== "object" || seen.has(schema))
+    return undefined;
+  seen.add(schema);
+  for (const [key, child] of Object.entries(schema)) {
+    const childPath = `${path}.${key}`;
+    if (key === "const" && typeof child === "boolean") return childPath;
+    if (
+      key === "enum" &&
+      Array.isArray(child) &&
+      child.some((item) => typeof item === "boolean")
+    )
+      return childPath;
+    const schemaChildrenAtKey =
+      schemaMaps.has(key) &&
+      child &&
+      typeof child === "object" &&
+      !Array.isArray(child)
+        ? Object.entries(child).map(([name, item]) => [
+            `${childPath}.${name}`,
+            item,
+          ])
+        : schemaArrays.has(key) && Array.isArray(child)
+          ? child.map((item, index) => [`${childPath}[${index}]`, item])
+          : schemaChildren.has(key)
+            ? [[childPath, child]]
+            : [];
+    for (const [nestedPath, nested] of schemaChildrenAtKey) {
+      const found = booleanLiteralPath(nested, nestedPath, seen);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+};
 const extractEvidence = (value) => {
   if (typeof value === "string") {
     if (
@@ -226,6 +269,22 @@ const fixture = await createGeminiModelFixture({
           schemaValidator.validateSchema(tool.parametersJsonSchema),
           `${tool.name}: invalid advertised JSON Schema: ${JSON.stringify(schemaValidator.errors)}`,
         );
+        const booleanLiteral = booleanLiteralPath(tool.parametersJsonSchema);
+        assert.equal(
+          booleanLiteral,
+          undefined,
+          `${tool.name}: Gemini SDK declaration retains a boolean const/enum at ${booleanLiteral}`,
+        );
+        const name = tool.name.slice(prefix.length);
+        const contract = toolContract(name);
+        const validate = schemaValidator.compile(tool.parametersJsonSchema);
+        for (const example of contract.examples) {
+          assert(
+            validate(example.input),
+            `${tool.name}: Gemini SDK declaration rejects canonical example ${example.title}: ${JSON.stringify(schemaValidator.errors)}`,
+          );
+          examplesChecked++;
+        }
         schemasChecked++;
       }
     }
@@ -356,6 +415,9 @@ try {
     client: "Gemini CLI",
     clientVersion,
     mode,
+    schemaProfile,
+    schemasChecked,
+    examplesChecked,
     passed: failure === undefined,
     artifacts: lab,
     runtimeRoot,

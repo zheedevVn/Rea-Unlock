@@ -7,8 +7,10 @@ import { promisify } from "node:util";
 import { Client } from "@modelcontextprotocol/client";
 import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { toolContract } from "../dist/contracts/toolContracts.js";
-import { hashStableFile } from "../dist/filesystem/StableFileHash.js";
+import { ArtifactResourceScope } from "../dist/artifacts/ArtifactResourceScope.js";
 import { mcpTextValue } from "./lib/mcp-verifier-results.mjs";
+import { closeVerifierResources } from "./lib/verifier-cleanup.mjs";
+import { hashVerifierFile } from "./lib/verifier-file-resources.mjs";
 
 const args = process.argv.slice(2);
 if (args.includes("--help") || args.includes("-h")) {
@@ -23,6 +25,7 @@ const path = args[1] === undefined ? null : resolve(args[1]);
 // This parent is shared by independent CLI/MCP owners. A leased Windows
 // runtime root would prevent their native admission of its directory handle.
 const root = await mkdtemp(join(tmpdir(), "rea-pcap-verifier-"));
+const resources = new ArtifactResourceScope();
 const environment = Object.fromEntries(
   Object.entries(process.env).filter(([, value]) => typeof value === "string"),
 );
@@ -41,6 +44,7 @@ const transport = new StdioClientTransport({
   stderr: "pipe",
 });
 transport.stderr?.resume();
+let primaryError;
 try {
   await client.connect(transport);
   const readiness = await run("inspect_pcap_client", {});
@@ -48,7 +52,7 @@ try {
   if (path === null)
     console.log("[unverified] Capture inspection: no --pcap was supplied");
   else {
-    const identity = await hashStableFile(path);
+    const identity = await hashVerifierFile(path, resources);
     const result = await run("inspect_pcap_capture", { path });
     assert.deepEqual(result.target, { path, ...identity });
     assert(result.packet_count >= 0);
@@ -75,7 +79,7 @@ try {
       );
     assert.equal(result.coverage, partial ? "partial" : "complete");
     assert.deepEqual(
-      await hashStableFile(path),
+      await hashVerifierFile(path, resources),
       identity,
       "Input capture must remain unchanged",
     );
@@ -83,18 +87,28 @@ try {
       `[ok] ${result.packet_count} packets; ${result.endpoint_count} addresses; coverage=${result.coverage}`,
     );
   }
+} catch (cause) {
+  primaryError = cause;
+  throw cause;
 } finally {
-  try {
-    await client.close();
-  } finally {
-    await transport.close();
-  }
-  assert.deepEqual(
-    await readdir(root),
-    [],
-    `Owned capture resources remain under ${root}`,
+  await closeVerifierResources(
+    [
+      async () => {
+        await closeVerifierResources([
+          () => client.close(),
+          () => transport.close(),
+          () => resources.close(),
+        ]);
+        assert.deepEqual(
+          await readdir(root),
+          [],
+          `Owned capture resources remain under ${root}`,
+        );
+        await rmdir(root);
+      },
+    ],
+    primaryError,
   );
-  await rmdir(root);
 }
 console.log("All asserted pcap CLI/MCP checks passed");
 
