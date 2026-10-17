@@ -94,6 +94,36 @@ recorded observations, identity, hashes, exports and source ranges; it does not
 include every child syntax observation, related edge or original source file.
 An absent item fact is not evidence of absence from the whole application.
 
+For canonical identities and retained source-range counts, use a typed reference
+page instead of reading every full item:
+
+```json
+{
+  "source": {
+    "kind": "retained-evidence",
+    "evidence_id": "ev_ACTUAL_PARENT_ID"
+  },
+  "view": {
+    "kind": "javascript",
+    "collection": "modules",
+    "projection": "references",
+    "where": { "path": "main.js", "kind": "javascript-module" },
+    "offset": 0,
+    "limit": 16
+  }
+}
+```
+
+Filters match exact retained strings; omit a filter to include all values, use
+`path: null` for unavailable paths, and `path: ""` for a recorded empty path.
+Rows preserve canonical `identity` and distinct observation support states in
+`basis`. `retained_source_range_count` counts retained source-range observations,
+not runtime imports or unique reference sites. Use a row's `node_id` with the item
+view above for exact locations and full supporting observations. Follow
+`coverage.next_offset`; page exhaustion describes matching retained rows only.
+Check `source_coverage` for source selection, partial/unknown graph coverage and
+unknown counts before drawing a negative conclusion.
+
 ## Trace only the remaining question
 
 Use `trace_application_feature` on the parent application Evidence for one
@@ -165,7 +195,8 @@ accept complete inline Evidence or
 `{"kind":"retained-evidence","evidence_id":"ev_<64 lowercase hex characters>"}`
 for their application input (`application`, or `left`/`right`). `inspect_analysis_view`
 uses the same retained-reference form in `source`, or portable inline Evidence,
-to project a summary, module page, or one module with its recorded observations. This notation is
+to project a summary, module page, or one module with its recorded observations.
+This notation is
 a template: replace it with the actual returned ID. Versions before 4.1.0 accept only full
 inline Evidence. Use the exact ID
 returned by the producer on the same MCP connection. Resolution does not run
@@ -173,3 +204,15 @@ analysis or select a provider; findings remain inline. Native observation
 arrays still take full Evidence. `close_binary` clears retained references;
 export a bundle before closing, or supply portable inline Evidence in another
 connection. A missing reference includes its ID and recovery guidance.
+
+For exact file/native metadata or processing gaps, use
+`view: {kind: "javascript-facts", where: {paths: ["package.json"]}, property_keys: ["name", "operation", "analysis_status"], limit: 32}`.
+Rows retain canonical node/observation identity and original Evidence. Paths
+match Evidence artifact-path/source-range locations; missing properties remain
+omitted and source coverage stays separate from page exhaustion. Batch paths and
+select only needed property keys; complete Evidence remains accessible by export.
+If names are unknown, opt into `include_available_property_keys: true`; it lists
+the original keys per returned observation without unselected values. Keep each
+row's node/observation identity paired when composing facts.
+These rows select application-graph observations; semantic relationships and
+semantic unknown records remain in the complete parent Evidence and trace tools.

@@ -246,13 +246,15 @@ context. PSP/stack/device state remains unmodeled. See [DOS guide](https://githu
 
 For other headerless images (embedded firmware without ELF/Mach-O/PE/MZ
 headers), open with `format: "raw-binary"`, `architecture` (`x86`, `x86_64`,
-`arm`, `arm64`, or `6502`), and `entry_point` (`0x` hex). File offset 0 is mapped at
+`arm`, `arm64`, `6502`, or `m68k`), and `entry_point` (`0x` hex). File offset 0 is mapped at
 that address. Hopper and IDA refuse this interpretation; Ghidra uses
-`BinaryLoader` with a little-endian generic language. Big-endian, Thumb-only,
-and Cortex-M variants are unsupported. `6502` selects NMOS 6502; the entry and
-complete file mapping must fit within `0x0000..0xffff`. 65C02, 65816, cartridge
-containers, bank switching, and mapper semantics are unsupported. Windows
-Ghidra P0 admits raw images only for `6502`. See [raw binary guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/raw-binary.md).
+`BinaryLoader` with a generic language: big-endian for `m68k`, little-endian
+otherwise. Big-endian ARM, Thumb-only, and Cortex-M variants are unsupported.
+`6502` selects NMOS 6502; the entry and complete file mapping must fit within
+`0x0000..0xffff`. 65C02, 65816, cartridge containers, bank switching, and mapper
+semantics are unsupported. `m68k` requires an even entry and decodes the 68040
+superset of the 68000 family; Amiga/Atari containers and vector-table entry
+discovery are unsupported. Windows Ghidra P0 admits raw images only for `6502`. See [raw binary guide](https://github.com/zheedevVn/Rea-Unlock/blob/main/docs/raw-binary.md).
 
 ### Function annotations in Ghidra
 
