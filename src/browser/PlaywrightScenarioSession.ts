@@ -73,6 +73,7 @@ export class PlaywrightScenarioSession implements BrowserScenarioSessionPort {
   private readonly serviceWorkers: PlaywrightScenarioServiceWorkers | undefined;
   private readonly signal: AbortSignal | undefined;
   #storageReleased = false;
+  #policyStopsLoading = false;
 
   private constructor(
     private readonly opened: OpenedScenarioBrowser,
@@ -260,19 +261,29 @@ export class PlaywrightScenarioSession implements BrowserScenarioSessionPort {
       });
     } catch (cause: unknown) {
       let storageReleased = false;
+      const storageStopsLoading =
+        storage !== undefined && options.signal?.aborted === true;
+      let policyStopsLoading = !storageStopsLoading;
       const cleanup = async () => {
         let storageFailure: { readonly cause: unknown } | undefined;
         let policyFailure: { readonly cause: unknown } | undefined;
         let browserFailure: { readonly cause: unknown } | undefined;
         if (!storageReleased) {
           try {
-            await storage?.close(options.signal?.aborted === true);
+            const result = await storage?.close(storageStopsLoading);
+            if (storageStopsLoading && result?.loadingStopped !== true)
+              policyStopsLoading = true;
           } catch (failure: unknown) {
             storageFailure = { cause: failure };
+            // Ownership transfers only after the storage attempt is no longer
+            // in flight. Its failure does not establish that navigation stop
+            // succeeded, so the policy owner must confirm it before release.
+            policyStopsLoading = true;
           }
         }
         try {
-          if (!opened.cleanup.browserClosed) await serviceWorkers?.close(true);
+          if (!opened.cleanup.browserClosed)
+            await serviceWorkers?.close(policyStopsLoading);
         } catch (failure: unknown) {
           policyFailure = { cause: failure };
         }
@@ -394,16 +405,21 @@ export class PlaywrightScenarioSession implements BrowserScenarioSessionPort {
     let storageFailure: { readonly cause: unknown } | undefined;
     let policyFailure: { readonly cause: unknown } | undefined;
     let browserFailure: { readonly cause: unknown } | undefined;
+    if (stopLoading && this.storage === undefined)
+      this.#policyStopsLoading = true;
     if (!this.#storageReleased) {
       try {
-        await this.storage?.close(stopLoading);
+        const result = await this.storage?.close(stopLoading);
+        if (stopLoading && result?.loadingStopped !== true)
+          this.#policyStopsLoading = true;
       } catch (failure: unknown) {
         storageFailure = { cause: failure };
+        if (stopLoading) this.#policyStopsLoading = true;
       }
     }
     try {
       if (!this.opened.cleanup.browserClosed)
-        await this.serviceWorkers?.close(stopLoading);
+        await this.serviceWorkers?.close(this.#policyStopsLoading);
     } catch (failure: unknown) {
       policyFailure = { cause: failure };
     }

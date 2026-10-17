@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { z } from "zod";
-import type { Page } from "playwright-core";
+import type { Frame, Page } from "playwright-core";
 
 import { browserObservationEndpointSchema } from "../domain/browserObservation.js";
 import { BrowserObservationError } from "../domain/browserObservationError.js";
@@ -15,7 +15,14 @@ import {
 import { withPlaywrightExecutionBoundary } from "./PlaywrightExecutionBoundary.js";
 
 const OPERATION = "capture_browser_scenario" as const;
+// Restoration performs several sequential CDP mutations before the transport's
+// own bounded close. A single round-trip deadline is too short for the complete
+// chain on a loaded Windows browser, while retries must still stay bounded.
+const POLICY_CLEANUP_CONFIRMATION_TIMEOUT_MS = 5_000;
 const scriptResponse = z.object({ identifier: z.string() });
+const restorationResponse = z.object({
+  result: z.object({ value: z.literal("policy_owned").nullable() }),
+});
 const attachedEvent = z.object({
   sessionId: z.string(),
   targetInfo: z.object({ type: z.string() }),
@@ -23,6 +30,8 @@ const attachedEvent = z.object({
 const detachedEvent = z.object({ sessionId: z.string() });
 type PolicyTarget = {
   readonly id: string;
+  readonly detached: Promise<void>;
+  readonly markDetached: () => void;
   ready: Promise<void>;
   identifier?: string;
 };
@@ -41,6 +50,7 @@ export class PlaywrightScenarioServiceWorkers {
   #closed = false;
   #released = false;
   #detached = false;
+  #loadingStopped = false;
   #removeListener: (() => void) | undefined;
   #setup = new AbortController();
 
@@ -101,6 +111,7 @@ export class PlaywrightScenarioServiceWorkers {
         if (targetInfo.type === "iframe") this.addTarget(sessionId);
       } else if (event.method === "Target.detachedFromTarget") {
         const id = detachedEvent.parse(event.params).sessionId;
+        this.#targets.get(id)?.markDetached();
         this.#targets.delete(id);
         if (id === this.#session?.sessionId) this.#detached = true;
       }
@@ -119,7 +130,17 @@ export class PlaywrightScenarioServiceWorkers {
   }
 
   private addTarget(id: string): void {
-    const target: PolicyTarget = { id, ready: Promise.resolve() };
+    this.#targets.get(id)?.markDetached();
+    let markDetached: () => void = () => undefined;
+    const detached = new Promise<void>((resolve) => {
+      markDetached = resolve;
+    });
+    const target: PolicyTarget = {
+      id,
+      detached,
+      markDetached,
+      ready: Promise.resolve(),
+    };
     this.#targets.set(id, target);
     const ready = this.initializeTarget(target);
     target.ready = ready;
@@ -187,20 +208,77 @@ export class PlaywrightScenarioServiceWorkers {
   private async settle(): Promise<void> {
     for (;;) {
       const targets = [...this.#targets.values()];
-      await Promise.all(
-        targets.map(async (target) => {
-          try {
-            await target.ready;
-          } catch (cause: unknown) {
-            if (this.#targets.get(target.id) === target) throw cause;
-          }
-        }),
-      );
+      await Promise.all(targets.map((target) => this.settleTarget(target)));
       if (
         targets.length === this.#targets.size &&
         targets.every((target) => this.#targets.get(target.id) === target)
       )
         return;
+    }
+  }
+
+  private async settleTarget(target: PolicyTarget): Promise<void> {
+    try {
+      await Promise.race([target.ready, target.detached]);
+    } catch (cause: unknown) {
+      if (this.#targets.get(target.id) === target) throw cause;
+    }
+  }
+
+  private async settleTargetForRestore(target: PolicyTarget): Promise<void> {
+    try {
+      await Promise.race([target.ready, target.detached]);
+    } catch {
+      // Setup already reports its own failure. Cleanup must continue from the
+      // side effects that were acquired before it failed, such as an init
+      // script whose identifier was returned before auto-attach was rejected.
+    }
+  }
+
+  private restorationScript(): string {
+    return `(() => {
+      const restore = globalThis[${this.restoreKey}];
+      if (typeof restore === "function" && restore(${this.secret}) === true) return null;
+      const register = globalThis.ServiceWorkerContainer?.prototype.register;
+      return typeof register === "function" && Object.hasOwn(register, Symbol.for(${this.marker}))
+        ? "policy_owned"
+        : null;
+    })()`;
+  }
+
+  private async restoreMainFrame(id: string): Promise<void> {
+    const { result } = restorationResponse.parse(
+      await this.send(id, "Runtime.evaluate", {
+        expression: this.restorationScript(),
+        returnByValue: true,
+      }),
+    );
+    if (result.value === "policy_owned")
+      throw new Error(
+        "service-worker policy restoration could not be confirmed",
+      );
+  }
+
+  private async restorePlaywrightFrame(frame: Frame): Promise<void> {
+    try {
+      const failure = await frame.evaluate(this.restorationScript());
+      if (failure === "policy_owned")
+        throw new Error(
+          "service-worker policy restoration could not be confirmed",
+        );
+      if (failure !== null)
+        throw new BrowserObservationError(OPERATION, "protocol_error");
+    } catch (cause: unknown) {
+      if (!this.page.isClosed() && !frame.isDetached()) throw cause;
+    }
+  }
+
+  private async stopMainFrame(frame: Frame): Promise<void> {
+    try {
+      await frame.evaluate("globalThis.stop()");
+      this.#loadingStopped = true;
+    } catch (cause: unknown) {
+      if (!this.page.isClosed() && !frame.isDetached()) throw cause;
     }
   }
 
@@ -246,7 +324,10 @@ export class PlaywrightScenarioServiceWorkers {
         if (this.#restoration === restoration) this.#restoration = undefined;
       },
     );
-    return withPlaywrightExecutionBoundary(() => restoration, 1_000);
+    return withPlaywrightExecutionBoundary(
+      () => restoration,
+      POLICY_CLEANUP_CONFIRMATION_TIMEOUT_MS,
+    );
   }
 
   private async restore(stopLoading: boolean): Promise<void> {
@@ -255,13 +336,20 @@ export class PlaywrightScenarioServiceWorkers {
     const session = this.#session;
     if (session === undefined) return;
     if (!this.page.isClosed()) {
+      const mainFrame = this.page.mainFrame();
       // This owner exists even with empty storage seeds. Stopped navigation is
       // independent of storage and restoration never waits for a load event.
-      if (stopLoading && !this.#detached && session.sessionId !== undefined)
-        await this.send(session.sessionId, "Page.stopLoading");
+      if (stopLoading && !this.#loadingStopped) {
+        if (!this.#detached && session.sessionId !== undefined) {
+          await this.send(session.sessionId, "Page.stopLoading");
+          this.#loadingStopped = true;
+        } else {
+          await this.stopMainFrame(mainFrame);
+        }
+      }
       await Promise.all(
-        [...this.#targets.values()].map(({ ready }) =>
-          ready.catch(() => undefined),
+        [...this.#targets.values()].map((target) =>
+          this.settleTargetForRestore(target),
         ),
       );
       for (const target of this.#targets.values()) {
@@ -280,19 +368,20 @@ export class PlaywrightScenarioServiceWorkers {
       }
       // Future documents cannot install our wrapper after the removals above.
       // A realm lost to navigation is not assumed restored: retain and retry.
+      if (!this.#detached && session.sessionId !== undefined) {
+        await this.restoreMainFrame(session.sessionId);
+      } else {
+        await this.restorePlaywrightFrame(mainFrame);
+      }
       for (const frame of this.page.frames()) {
+        // The owned CDP session evaluates the selected main realm directly,
+        // without Playwright waiting on an in-flight document transition.
+        if (frame === mainFrame) continue;
         if (frame.isDetached()) continue;
-        try {
-          await frame.evaluate(`(() => {
-            const restore = globalThis[${this.restoreKey}];
-            if (typeof restore === "function" && restore(${this.secret}) === true) return;
-            const register = globalThis.ServiceWorkerContainer?.prototype.register;
-            if (typeof register === "function" && Object.hasOwn(register, Symbol.for(${this.marker})))
-              throw new Error("service-worker policy restoration could not be confirmed");
-          })()`);
-        } catch (cause: unknown) {
-          if (!frame.isDetached()) throw cause;
-        }
+        // An empty URL has no committed document realm to restore. Future
+        // documents cannot install the wrapper after the script removals.
+        if (frame.url().length === 0) continue;
+        await this.restorePlaywrightFrame(frame);
       }
     }
     // Detaching the exact owned session also releases its iframe auto-attach.
