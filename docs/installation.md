@@ -894,6 +894,19 @@ the launcher fails before preparing its home/cache/config/temp directories or
 starting Java. The client may already have allocated private runtime/endpoint
 resources and a target snapshot; existing startup-failure cleanup still applies.
 Restore the selected release's properties instead of renaming its installation folder.
+Inspection follows selected properties symlinks, admits only a regular file,
+and caps the metadata payload at 1 MiB under REA's resource budget. A final
+one-byte probe checks for growth. This is not a Java
+Properties format limit. Reads preserve Ghidra's Latin-1 byte mapping and check
+the descriptor and selected name for changes. Permission failures and resource
+refusals remain explicit; failed descriptor cleanup must succeed before that
+owner admits another inspection.
+Native decompiler compatibility inspection follows the selected executable symlink
+and reads at most the first 4096 bytes through the same descriptor owner. It
+checks the full extent and selected name for changes without reading the remainder.
+An unreadable or unrecognized header leaves compatibility unknown; diagnostics
+retain read failures. Cancellation and incomplete cleanup propagate as failures,
+and failed cleanup retains the exact descriptor for retry.
 This coordinate selects only REA's session-private configuration directory, not
 the installation or an existing user configuration directory.
 
@@ -912,6 +925,10 @@ ownership inspection, so retaining those wrappers would prevent verified
 process-group cancellation during startup.
 If ownership remains unverifiable, it reports the reason and retains the process
 supervisor and private runtime instead of removing files beneath a live provider.
+Startup preserves an observed launch failure when cancellation arrives during
+rollback. Producer cancellation retains the caller's exact reason separately
+from LaunchSupport warnings and cleanup failures. Failed rollback keeps the
+original process owner for a later cleanup retry.
 The experimental Windows transport uses authenticated IPv4 loopback with a
 private native-owned bearer descriptor and Job Object process ownership.
 
