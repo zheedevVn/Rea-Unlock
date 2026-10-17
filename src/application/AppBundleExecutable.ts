@@ -219,11 +219,24 @@ const resolveLayoutExecutable = async (
     );
   const programs = join(bundle, ...layout.programs);
   const executable = join(programs, name);
+  let canonicalBundle: string;
   try {
-    const [canonicalPrograms, canonicalExecutable] = await Promise.all([
-      fileSystem.realpath(programs),
-      fileSystem.realpath(executable),
-    ]);
+    canonicalBundle = await fileSystem.realpath(bundle);
+  } catch (cause: unknown) {
+    return err(
+      new BinaryTargetError(bundle, errorReason(cause, bundle), { cause }),
+    );
+  }
+  try {
+    const canonicalPrograms = await fileSystem.realpath(programs);
+    if (!isPathWithinRoot(canonicalBundle, canonicalPrograms))
+      return err(
+        new BinaryTargetError(
+          bundle,
+          `app program directory leaves ${layout.programsLabel}`,
+        ),
+      );
+    const canonicalExecutable = await fileSystem.realpath(executable);
     if (!isPathWithinRoot(canonicalPrograms, canonicalExecutable))
       return err(
         new BinaryTargetError(

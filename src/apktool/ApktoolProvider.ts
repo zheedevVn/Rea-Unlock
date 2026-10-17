@@ -1,3 +1,4 @@
+import { regularFileCancellation } from "../filesystem/OwnedRegularFile.js";
 import { createHash, randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import {
@@ -846,6 +847,15 @@ export class ApktoolProvider {
       );
     } catch (cause) {
       await removeWorkspace();
+      const cancellation = regularFileCancellation(cause);
+      if (cancellation !== undefined)
+        return err(
+          failureWithCleanup(
+            new AnalysisCancelledError(operation, {
+              cause: cancellation.reason,
+            }),
+          ),
+        );
       return err(
         failureWithCleanup(
           signal?.aborted === true
