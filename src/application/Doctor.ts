@@ -1,6 +1,7 @@
 import { constants } from "node:fs";
 import { access, readdir, stat } from "node:fs/promises";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
+import type { FileCloseResourceOwner } from "./AnalysisProvider.js";
 import { homeDirectoryFromEnvironment } from "../config/homeDirectory.js";
 import { join } from "node:path";
 
@@ -433,9 +434,9 @@ export interface SystemDoctorHostOptions {
   readonly architecture?: NodeJS.Architecture;
   readonly environment?: NodeJS.ProcessEnv;
   readonly execFileOutput?: typeof execFileOutput;
-  readonly providerInspections?: () => Promise<
-    readonly DoctorProviderInspection[]
-  >;
+  readonly providerInspections?: (
+    fileCloseResources: FileCloseResourceOwner,
+  ) => Promise<readonly DoctorProviderInspection[]>;
   readonly providerRegistrationEnvironment?: () => Readonly<
     Record<string, string>
   >;
@@ -454,6 +455,15 @@ export const systemDoctorHost = (
   const hostExecFileOutput = options.execFileOutput ?? execFileOutput;
   const homeDirectory = homeDirectoryFromEnvironment(environment, platform);
   const commandEnvironment = { env: environment };
+  const fileCloseResources: FileCloseResourceOwner = {
+    retain: (owner, resource) =>
+      resources.retain({
+        kind: "lease",
+        resource,
+        lease: { release: () => owner.close() },
+      }),
+    run: (operation) => resources.run(operation),
+  };
   return {
     platform,
     architecture,
@@ -549,7 +559,10 @@ export const systemDoctorHost = (
     manualHopperPaths: () => manualHopperPaths(homeDirectory),
     ...(options.providerInspections === undefined
       ? {}
-      : { providerInspections: options.providerInspections }),
+      : {
+          providerInspections: () =>
+            options.providerInspections!(fileCloseResources),
+        }),
     ...(options.providerRegistrationEnvironment === undefined
       ? {}
       : {

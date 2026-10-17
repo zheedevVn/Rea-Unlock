@@ -242,7 +242,7 @@ export class DshCordisDocument {
     const environment = { ...literals, ...overrides };
     const validated =
       validation === "fragment"
-        ? parseEnvironmentValues(environment)
+        ? parseEnvironmentValues(environment, unresolvedSettings)
         : parseEnvironment(environment, unresolvedSettings);
     return validated.ok ? ok(environment) : validated;
   }

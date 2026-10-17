@@ -4,8 +4,9 @@ import { join } from "node:path";
 
 import { execFileBoundedOutput } from "../process/ExecFileBoundedOutput.js";
 import { execFileOutput } from "../process/ExecFileOutput.js";
+import { ArtifactReaderFailure } from "../artifacts/ArtifactReader.js";
 import { downloadHopperPackage } from "./HopperDownload.js";
-import { hashStableFile } from "../filesystem/StableFileHash.js";
+import { RegularFileCleanupFailure } from "../filesystem/OwnedRegularFile.js";
 import { err, type Result } from "../domain/result.js";
 import {
   HOPPER_RELEASES_URL,
@@ -220,7 +221,8 @@ export type LinuxHopperLauncherStatus =
   | "ready"
   | "missing"
   | "runtime_dependencies"
-  | "unsupported_hopper_build";
+  | "unsupported_hopper_build"
+  | "cleanup_failed";
 
 /** Parse an os-release document without executing its shell syntax. */
 export const parseLinuxDistribution = (text: string): LinuxDistribution => {
@@ -432,10 +434,18 @@ export const systemLinuxHopperInstallHost = (
           !linuxSharedLibrariesAvailable(`${linked.stdout}\n${linked.stderr}`)
         )
           return "runtime_dependencies";
-        return (await hashStableFile(path)).sha256 === expectedSha256
+        return (await publisher.hashLauncher(path)) === expectedSha256
           ? "ready"
           : "unsupported_hopper_build";
       } catch (cause: unknown) {
+        if (
+          cause instanceof RegularFileCleanupFailure ||
+          (cause instanceof HopperReleaseError &&
+            cause.reason === "cleanup_failed") ||
+          (cause instanceof ArtifactReaderFailure &&
+            cause.cleanup !== undefined)
+        )
+          return "cleanup_failed";
         // best-effort cleanup: optional launcher probing; unreadable means missing.
         void cause;
         return "missing";

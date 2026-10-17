@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
-import { describe, expect, it } from "vitest";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   formatCommandForDisplay,
@@ -9,6 +11,7 @@ import {
   parseLinuxDistribution,
   supportsReaHost,
   LinuxHopperTemporaryCleanupOwner,
+  systemLinuxHopperInstallHost,
   type LinuxDistribution,
   type LinuxHopperDownload,
   type LinuxHopperInstallHost,
@@ -23,6 +26,9 @@ import {
   type LinuxHopperRelease,
 } from "./HopperReleaseFeed.js";
 import type { VerifiedLinuxHopperPackage } from "./LinuxHopperPublisher.js";
+import { OwnedFileHandle } from "../filesystem/OwnedFileHandle.js";
+import * as nativeCommands from "../process/ExecFileOutput.js";
+import { createTestTempDirectory } from "../../tests/fixtures/temporaryDirectory.js";
 
 describe("Linux package-manager command display", () => {
   it("preserves argument boundaries for paths with spaces and quotes", () => {
@@ -331,6 +337,37 @@ describe("Linux Hopper installation failure classification", () => {
 });
 
 describe("Linux Hopper cleanup and failure details", () => {
+  it("preserves a publisher descriptor cleanup failure during launcher status inspection", async () => {
+    const directory = await createTestTempDirectory("rea-hopper-status-");
+    const launcher = join(directory, "Hopper");
+    await writeFile(launcher, "fixture launcher");
+    const host = systemLinuxHopperInstallHost({
+      ...process.env,
+      HOME: directory,
+      XDG_CACHE_HOME: join(directory, "cache"),
+    });
+    const command = vi
+      .spyOn(nativeCommands, "execFileOutput")
+      .mockResolvedValue({
+        stdout: "libc.so.6 => /lib/libc.so.6",
+        stderr: "",
+        stdoutBytes: Buffer.byteLength("libc.so.6 => /lib/libc.so.6"),
+        stderrBytes: 0,
+      });
+    const close = vi
+      .spyOn(OwnedFileHandle.prototype, "close")
+      .mockRejectedValue(new Error("Fixture descriptor close unavailable"));
+    try {
+      await expect(host.launcherStatus(launcher, "0".repeat(64))).resolves.toBe(
+        "cleanup_failed",
+      );
+    } finally {
+      close.mockRestore();
+      command.mockRestore();
+      await host.close?.();
+    }
+  });
+
   it("preserves the failing package-manager command and its output", async () => {
     const host = new RecordingLinuxHost();
     host.installSucceeds = false;
