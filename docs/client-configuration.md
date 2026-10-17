@@ -52,10 +52,16 @@ in the file the installed app reads:
   `%APPDATA%` file it still reads; with neither file, setup creates the
   private copy.
 - If `%LOCALAPPDATA%\Packages` holds a `Claude_<publisher ID>` package from
-  another publisher, or cannot be read, REA cannot establish which file Claude
+  another publisher, an `AnthropicPBC.Claude_<publisher ID>` package, or cannot
+  be read, REA cannot establish which file Claude
   Desktop reads. Setup, doctor and uninstall report that instead of falling
   back to `%APPDATA%`. Doctor then reports `claude_desktop` as invalid, and
   uninstall stops before removing anything for any client.
+  The reported `AnthropicPBC.Claude_fnn82j28hfe8t` build can use the `Claude-3p`
+  deployment directory. REA recognizes that package as an unresolved location;
+  it does not assume that it reads the legacy AppData file or automatically
+  register in `Claude-3p`. See [#4432](https://github.com/zheedevVn/Rea-Unlock/issues/4432)
+  for the reported build and manual registration evidence.
 
 Quit Claude Desktop fully before approving setup; closing its window is not
 enough. A running Claude Desktop can rewrite its configuration from memory and
@@ -151,7 +157,10 @@ An explicit `REA_JEB_MCP_TIMEOUT_MS` request budget also contributes to that
 maximum. For `ida` or `auto` selection, a valid IDA registration's parsed
 `timeoutMs` also contributes to that maximum; its default is 300000 ms.
 Setup forwards these explicitly selected REA deadlines and the input schema
-profile into the registration; unrelated process values are omitted.
+profile into the registration; unrelated process values are omitted. An
+explicit `REA_JADX_OPERATION_TIMEOUT_MS` is forwarded with the JADX
+registration but does not contribute to the derived tool timeout; raise
+`toolTimeoutMs` to cover a longer selected JADX deadline.
 This headroom is a practical default, not a guarantee for every analysis
 duration. Setup preserves positive timeout values already in the `rea` entry.
 You can edit `startupTimeoutMs` and `toolTimeoutMs` there; doctor keeps positive
@@ -245,6 +254,9 @@ values in the REA entry, and doctor reports a non-blocking advisory when a tool
 timeout is shorter than the known provider allowance. An explicitly selected
 JEB request budget also contributes to the allowance. A configured IDA
 registration's parsed `timeoutMs` contributes for `ida` or `auto` selection.
+An explicit `REA_JADX_OPERATION_TIMEOUT_MS` is forwarded with the JADX
+registration but does not contribute; raise `tool_timeout_sec` to cover a
+longer selected JADX deadline.
 These values are client-side deadlines, so increase them in `~/.codex/config.toml` if a
 workload needs more time. Devin honors `XDG_CONFIG_HOME` for its
 `devin/mcp_config.json` on non-Windows systems.

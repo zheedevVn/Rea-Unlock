@@ -66,14 +66,25 @@ Electron `file://` pages use a separate provider and target boundary; see [elect
 
 ## Provider authorities
 
-CDP page capture, V8 Inspector observation, and Playwright scenarios stay
-separate providers because their authorities differ: CDP and V8 attach to an
-already-running target and never launch, drive, evaluate, or mutate it, while
-Playwright providers own and drive the runtime (launch browsers, run actions,
-capture step snapshots). Merging them would mix attach-only and owned-process
-lifecycles in one contract. What they share instead is one exclusion
-vocabulary (`BrowserExclusionReason`): every denial reason in every stack maps
-onto it, even where a wire schema keeps a narrower historical bucket.
+CDP page capture and V8 Inspector observation attach to an already-running
+target without launching it, driving actions, or evaluating target code.
+Playwright scenarios drive actions and capture step snapshots in either a
+provider-owned browser or a caller-selected external browser. Separate providers
+preserve these authority and lifecycle differences. They share one exclusion
+vocabulary (`BrowserExclusionReason`): every denial reason maps onto it, even
+where a wire schema keeps a narrower historical bucket.
+
+CDP attachment is not a guarantee that the browser preserves all state.
+Chromium can clear another client's `navigator.platform` emulation when REA's
+page session disconnects, even if that session sent no emulation commands.
+This affects page inspection, bundle capture, session observation, screenshots,
+WebMCP discovery, and Electron page inspection; target listing alone does not
+attach a page session. REA cannot read the other client's complete
+user-agent/client-hint configuration and does not replay guessed settings.
+Use a disposable browser when preserving externally configured emulation is
+required, or have the owning client reapply its complete configuration afterward.
+See [the reproduction and Chromium ownership limitation](https://github.com/zheedevVn/Rea-Unlock/issues/4089).
+
 Existing static application Evidence and passive web/Electron captures can be
 combined later through
 [JavaScript static/runtime reconciliation](javascript-runtime-reconciliation.md).
@@ -309,7 +320,7 @@ REA retains local observation data and removes only URL userinfo credentials, ex
   an omitted type leaves equality unknown rather than proving a modification.
 - Console observations with a stack source retain call type, argument types, timestamp, and source location. When console text capture is selected, already-delivered primitive values are retained verbatim; objects, getters, and remote properties are never expanded.
 - WebSocket observations retain direction, opcode, and payload byte length. When shape capture is selected, text frames are classified as text or complete value-free JSON shape; binary bytes, hashes, prefixes, and raw frames are never retained.
-- Storage observations always redact values. Key names, IndexedDB names, and cache names require `include_storage_keys`; stable content fingerprints require the additional `include_storage_fingerprints` selection. Cookie fingerprints cover cookies applicable to the current main-frame URL, including its path, rather than every cookie path on that origin. Other storage remains scoped to the origin. Cache bodies above 64 KiB and partial IndexedDB remote objects make fingerprint coverage incomplete, so identical observations remain `unknown`.
+- Storage observations always redact values. Key names, IndexedDB names, and cache names require `include_storage_keys`; stable content fingerprints require the additional `include_storage_fingerprints` selection. Cookie fingerprints cover cookies applicable to the current main-frame URL, including its path, rather than every cookie path on that origin. Other storage remains scoped to the origin. Cache fingerprints hash all decoded response bytes, including bodies above 64 KiB, subject to the [64 MiB per-message CDP limit](#request-boundary). Missing or undecodable cache bodies and partial IndexedDB remote objects make fingerprint coverage incomplete, so identical observations remain `unknown`.
 - Unavailable or malformed storage inventories mark `storage_keys` unavailable, even without fingerprints. Comparisons suppress inferred key additions and removals while preserving modifications proven by complete fingerprints on both sides. Previously exported captures are not retroactively corrected; recapture them to obtain these coverage markers.
 - Script metadata is included only when CDP supplies a URL on an allowed origin. Stable keys exclude transient CDP script IDs, and exact transient raw URLs are used only during script/resource reconciliation. URL-less scripts are excluded because their origin cannot be established. When CDP supplies an execution-context association, the accepted script retains its authorized frame ID for later attribution. Script metadata admission bounds retained identity and source-map strings to 8 MiB and 50,000 records. When a source-map URL cannot fit, the script identity remains and source-map coverage reports `resource_budget_exhausted`; rejected script observations are counted without retaining their IDs. Source content is omitted unless explicitly requested and is returned inline as a self-verifying artifact with its SHA-256 digest.
 
@@ -343,8 +354,10 @@ an invalid supplied size remains unknown with incomplete resource coverage while
 the resource's other facts are retained. Zero and nonnegative fractional sizes
 are preserved.
 
-CDP discovery, connection, and commands wait for the peer or caller cancellation;
-a stalled peer can leave an operation waiting. WebSocket messages remain subject
+CDP discovery has a 10-second deadline. Each WebSocket handshake and command
+response has its own 20-second deadline, separate from the caller-selected
+observation window. A stalled handshake or command reports `provider_timeout`;
+caller cancellation still reports cancellation. WebSocket messages remain subject
 to the [64 MiB limit](#request-boundary). REA does not impose a message-count or
 pending-command quota. On cancellation, it closes only its own WebSocket,
 waiting up to one second before terminating it. Malformed unsolicited events
