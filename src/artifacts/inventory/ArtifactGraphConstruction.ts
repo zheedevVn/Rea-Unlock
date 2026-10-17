@@ -295,7 +295,9 @@ export const createArtifactEdges = (
   const edges: ArtifactEdge[] = [];
   const limitations: string[] = [];
   for (const occurrence of occurrences) {
-    const isSourceMap = occurrence.logical_path.toLowerCase().endsWith(".map");
+    // Use the occurrence's own classification: a directory named `x.map` is
+    // a container, not a source map of its sibling.
+    const isSourceMap = occurrence.artifact_kind === "source-map";
     const sourcePath = isSourceMap
       ? occurrence.logical_path.slice(0, -".map".length)
       : undefined;
@@ -337,8 +339,10 @@ export const createArtifactEdges = (
       relation:
         occurrence.entry_kind === "slice"
           ? ("slice-of" as const)
-          : isSourceMap && mappedSource === undefined
-            ? ("contains" as const)
+          : isSourceMap
+            ? mappedSource === undefined
+              ? ("contains" as const)
+              : ("maps-source" as const)
             : relationFor(occurrence.logical_path),
       occurrence_id: occurrence.occurrence_id,
     };
@@ -587,11 +591,8 @@ const classifyFatArtifact = (
   return identity.state === "mach-o" ? "mach-o-universal" : "unknown";
 };
 
-const relationFor = (path: string): ArtifactEdge["relation"] => {
-  const lower = path.toLowerCase();
-  if (lower.endsWith(".map")) return "maps-source";
-  if (lower.includes(".framework/")) return "embeds";
-  return "contains";
-};
+/** Relation of a non-source-map occurrence to its parent. */
+const relationFor = (path: string): ArtifactEdge["relation"] =>
+  path.toLowerCase().includes(".framework/") ? "embeds" : "contains";
 
 const depth = (path: string): number => path.split("/").length;

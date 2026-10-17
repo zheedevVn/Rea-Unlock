@@ -1,7 +1,8 @@
+import { regularFileCancellation } from "../../filesystem/OwnedRegularFile.js";
 import { lstat } from "node:fs/promises";
 import type { Stats } from "node:fs";
 import type { FileHandle } from "node:fs/promises";
-import { readFileHandleChunks } from "../../filesystem/readFileHandleChunks.js";
+import { readArtifactFileChunks } from "../readArtifactFileChunks.js";
 import { OwnedFileHandle } from "../../filesystem/OwnedFileHandle.js";
 
 import { ArtifactReaderFailure } from "../ArtifactReader.js";
@@ -31,14 +32,21 @@ export const openRootArtifact = async (
   } catch (cause: unknown) {
     const primary =
       cause instanceof RegularFileAdmissionFailure ? cause.cause : cause;
+    const cancellation = regularFileCancellation(primary);
     const failure =
-      primary instanceof NonRegularFileReadError
+      cancellation !== undefined
         ? new ArtifactReaderFailure(
-            "format",
-            `Artifact root is not a regular file: ${path}`,
-            { cause: primary },
+            "cancelled",
+            "Artifact admission cancelled",
+            { cause: cancellation.reason },
           )
-        : primary;
+        : primary instanceof NonRegularFileReadError
+          ? new ArtifactReaderFailure(
+              "format",
+              `Artifact root is not a regular file: ${path}`,
+              { cause: primary },
+            )
+          : primary;
     if (cause instanceof RegularFileAdmissionFailure) {
       const resource = `root artifact descriptor for ${path}`;
       const cleanup = await resourceScope.release({
@@ -101,7 +109,7 @@ export const hashStableRootArtifactHandle = async (
   const digest = await hashReadable(
     // Read at most the admitted extent plus one byte to detect growth without
     // following an actively appended file indefinitely.
-    readFileHandleChunks(handle, { start: 0, end: initial.size }),
+    readArtifactFileChunks(handle, { start: 0, end: initial.size, signal }),
     signal,
   );
   abortIfNeeded(signal);
@@ -115,5 +123,6 @@ export const hashStableRootArtifactHandle = async (
       "integrity",
       `Root artifact changed during inventory: ${path}`,
     );
+  abortIfNeeded(signal);
   return digest;
 };

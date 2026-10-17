@@ -12,6 +12,10 @@ const isRecord = (value: unknown): value is UnknownRecord =>
 export const recordValue = (value: unknown): UnknownRecord | undefined =>
   isRecord(value) ? value : undefined;
 
+/** Preserve an omitted producer inventory as unknown rather than empty. */
+export const admitRecords = (value: unknown): readonly unknown[] | undefined =>
+  Array.isArray(value) ? value : undefined;
+
 export const recordsValue = (value: unknown): readonly UnknownRecord[] =>
   Array.isArray(value)
     ? value.flatMap((item) => {

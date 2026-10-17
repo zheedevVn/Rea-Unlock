@@ -42,13 +42,18 @@ import {
   type WebScreenshot,
   type WebScreenshotDiff,
 } from "../domain/webScreenshot.js";
-import { AnalysisError } from "../domain/analysisErrorBase.js";
+import {
+  AnalysisError,
+  type AnalysisPartialObservation,
+} from "../domain/analysisErrorBase.js";
+import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.js";
 import {
   AnalysisCancelledError,
   AnalysisInputError,
 } from "../domain/analysisErrorCore.js";
 import { BrowserObservationError } from "../domain/browserObservationError.js";
 import { ProviderAdapterError } from "../domain/providerAdapterError.js";
+import { ProviderCleanupError } from "../domain/providerCleanupError.js";
 import type { BrowserObservationOperation } from "../domain/browserObservationErrors.js";
 import { err, ok, type Result } from "../domain/result.js";
 import {
@@ -73,6 +78,10 @@ import { comparePngScreenshots } from "./PngVisualDiff.js";
 
 import { CDP_BROWSER_PROVIDER_IDENTITY } from "./providerIdentities.js";
 import { compareUnicodeCodePoints } from "../domain/unicodeCodePointOrder.js";
+import {
+  CdpTargetSessionOwner,
+  bindCdpTransportCleanup,
+} from "./CdpTargetSessionOwner.js";
 const CLEANUP_DOMAINS = [
   "Network",
   "Debugger",
@@ -83,6 +92,12 @@ const CLEANUP_DOMAINS = [
 
 /** Passive browser observation through a selected user-owned CDP endpoint. */
 export class CdpBrowserProvider implements BrowserObservationPort {
+  readonly #owner = new CdpTargetSessionOwner();
+
+  close(): Promise<void> {
+    return this.#owner.close();
+  }
+
   identity(): ProviderIdentity {
     return CDP_BROWSER_PROVIDER_IDENTITY;
   }
@@ -96,8 +111,11 @@ export class CdpBrowserProvider implements BrowserObservationPort {
         input.cdp_endpoint,
         "list_browser_targets",
         options.signal,
+        undefined,
+        this.#owner,
       );
-      await endpoint.connection?.close();
+      if (endpoint.connection !== undefined)
+        await this.#owner.finish(endpoint.connection);
       const { discovery } = endpoint;
       const selected = selectTargets(
         discovery,
@@ -148,12 +166,9 @@ export class CdpBrowserProvider implements BrowserObservationPort {
     input: AnalyzeWebBundleInput,
     options: ExecutionOptions = {},
   ): Promise<Result<WebBundleAnalysis, AnalysisError>> {
+    let captured: CapturedPage | undefined;
     try {
-      const captured = await this.#capture(
-        input,
-        options,
-        "analyze_web_bundle",
-      );
+      captured = await this.#capture(input, options, "analyze_web_bundle");
       const sourceMaps = input.fetch_source_maps
         ? await fetchWebSourceMaps(
             captured.sourceMapRequests,
@@ -176,7 +191,14 @@ export class CdpBrowserProvider implements BrowserObservationPort {
       // fetchWebSourceMaps rethrows the exact abort reason. Preserve cancellation
       // even when a caller supplied an AnalysisError as that reason.
       if (options.signal?.aborted === true && cause === options.signal.reason) {
-        return err(new AnalysisCancelledError("analyze_web_bundle", { cause }));
+        return err(
+          new AnalysisCancelledError("analyze_web_bundle", {
+            cause,
+            ...(captured === undefined
+              ? {}
+              : { partialObservation: captured.inspection }),
+          }),
+        );
       }
       return err(providerError(cause, "analyze_web_bundle", options.signal));
     }
@@ -194,6 +216,7 @@ export class CdpBrowserProvider implements BrowserObservationPort {
             "observe_web_session",
             options,
             observeCdpSession,
+            this.#owner,
           ),
         ),
       );
@@ -214,6 +237,7 @@ export class CdpBrowserProvider implements BrowserObservationPort {
             "discover_webmcp_tools",
             options,
             discoverWebMcp,
+            this.#owner,
           ),
         ),
       );
@@ -246,6 +270,7 @@ export class CdpBrowserProvider implements BrowserObservationPort {
             "capture_web_screenshot",
             options,
             captureCdpScreenshot,
+            this.#owner,
           ),
         ),
       );
@@ -282,6 +307,8 @@ export class CdpBrowserProvider implements BrowserObservationPort {
       operation,
       options,
       async (session) => await capturePage({ ...session, operation }),
+      this.#owner,
+      (captured) => captured.inspection,
     );
   }
 }
@@ -309,14 +336,19 @@ const withTargetSession = async <
   operation: BrowserObservationOperation,
   options: ExecutionOptions,
   work: (session: CdpTargetOperationSession<Input>) => Promise<Output>,
+  owner: CdpTargetSessionOwner,
+  partialObservation?: (output: Output) => AnalysisPartialObservation,
 ): Promise<Output> => {
   const endpoint = await openCdpEndpoint(
     input.cdp_endpoint,
     operation,
     options.signal,
+    undefined,
+    owner,
   );
   let targetSession: CdpTargetSession | undefined;
-  let output: Output;
+  let outcome: Result<Output, unknown>;
+  let cleanupFailure: AnalysisError | undefined;
   try {
     const target = authorizeTarget(endpoint.discovery, input);
     const scopedInput = scopeToTargetOrigin(input, target);
@@ -327,40 +359,103 @@ const withTargetSession = async <
             target,
             operation,
             options.signal,
+            undefined,
+            owner,
           )
         : await attachCdpTargetSession(
             endpoint.connection,
             target,
             operation,
             options.signal,
+            owner,
           );
-    output = await work({
-      connection: targetSession.connection,
-      sessionId: targetSession.sessionId,
-      discovery: endpoint.discovery,
-      target,
-      input: scopedInput,
-      ...(options.signal === undefined ? {} : { signal: options.signal }),
-      ...(options.progress === undefined ? {} : { progress: options.progress }),
-    });
-  } finally {
+    outcome = ok(
+      await work({
+        connection: targetSession.connection,
+        sessionId: targetSession.sessionId,
+        discovery: endpoint.discovery,
+        target,
+        input: scopedInput,
+        ...(options.signal === undefined ? {} : { signal: options.signal }),
+        ...(options.progress === undefined
+          ? {}
+          : { progress: options.progress }),
+      }),
+    );
+  } catch (cause: unknown) {
+    outcome = err(cause);
+  }
+  try {
     if (targetSession !== undefined)
       await closeCdpTargetSession(
         targetSession,
         CLEANUP_DOMAINS,
         options.signal,
+        owner,
       );
-    // An unadopted browser socket is closed here; closing is idempotent.
-    await endpoint.connection?.close();
+    if (
+      endpoint.connection !== undefined &&
+      endpoint.connection !== targetSession?.connection
+    )
+      await owner.finish(endpoint.connection);
+  } catch (cause: unknown) {
+    cleanupFailure =
+      cause instanceof AnalysisError
+        ? cause
+        : new ProviderCleanupError(
+            "rea-cdp-browser",
+            [input.target_id],
+            { reason: cause instanceof Error ? cause.message : String(cause) },
+            { operation, cause },
+          );
   }
 
-  // Cancellation during teardown must not publish the completed observation.
-  // Errors from work or cleanup still propagate through the try/finally above.
-  if (options.signal?.aborted === true)
-    throw new AnalysisCancelledError(operation, {
-      cause: options.signal.reason,
-    });
-  return output;
+  if (outcome.ok && options.signal?.aborted === true)
+    outcome = err(
+      partialObservation === undefined
+        ? new AnalysisCancelledError(operation, {
+            cause: options.signal.reason,
+          })
+        : new AnalysisCancelledError(operation, {
+            cause: options.signal.reason,
+            partialObservation: partialObservation(outcome.value),
+          }),
+    );
+
+  if (cleanupFailure !== undefined) {
+    if (!outcome.ok && outcome.error instanceof AnalysisError)
+      throw bindCdpTransportCleanup(
+        cleanupFailure,
+        analysisErrorWithCleanupFailure(
+          outcome.error,
+          cleanupFailure,
+          operation,
+        ),
+      );
+    if (!outcome.ok)
+      throw new AggregateError(
+        [outcome.error, cleanupFailure],
+        `CDP operation ${operation} failed and cleanup remains incomplete.`,
+        { cause: outcome.error },
+      );
+    throw bindCdpTransportCleanup(
+      cleanupFailure,
+      new ProviderCleanupError(
+        "rea-cdp-browser",
+        cleanupFailure.cleanupResources,
+        { cleanup_error: cleanupFailure.message },
+        {
+          operation,
+          cause: cleanupFailure,
+          ...(partialObservation === undefined
+            ? {}
+            : { partialObservation: partialObservation(outcome.value) }),
+        },
+      ),
+    );
+  }
+  if (!outcome.ok) throw outcome.error;
+  return outcome.value;
 };
 
 const selectTargets = (
