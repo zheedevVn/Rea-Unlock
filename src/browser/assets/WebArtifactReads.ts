@@ -68,7 +68,9 @@ export const webArtifactReadError = (
   if (cause instanceof ArtifactReaderFailure && cause.cleanup !== undefined) {
     const primary =
       signal?.aborted === true
-        ? new AnalysisCancelledError(context.operation, { cause })
+        ? new AnalysisCancelledError(context.operation, {
+            cause: signal.reason,
+          })
         : new ArtifactOperationError(
             context.operation,
             cause.reason,
@@ -88,7 +90,9 @@ export const webArtifactReadError = (
     );
   }
   if (signal?.aborted === true)
-    return new AnalysisCancelledError(context.operation, { cause });
+    return new AnalysisCancelledError(context.operation, {
+      cause: signal.reason,
+    });
   const selection = context.callerSelected
     ? selectedFileError(cause, context)
     : undefined;

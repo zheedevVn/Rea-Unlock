@@ -1,10 +1,17 @@
 import { z } from "zod";
 import type { ExecutionOptions } from "../../application/AnalysisProvider.js";
 import type { WebRuntimePort } from "../../application/WebRuntimePort.js";
-import { AnalysisError } from "../../domain/analysisErrorBase.js";
-import { AnalysisOutputError } from "../../domain/analysisErrorCore.js";
+import {
+  AnalysisError,
+  type AnalysisPartialObservation,
+} from "../../domain/analysisErrorBase.js";
+import {
+  AnalysisCancelledError,
+  AnalysisOutputError,
+} from "../../domain/analysisErrorCore.js";
 import type { BrowserObservationOperation } from "../../domain/browserObservationErrors.js";
 import { ProviderAdapterError } from "../../domain/providerAdapterError.js";
+import { analysisErrorWithCleanupFailure } from "../../domain/analysisErrorCleanup.js";
 import { err, ok, type Result } from "../../domain/result.js";
 import {
   webExecutionSchema,
@@ -17,6 +24,7 @@ import {
   type WebEventListeners,
 } from "../../domain/webEventListeners.js";
 import { CDP_BROWSER_PROVIDER_IDENTITY } from "../providerIdentities.js";
+import { CdpTargetSessionOwner } from "../CdpTargetSessionOwner.js";
 import { CdpRuntimeSession } from "./CdpRuntimeSession.js";
 import { CdpRuntimeSources } from "./CdpRuntimeSources.js";
 import { captureWebExecution } from "./CdpExecutionCapture.js";
@@ -27,6 +35,12 @@ import {
 
 /** Native CDP integration with distinct inspection/instrumentation authority and confirmed cleanup. */
 export class CdpWebRuntimeProvider implements WebRuntimePort {
+  readonly #owner = new CdpTargetSessionOwner();
+
+  close(): Promise<void> {
+    return this.#owner.close();
+  }
+
   /** Identify this adapter independently of the captured browser version. */
   identity() {
     return CDP_BROWSER_PROVIDER_IDENTITY;
@@ -61,7 +75,7 @@ export class CdpWebRuntimeProvider implements WebRuntimePort {
     );
   }
 
-  private async run<T>(
+  private async run<T extends AnalysisPartialObservation>(
     input: ObserveWebExecutionInput | InspectWebEventListenersInput,
     operation: BrowserObservationOperation,
     options: ExecutionOptions,
@@ -72,7 +86,12 @@ export class CdpWebRuntimeProvider implements WebRuntimePort {
     let session: CdpRuntimeSession | undefined;
     let result: Result<T, AnalysisError>;
     try {
-      session = await CdpRuntimeSession.open(input, operation, options);
+      session = await CdpRuntimeSession.open(
+        input,
+        operation,
+        options,
+        this.#owner,
+      );
       result = ok(schema.parse(await capture(new CdpRuntimeSources(session))));
     } catch (cause: unknown) {
       result = err(
@@ -90,8 +109,29 @@ export class CdpWebRuntimeProvider implements WebRuntimePort {
         result.ok ? undefined : result.error,
         group,
       );
-      if (failure !== undefined) return err(failure);
+      if (failure !== undefined)
+        return err(
+          result.ok
+            ? options.signal?.aborted === true
+              ? analysisErrorWithCleanupFailure(
+                  new AnalysisCancelledError(operation, {
+                    cause: options.signal.reason,
+                    partialObservation: result.value,
+                  }),
+                  failure,
+                  operation,
+                )
+              : failure.retainPartialObservation(result.value)
+            : analysisErrorWithCleanupFailure(result.error, failure, operation),
+        );
     }
+    if (result.ok && options.signal?.aborted === true)
+      return err(
+        new AnalysisCancelledError(operation, {
+          cause: options.signal.reason,
+          partialObservation: result.value,
+        }),
+      );
     return result;
   }
 }

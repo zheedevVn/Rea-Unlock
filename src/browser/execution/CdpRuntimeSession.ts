@@ -4,6 +4,8 @@ import { AnalysisTimeoutError } from "../../domain/analysisErrorCore.js";
 import { BrowserObservationError } from "../../domain/browserObservationError.js";
 import type { BrowserObservationOperation } from "../../domain/browserObservationErrors.js";
 import { ProviderCleanupError } from "../../domain/providerCleanupError.js";
+import { analysisErrorWithCleanupFailure } from "../../domain/analysisErrorCleanup.js";
+import { CdpTargetSessionOwner } from "../CdpTargetSessionOwner.js";
 import { sanitizeBrowserUrl } from "../../domain/browserObservation.js";
 import {
   WEB_RUNTIME_LIMITS,
@@ -41,6 +43,7 @@ export class CdpRuntimeSession {
     readonly allowedOrigins: ReadonlySet<string>,
     readonly operation: BrowserObservationOperation,
     readonly options: ExecutionOptions,
+    readonly owner: CdpTargetSessionOwner,
   ) {}
 
   /** Acquire a validated target; failed setup releases its owned socket. */
@@ -48,6 +51,7 @@ export class CdpRuntimeSession {
     input: Scope,
     operation: BrowserObservationOperation,
     options: ExecutionOptions,
+    owner: CdpTargetSessionOwner,
   ): Promise<CdpRuntimeSession> {
     return runtimeDeadline(operation, options.signal, async (signal) => {
       const discovery = await discoverCdpEndpoint(
@@ -66,6 +70,7 @@ export class CdpRuntimeSession {
         operation,
         signal,
         { maxPayloadBytes: WEB_RUNTIME_LIMITS.protocolBytes },
+        owner,
       );
       try {
         const tree = runtimeFrameTreeSchema.parse(
@@ -93,9 +98,27 @@ export class CdpRuntimeSession {
           allowedOrigins,
           operation,
           options,
+          owner,
         );
       } catch (cause: unknown) {
-        await transport.connection.close();
+        try {
+          await owner.finish(transport.connection);
+        } catch (cleanupCause: unknown) {
+          if (
+            cause instanceof AnalysisError &&
+            cleanupCause instanceof AnalysisError
+          )
+            throw analysisErrorWithCleanupFailure(
+              cause,
+              cleanupCause,
+              operation,
+            );
+          throw new AggregateError(
+            [cause, cleanupCause],
+            `CDP runtime setup ${operation} failed and cleanup remains incomplete.`,
+            { cause },
+          );
+        }
         throw cause;
       }
     });
@@ -180,6 +203,7 @@ export class CdpRuntimeSession {
       WEB_RUNTIME_LIMITS.cleanupTimeoutMs,
     );
     const failures: string[] = [];
+    let transportFailure: AnalysisError | undefined;
     const send = async (
       method: string,
       params: Readonly<Record<string, unknown>> = {},
@@ -220,7 +244,25 @@ export class CdpRuntimeSession {
       }
     } finally {
       clearTimeout(timer);
-      await this.transport.connection.close();
+      try {
+        await this.owner.finish(this.transport.connection);
+      } catch (cause: unknown) {
+        transportFailure =
+          cause instanceof AnalysisError
+            ? cause
+            : new ProviderCleanupError(
+                "rea-cdp-browser",
+                [this.target.target_id],
+                {
+                  reason:
+                    cause instanceof Error ? cause.message : String(cause),
+                },
+                { operation: this.operation, cause },
+              );
+        failures.push(
+          `CDP WebSocket close: ${transportFailure.userMessage ?? transportFailure.message}`,
+        );
+      }
     }
     return failures.length === 0
       ? undefined
@@ -233,7 +275,12 @@ export class CdpRuntimeSession {
             previous_error:
               previousError?.userMessage ?? previousError?.message ?? null,
           },
-          { operation: this.operation },
+          {
+            operation: this.operation,
+            ...(transportFailure === undefined
+              ? {}
+              : { cause: transportFailure }),
+          },
         );
   }
 }

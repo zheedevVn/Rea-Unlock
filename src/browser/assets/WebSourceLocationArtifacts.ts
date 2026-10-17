@@ -8,6 +8,7 @@ import {
   type WebSourceLocationInput,
 } from "../../domain/webSourceLocation.js";
 import { err, ok } from "../../domain/result.js";
+import { webArtifactCleanupFailures } from "../WebArtifactCleanup.js";
 import { LocalWebScriptArtifacts } from "./LocalWebScriptArtifacts.js";
 import { decodeWebArtifact, webArtifactReadError } from "./WebArtifactReads.js";
 
@@ -40,14 +41,23 @@ export class LocalWebSourceLocationArtifacts implements WebSourceLocationArtifac
         ? []
         : [Promise.resolve().then(closeScript)]),
     ]);
-    const failures = results.flatMap((result) =>
-      result.status === "rejected" ? [result.reason] : [],
+    const failures = results.flatMap((result, index) =>
+      result.status === "rejected"
+        ? [
+            {
+              cause: result.reason,
+              resource:
+                index === 0 ? "web source-location artifacts" : "web scripts",
+            },
+          ]
+        : [],
     );
-    if (failures.length > 0)
-      throw new AggregateError(
-        failures,
-        "Web source-location artifact cleanup failed",
-      );
+    const error = webArtifactCleanupFailures(
+      "web-source-location-artifacts",
+      "trace_web_source_location",
+      failures,
+    );
+    if (error !== undefined) throw error;
   }
 
   /** Preserve actual map identity separately from the selected deployment URL. */

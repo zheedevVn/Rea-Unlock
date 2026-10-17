@@ -106,6 +106,9 @@ type StorageInstallationOptions = {
   readonly retainCleanup?: (close: () => Promise<unknown>) => void;
 };
 type StoragePage = { readonly context: BrowserContext; readonly page: Page };
+export type PlaywrightScenarioStorageCleanup = {
+  readonly loadingStopped: boolean;
+};
 
 /** Owns pre-script storage seeding and its CDP instrumentation for one scenario. */
 export class PlaywrightScenarioStorage {
@@ -123,8 +126,9 @@ export class PlaywrightScenarioStorage {
   #generation = 0;
   #closed = false;
   #cleanupCompleted = false;
+  #loadingStopped = false;
   #failure: BrowserObservationError | undefined;
-  #closePromise: Promise<void> | undefined;
+  #closePromise: Promise<PlaywrightScenarioStorageCleanup> | undefined;
   #detachPromise: Promise<void> | undefined;
   #rootInitialization: Promise<void> | undefined;
   #work: Promise<void> = Promise.resolve();
@@ -203,6 +207,7 @@ export class PlaywrightScenarioStorage {
     const rootInfo = targetInfoResponse.parse(
       await this.cdp.send("Target.getTargetInfo"),
     );
+    if (this.#closed) return;
     const root = this.createTarget(
       undefined,
       rootInfo.targetInfo.targetId,
@@ -210,7 +215,6 @@ export class PlaywrightScenarioStorage {
         this.cdp.send(method as Parameters<CDPSession["send"]>[0], params),
     );
     this.#targets.set("", root);
-    if (this.#closed) return;
     this.listen(page, context);
     const ready = this.initializeTarget(root);
     root.ready = ready;
@@ -591,8 +595,9 @@ export class PlaywrightScenarioStorage {
     }
   }
 
-  close(stopLoading = false): Promise<void> {
-    if (this.#cleanupCompleted) return Promise.resolve();
+  close(stopLoading = false): Promise<PlaywrightScenarioStorageCleanup> {
+    if (this.#cleanupCompleted)
+      return Promise.resolve({ loadingStopped: this.#loadingStopped });
     if (this.#closePromise !== undefined) return this.#closePromise;
     const closing = this.closeResources(stopLoading).catch((cause: unknown) => {
       throw new BrowserObservationError(
@@ -614,17 +619,21 @@ export class PlaywrightScenarioStorage {
     return closing;
   }
 
-  private async closeResources(stopLoading: boolean): Promise<void> {
+  private async closeResources(
+    stopLoading: boolean,
+  ): Promise<PlaywrightScenarioStorageCleanup> {
     this.#closed = true;
     let stopLoadingFailure: { readonly cause: unknown } | undefined;
-    if (stopLoading) {
+    if (stopLoading && !this.#loadingStopped) {
       try {
         const root = this.#targets.get("");
-        if (root !== undefined)
+        if (root !== undefined) {
           await withPlaywrightExecutionBoundary(
             () => root.send("Page.stopLoading"),
             STORAGE_CLEANUP_TIMEOUT_MS,
           );
+          this.#loadingStopped = true;
+        }
       } catch (cause: unknown) {
         stopLoadingFailure = { cause };
       }
@@ -674,5 +683,6 @@ export class PlaywrightScenarioStorage {
     this.#replies.clear();
     this.#cleanupCompleted = true;
     if (stopLoadingFailure !== undefined) throw stopLoadingFailure.cause;
+    return { loadingStopped: this.#loadingStopped };
   }
 }

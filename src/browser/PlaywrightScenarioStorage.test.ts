@@ -25,13 +25,15 @@ class FakeCdp extends EventEmitter {
     this.calls.push({ method, params });
     if (method === this.holdMethod) {
       const response =
-        method === "Page.addScriptToEvaluateOnNewDocument"
-          ? { identifier: "late-script" }
-          : method === "Debugger.setBreakpointByUrl"
-            ? { breakpointId: "late-breakpoint" }
-            : method === "Storage.getStorageKey"
-              ? { storageKey: this.storageKey }
-              : {};
+        method === "Target.getTargetInfo"
+          ? { targetInfo: { targetId: "root-target" } }
+          : method === "Page.addScriptToEvaluateOnNewDocument"
+            ? { identifier: "late-script" }
+            : method === "Debugger.setBreakpointByUrl"
+              ? { breakpointId: "late-breakpoint" }
+              : method === "Storage.getStorageKey"
+                ? { storageKey: this.storageKey }
+                : {};
       return new Promise((resolve) => {
         this.heldReply = () => resolve(response);
       });
@@ -273,16 +275,61 @@ it("retries the owning CDP detach after a failed attempt", async () => {
   const owner = await createInitializedStorage(contextApi, page);
   cdp.failDetachCount = 1;
 
-  await expect(owner?.close()).rejects.toMatchObject({
+  await expect(owner?.close(true)).rejects.toMatchObject({
     _tag: "BrowserObservationError",
     reason: "cleanup_failed",
   });
   expect(cdp.detachCalls).toBe(1);
   expect(cdp.listenerCount("Debugger.paused")).toBe(1);
 
-  await owner?.close();
+  await expect(owner?.close(true)).resolves.toEqual({
+    loadingStopped: true,
+  });
   expect(cdp.detachCalls).toBe(2);
   expect(cdp.listenerCount("Debugger.paused")).toBe(0);
+  expect(
+    cdp.calls.filter(({ method }) => method === "Page.stopLoading"),
+  ).toHaveLength(1);
+});
+
+it("reports an unconfirmed stop when root initialization is still pending", async () => {
+  const cdp = new FakeCdp();
+  cdp.holdMethod = "Target.getTargetInfo";
+  const { page, contextApi } = fixture(cdp);
+  const input = scenario();
+  const owner = await PlaywrightScenarioStorage.create(
+    { context: contextApi as never, page: page as never },
+    input,
+    BrowserScenarioSecrets.resolve(input, {})!,
+  );
+  expect(owner).toBeDefined();
+  const initialization = owner?.initialize(page as never, contextApi as never);
+  await waitForCall(cdp, "Target.getTargetInfo");
+
+  const closing = owner?.close(true);
+  cdp.releaseHeldReply();
+  await expect(initialization).resolves.toBeUndefined();
+  await expect(closing).resolves.toEqual({ loadingStopped: false });
+  expect(
+    cdp.calls.filter(({ method }) => method === "Page.stopLoading"),
+  ).toHaveLength(0);
+  expect(cdp.detachCalls).toBe(1);
+});
+
+it("reports and retains a confirmed navigation stop", async () => {
+  const cdp = new FakeCdp();
+  const { page, contextApi } = fixture(cdp);
+  const owner = await createInitializedStorage(contextApi, page);
+
+  await expect(owner?.close(true)).resolves.toEqual({
+    loadingStopped: true,
+  });
+  await expect(owner?.close(true)).resolves.toEqual({
+    loadingStopped: true,
+  });
+  expect(
+    cdp.calls.filter(({ method }) => method === "Page.stopLoading"),
+  ).toHaveLength(1);
 });
 
 it("does not create storage instrumentation when there are no storage seeds", async () => {
