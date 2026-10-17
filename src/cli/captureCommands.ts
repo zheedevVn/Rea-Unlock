@@ -1,7 +1,6 @@
 import { inspectPacketFieldsInputSchema } from "../domain/captures/packetFields.js";
 import { z } from "incur";
 import type { PacketCaptureService } from "../application/captures/PacketCaptureService.js";
-import { resolve } from "node:path";
 import { createPacketCaptureService } from "../composition/captures.js";
 import {
   packetCaptureOptionsSchema,
@@ -14,6 +13,7 @@ import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
 import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
+import { absoluteCallerPath } from "../filesystem/callerPath.js";
 export const registerCaptureCommands = (
   cli: CliInstance,
   logger: Logger,
@@ -105,7 +105,7 @@ export const registerCaptureCommands = (
                 {
                   ...options,
                   ...(all_matches ? { match_limit: null } : {}),
-                  path: resolve(args.path),
+                  path: absoluteCallerPath(args.path),
                 },
                 { signal },
               ),

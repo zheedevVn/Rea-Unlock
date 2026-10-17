@@ -1,5 +1,6 @@
 import type { ExecutionOptions } from "../../application/AnalysisProvider.js";
 import { ArtifactReaderFailure } from "../../artifacts/ArtifactReader.js";
+import { artifactFileCancellationCause } from "../../artifacts/ArtifactFileOperation.js";
 import { AnalysisError } from "../../domain/analysisErrorBase.js";
 import {
   AnalysisAccessDeniedError,
@@ -90,7 +91,10 @@ export const historicalCaptureFailure = (
         cause,
       );
   }
-  if (options?.signal?.aborted) return new AnalysisCancelledError(OPERATION);
+  if (options?.signal?.aborted)
+    return new AnalysisCancelledError(OPERATION, {
+      cause: options.signal.reason,
+    });
   if (
     phase === "capture-read" &&
     cause instanceof ArtifactReaderFailure &&
@@ -107,7 +111,9 @@ export const historicalCaptureFailure = (
     cause instanceof ArtifactReaderFailure &&
     cause.reason === "cancelled"
   )
-    return new AnalysisCancelledError(OPERATION);
+    return new AnalysisCancelledError(OPERATION, {
+      cause: artifactFileCancellationCause(cause),
+    });
   if (
     phase === "capture-read" &&
     cause instanceof ArtifactReaderFailure &&

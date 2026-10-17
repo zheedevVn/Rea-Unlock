@@ -7,6 +7,7 @@ import type { ExecutionOptions } from "../../application/AnalysisProvider.js";
 import { ArtifactResourceScope } from "../../artifacts/ArtifactResourceScope.js";
 import { jsonObjectSchema } from "../../domain/jsonValue.js";
 import { err, ok } from "../../domain/result.js";
+import { webArtifactCleanupFailures } from "../WebArtifactCleanup.js";
 import type { WebModuleTraceInput } from "../../domain/webModuleTrace.js";
 import { LocalWebScriptArtifacts } from "../assets/LocalWebScriptArtifacts.js";
 import {
@@ -43,11 +44,22 @@ export class LocalWebModuleArtifacts implements WebModuleArtifactPort {
         ? []
         : [Promise.resolve().then(closeScript)]),
     ]);
-    const failures = results.flatMap((result) =>
-      result.status === "rejected" ? [result.reason] : [],
+    const failures = results.flatMap((result, index) =>
+      result.status === "rejected"
+        ? [
+            {
+              cause: result.reason,
+              resource: index === 0 ? "web module artifacts" : "web scripts",
+            },
+          ]
+        : [],
     );
-    if (failures.length > 0)
-      throw new AggregateError(failures, "Web module artifact cleanup failed");
+    const error = webArtifactCleanupFailures(
+      "web-module-artifacts",
+      "trace_web_module_imports",
+      failures,
+    );
+    if (error !== undefined) throw error;
   }
 
   /** Read selected source and optional map without website requests. */

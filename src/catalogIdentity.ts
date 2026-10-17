@@ -17,6 +17,7 @@ import {
   type CompactInputSchemaPresentation,
 } from "./contracts/compactInputSchema.js";
 import type { McpOutputSchemaProfile } from "./config/mcpOutputSchemaProfile.js";
+import { RECORDED_CATALOG_DIGESTS } from "./recordedCatalogDigests.js";
 
 const sortByName = (
   contracts: readonly ToolContract[],
@@ -102,6 +103,8 @@ export const createCatalogDigests = (
   } as const;
 };
 
+export type CatalogDigests = ReturnType<typeof createCatalogDigests>;
+
 export const createCatalogIdentity = (
   compactPresentation: CompactInputSchemaPresentation | undefined = undefined,
   outputSchemaProfile: McpOutputSchemaProfile = "full",
@@ -110,7 +113,12 @@ export const createCatalogIdentity = (
     compactPresentation === undefined
       ? undefined
       : { budgetBytes: compactPresentation.budgetBytes };
-  let catalogDigests: ReturnType<typeof createCatalogDigests> | undefined;
+  // Building and canonicalizing every advertised schema dominates doctor and
+  // server startup, so the compiled runtime records the default digests once.
+  let catalogDigests: CatalogDigests | undefined =
+    selectedPresentation === undefined && outputSchemaProfile === "full"
+      ? RECORDED_CATALOG_DIGESTS
+      : undefined;
   return {
     counts: {
       cli_commands: CLI_COMMAND_NAMES.length,
@@ -128,5 +136,8 @@ export const createCatalogIdentity = (
   } as const;
 };
 
-/** Stable, schema-sensitive identity; schema digests are computed on first use. */
+/**
+ * Stable, schema-sensitive identity; schema digests are recorded at build time
+ * or computed on first use.
+ */
 export const CATALOG_IDENTITY = createCatalogIdentity();

@@ -1,11 +1,9 @@
 import { z } from "incur";
-import { AnalysisError } from "../domain/analysisErrorBase.js";
 import { ApktoolResourceAnalysisService } from "../application/apktool/ApktoolResourceAnalysisService.js";
 import type { ApktoolResourceAnalysisPort } from "../application/apktool/ApktoolResourceAnalysisPort.js";
 import { createApktoolResourceAnalysisProvider } from "../composition/apktool.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
-import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import {
   apktoolInputSchemas,
   type ApktoolOperation,
@@ -13,6 +11,7 @@ import {
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Expose the same explicit Apktool requests through one-shot CLI commands. */
 export const registerApktoolCommands = (
@@ -26,17 +25,14 @@ export const registerApktoolCommands = (
   const service = new ApktoolResourceAnalysisService(provider);
   const execute = (name: string, operation: ApktoolOperation, input: unknown) =>
     withCommandCancellation((signal) =>
-      logCliCommand(logger, name, async () => {
-        const result = await service.execute(operation, input, { signal });
-        try {
-          await provider.close();
-        } catch (cause) {
-          if (cause instanceof AnalysisError)
-            return projectAnalysisError(cause);
-          throw cause;
-        }
-        return result.ok ? result.value : projectAnalysisError(result.error);
-      }),
+      logCliCommand(logger, name, () =>
+        finishAnalysisCommand(
+          () => service.execute(operation, input, { signal }),
+          { close: () => provider.close() },
+          "apktool",
+          operation,
+        ),
+      ),
     );
 
   cli.command(CLI_COMMANDS.inspectApktoolClient, {

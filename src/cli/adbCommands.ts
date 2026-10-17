@@ -1,16 +1,15 @@
 import { z } from "incur";
-import { AnalysisError } from "../domain/analysisErrorBase.js";
 import { AnalysisInputError } from "../domain/analysisErrorCore.js";
 import { AdbDeviceAnalysisService } from "../application/adb/AdbDeviceAnalysisService.js";
 import type { AdbDeviceAnalysisPort } from "../application/adb/AdbDeviceAnalysisPort.js";
 import { createAdbDeviceAnalysisProvider } from "../composition/adb.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
-import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import type { AdbOperation } from "../domain/adb/adbDeviceAnalysis.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Expose the same explicit ADB requests through one-shot CLI commands. */
 export const registerAdbCommands = (
@@ -24,17 +23,14 @@ export const registerAdbCommands = (
   const service = new AdbDeviceAnalysisService(provider);
   const execute = (name: string, operation: AdbOperation, input: unknown) =>
     withCommandCancellation((signal) =>
-      logCliCommand(logger, name, async () => {
-        const result = await service.execute(operation, input, { signal });
-        try {
-          await provider.close();
-        } catch (cause) {
-          if (cause instanceof AnalysisError)
-            return projectAnalysisError(cause);
-          throw cause;
-        }
-        return result.ok ? result.value : projectAnalysisError(result.error);
-      }),
+      logCliCommand(logger, name, () =>
+        finishAnalysisCommand(
+          () => service.execute(operation, input, { signal }),
+          { close: () => provider.close() },
+          "adb",
+          operation,
+        ),
+      ),
     );
 
   const serial = z
