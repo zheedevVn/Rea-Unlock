@@ -6,7 +6,7 @@ are `inspect_analysis_view`, `trace_application_feature`,
 `trace_javascript_semantics`, `compare_application_versions`,
 `compare_source_to_bundle`, and `compare_javascript_export_shapes`; their CLI
 equivalents use the same names with hyphens. `inspect_analysis_view` projects a
-summary, module page, or one module from already completed application
+summary, module page, typed module references, or one module from already completed application
 Evidence; it does not walk relationships.
 
 `inspect_analysis_view` also projects retained `inspect_binary_layout`
@@ -40,6 +40,105 @@ combine its fields with the fact's location. Semantic trace results include the
 canonical context subset referenced by their returned facts, so those facts
 remain self-contained in the response.
 
+## Retained module facts
+
+For canonical identities and retained source-range counts, query the existing
+`inspect_analysis_view` tool with a typed module-reference projection:
+
+```json
+{
+  "source": {
+    "kind": "retained-evidence",
+    "evidence_id": "ev_ACTUAL_PARENT_ID"
+  },
+  "view": {
+    "kind": "javascript",
+    "collection": "modules",
+    "projection": "references",
+    "where": { "path": "main.js", "kind": "javascript-module" },
+    "offset": 0,
+    "limit": 16
+  }
+}
+```
+
+Replace the parent ID with the actual analysis summary's `parent_evidence_id`.
+Filters match exact retained paths and kinds. Omission includes all values;
+`path: null` selects an unavailable path and `path: ""` selects a recorded empty
+path. Multiple identities can share a path. The default offset is 0 and limit
+is 64; follow `coverage.next_offset` for later matching rows in retained order.
+
+Each row contains its `node_id`, kind, path, canonical identity, retained
+source-range observation count, and distinct supporting authority/state/confidence
+combinations in `basis`. These counts do not prove unique reference sites or
+runtime loading. Use the existing module item view with the row's `node_id` for
+exact source ranges and complete observations. The result retains parent/query
+Evidence identity, artifact identity, limitations and unknowns. `source_coverage`
+keeps selected/unselected sources, graph coverage and unknown counts separate
+from page exhaustion; an exhausted or empty page cannot prove absence from an
+incompletely analyzed application. CLI `inspect-analysis-view` reads the same
+request from a JSON file; portable input uses `source.kind: "inline"` with the
+complete parent Evidence.
+
+## Retained file and native facts
+
+Read metadata, native inventory and unavailable processing scopes directly from
+retained application observations:
+
+```json
+{
+  "source": {
+    "kind": "retained-evidence",
+    "evidence_id": "ev_ACTUAL_PARENT_ID"
+  },
+  "view": {
+    "kind": "javascript-facts",
+    "where": { "paths": ["package.json", "build/Release/addon.node"] },
+    "property_keys": [
+      "name",
+      "version",
+      "bytes",
+      "availability",
+      "operation",
+      "analysis_status"
+    ],
+    "offset": 0,
+    "limit": 32
+  }
+}
+```
+
+Each row preserves its node identity, observation ID, source-map reference and
+original Evidence, including location, authority, confidence, coverage and
+limitations. `property_keys` selects exact retained property names; absent keys
+stay omitted and retained null values stay null. An empty list requests only
+identity/provenance. Observations are not merged into a single asserted fact.
+When property names are unknown, opt into
+`include_available_property_keys: true`. Each returned row then lists its
+original `available_property_keys`, without unselected values; combine this with
+`property_keys: []` for discovery only. The default is false, so known-field
+reads do not pay for field inventories. Keep node/observation IDs paired when
+combining rows; location-related observations need not belong to the same node.
+
+`where.paths` compares exact Evidence `artifact-path` values or `source-range`
+sources. Empty query strings remain valid selectors, though current location
+contracts require nonempty paths/sources. It does not inspect display labels or a
+property named `path`, normalize URLs, or reopen files. Omission includes unknown
+locations; an empty list matches none. Optional `where.kinds` filters original
+node kinds, with an empty list likewise matching none. Multiple locations of
+shared content remain separate rows with the same canonical node identity.
+
+These rows select application-graph observations. Semantic relationships and
+semantic unknown records remain in complete parent Evidence and trace tools.
+
+Rows follow retained node/observation order. The default offset/limit is 0/64;
+follow `coverage.next_offset`. Page totals count matching retained observations,
+while `source_coverage` preserves caller selection and application/semantic
+partial or unknown states. An empty or exhausted page does not establish absence
+outside examined coverage. Complete source Evidence remains available through
+export. CLI `inspect-analysis-view` and portable Evidence use the same contract
+and application implementation as MCP.
+
 ## Feature tracing
 
 Select one literal seed kind: node ID, route, string, API, IPC channel, module,
@@ -54,6 +153,14 @@ graph. Existing Hopper or Ghidra Evidence is linked only when its subject digest
 matches exactly. Otherwise the result recommends provider-neutral follow-up
 tools and reports `requires-provider-analysis`; it never starts or switches a
 provider implicitly.
+
+A handoff requires the add-on's exact content identity. Unavailable unpacked
+companions remain visible in the trace graph with their canonical path,
+availability and container-backed Evidence. They yield no actionable handoff
+until their bytes are available and the application is reanalyzed; the archive
+digest does not identify the missing add-on. An empty handoff list does not prove
+that the trace contains no native components. Source partial coverage remains
+visible independently of handoff eligibility.
 
 ## Semantic relation tracing
 
@@ -76,6 +183,17 @@ registrations/removals and dispatch, Node timers and cancellation handles, async
 `node:child_process` creation and ownership, configuration sources and direct
 defaults, request construction and response consumers, parse/coercion/
 validation boundaries, and built-in resource acquisition/release.
+
+Local callback candidates do not establish a complete target set when a
+conditional write may leave a parameter, catch binding, or uninitialized
+variable unchanged. These calls retain candidate edges and dynamic uncertainty;
+default traces remain ambiguous with partial coverage. Opt into
+`include_ambiguous_dynamic_edges` to traverse the candidates. Proven preceding
+unconditional assignments, including writes dominating a read in the same
+conditional block, can resolve a target; later writes do not replace an
+earlier read or captured alias. Unproved ordering across branches or function
+activations remains conservative. Returned-reference effects use the same
+read-position facts as call resolution.
 
 Mutation tracking covers explicit member assignments, updates, deletion, and
 loop assignment targets, including the supported local aliases and shared
@@ -126,8 +244,13 @@ graph and read literal values from `properties.value`, rather than decoding
 role keys or labels. Previously stored graphs and their original IDs remain
 valid inputs.
 
-Endpoint nodes keep the exact endpoint in each observation's `properties.value`;
-semantic request and response nodes keep it in `properties.endpoint`. Endpoint
+Endpoint observations keep their value in `properties.value`. When
+`properties.resolution` is `partial`, that value is the unresolved source
+expression, with an identity distinct from an exact endpoint of the same text.
+Semantic request and response nodes keep their endpoint in `properties.endpoint`. Endpoint
+lookup identities are preserved independently of the primitive-value lattice's
+byte budget. An oversized normalized literal can become unknown while the same
+string remains an exact endpoint for tracing and comparison. Endpoint
 identity keys use `value-sha256:<digest>` over the canonical JSON string when
 that is shorter, or when the original value starts with the reserved digest
 prefix. Other short endpoint keys remain unchanged. Endpoint labels use the
@@ -208,6 +331,13 @@ Direct return expressions, including expression-bodied arrows, are evaluated
 through an execution-free value lattice. Literal object fields and direct
 return sites are represented in the result. Calls, dynamic spreads, computed
 keys, and parser recovery remain partial or unknown.
+Rebound values are evaluated at their read position: saving an incoming parameter
+before a later assignment preserves caller-dependent uncertainty, while a proven
+preceding assignment can supply a constant. Unresolved ordering remains unknown.
+Supported reads within object and array literals follow left-to-right evaluation;
+an unproved relative order remains unknown. A later write in a separate conditional
+block can still leave an earlier capture unknown because ordering across those
+blocks is not proven.
 Objects and arrays passed to calls, constructors, or tagged templates, used
 as method receivers, or stored through property targets are not assumed
 unchanged afterward. Property stores conservatively retain reference escape

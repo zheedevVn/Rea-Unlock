@@ -68,6 +68,17 @@ The node vocabulary covers:
 - runtime script instance;
 - an explicit `unknown` kind when classification is not justified.
 
+Static network endpoints can have `resolution: "partial"` when the analyzer
+recognizes a request call but cannot resolve its target to one exact value.
+The observation's `value` then preserves the source expression, and its
+evidence points to the call site. Partial and exact endpoints have distinct
+identities even when their displayed values match. Partial identities also retain
+the source site: matching expression text at different sites does not establish
+the same runtime target. This records observed source syntax; it does not
+establish that the call ran or contacted that endpoint.
+Graph coverage describes the analyzed artifact scope and resource limits, not
+runtime execution. A partial target alone does not imply omitted source.
+
 The directed relation vocabulary is `contains`, `loads`, `imports`, `maps_to`,
 `exposes`, `sends`, `invokes`, `handles`, `calls`, `persists_to`, `observed_as`,
 and `changed_from`. Provider names are deliberately absent from both
