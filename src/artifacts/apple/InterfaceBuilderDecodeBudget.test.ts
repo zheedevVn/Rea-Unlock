@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { buildBinary } from "plist";
 import { describe, expect, it } from "vitest";
 
 import { analyzeInterfaceBuilderBundle } from "./InterfaceBuilderAnalysis.js";
@@ -10,6 +11,42 @@ import { parseXmlPropertyList } from "../../domain/propertyListKeys.js";
 import { createTestTempDirectory } from "../../../tests/fixtures/temporaryDirectory.js";
 
 const example = "<!DOCTYPE document [ harmless example ]>";
+
+it.each([
+  [
+    "XML",
+    Buffer.from(
+      "<plist><array><integer>9007199254740993</integer></array></plist>",
+    ),
+  ],
+  ["binary", Buffer.from(buildBinary([9007199254740992]))],
+] as const)(
+  "reserves %s number metadata and value projection before decoding",
+  (_format, bytes) => {
+    const ordinary = preflightPropertyListDecode(
+      bytes,
+      1024 * 1024,
+    ).estimatedBytes;
+    const projected = preflightPropertyListDecode(
+      bytes,
+      1024 * 1024,
+      undefined,
+      { numberProjection: true },
+    ).estimatedBytes;
+    if (_format === "binary")
+      expect(projected).toBeGreaterThanOrEqual(ordinary + bytes.length);
+    expect(() =>
+      preflightPropertyListDecode(bytes, ordinary, undefined, {
+        numberProjection: true,
+      }),
+    ).toThrow(/budget/u);
+    expect(() =>
+      preflightPropertyListDecode(bytes, 1024 * 1024, undefined, {
+        numberProjection: true,
+      }),
+    ).not.toThrow();
+  },
+);
 const archive = (content: string, comment = "") =>
   `<?xml version="1.0"?><plist version="1.0">${comment}<dict><key>$archiver</key><string>NSKeyedArchiver</string><key>$objects</key><array><string>$null</string><dict><key>$class</key><dict><key>CF$UID</key><integer>2</integer></dict><key>title</key><string>${content}</string></dict><dict><key>$classname</key><string>NSButton</string><key>$classes</key><array><string>NSButton</string><string>NSObject</string></array></dict></array><key>$top</key><dict><key>root</key><dict><key>CF$UID</key><integer>1</integer></dict></dict></dict></plist>`;
 

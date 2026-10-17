@@ -1,6 +1,5 @@
-import { createHash } from "node:crypto";
-import { constants } from "node:fs";
-import { lstat, open, readlink, realpath } from "node:fs/promises";
+import type { BigIntStats } from "node:fs";
+import { lstat, readlink, realpath } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 
 import { AnalysisInputError } from "../../domain/analysisErrorCore.js";
@@ -18,24 +17,26 @@ import { projectInputIssues } from "../../domain/inputIssueProjection.js";
 import { ArtifactReaderFailure } from "../ArtifactReader.js";
 import { DirectoryArtifactReader } from "../DirectoryArtifactReader.js";
 import { consumeWithOrderedReads } from "../OrderedReads.js";
-import { hasMachoMagic, readMachoImage } from "./MachoLoadCommandReader.js";
+import {
+  DylibFileAccess,
+  classifyDylibReadFailure,
+} from "./DylibFileAccess.js";
+import { ArtifactResourceScope } from "../ArtifactResourceScope.js";
+import { assertArtifactReadActive } from "../ArtifactFileOperation.js";
 
 const OPERATION = "trace_dylib_resolution";
-const HASH_CHUNK_BYTES = 1024 * 1024;
 /** Concurrent four-byte magic reads while enumerating bundle roots. */
 const MAGIC_READ_CONCURRENCY = 8;
-
-/** Device, inode, size and change times of the file whose bytes were parsed. */
-type FileIdentity = string;
 
 /** Lazily probed, symlink-preserving view of one analyzed directory. */
 class FilesystemTreeView implements DylibTreeView {
   readonly #entries = new Map<string, Promise<DylibTreeEntry | undefined>>();
   readonly #images = new Map<string, Promise<MachoImageFacts>>();
-  readonly #identities = new Map<string, FileIdentity>();
+  readonly #identities = new Map<string, BigIntStats>();
 
   constructor(
     private readonly root: string,
+    private readonly files: DylibFileAccess,
     private readonly signal?: AbortSignal,
   ) {}
 
@@ -50,23 +51,23 @@ class FilesystemTreeView implements DylibTreeView {
   image(path: string): Promise<MachoImageFacts> {
     const cached = this.#images.get(path);
     if (cached !== undefined) return cached;
-    const pending = readImage(join(this.root, path), this.signal).then(
-      ({ facts, identity }) => {
+    const pending = this.files
+      .image(join(this.root, path))
+      .then(({ facts, identity }) => {
         this.#identities.set(path, identity);
         return facts;
-      },
-    );
+      });
     this.#images.set(path, pending);
     return pending;
   }
 
   /** Identity of the file whose header bytes `image()` parsed. */
-  identity(path: string): FileIdentity | undefined {
+  identity(path: string): BigIntStats | undefined {
     return this.#identities.get(path);
   }
 
   async #readEntry(path: string): Promise<DylibTreeEntry | undefined> {
-    cancelled(this.signal);
+    assertArtifactReadActive(this.signal);
     const absolute = join(this.root, path);
     try {
       const metadata = await lstat(absolute);
@@ -88,6 +89,7 @@ export const traceDylibResolution = async (options: {
   readonly targetSha256: string;
   readonly enumerateRoots: boolean;
   readonly parameters: unknown;
+  readonly resourceScope?: ArtifactResourceScope;
   readonly signal?: AbortSignal;
 }): Promise<DylibResolutionResult> => {
   const parsed = dylibResolutionInputSchema.safeParse(options.parameters);
@@ -97,82 +99,69 @@ export const traceDylibResolution = async (options: {
       { cause: parsed.error },
       projectInputIssues(parsed.error.issues, options.parameters),
     );
-  // Canonicalization is inside the translated region: a revoked permission
-  // keeps its reason and path.
-  let root = options.rootPath;
-  try {
-    root = await realpath(options.rootPath);
-    const target = relative(root, await realpath(options.targetPath))
-      .split(sep)
-      .join("/");
-    const view = new FilesystemTreeView(root, options.signal);
-    const { roots: requested, unclassified } =
-      parsed.data.roots !== undefined
-        ? { roots: parsed.data.roots, unclassified: [] }
-        : options.enumerateRoots
-          ? await executableRoots(root, view, options.signal)
-          : { roots: [target], unclassified: [] };
-    const roots = await requireMachoRoots(
-      view,
-      requested,
-      parsed.data.roots !== undefined,
-    );
-    const trace = await traceDylibLoading(view, {
-      roots,
-      unclassified,
-      ...(parsed.data.architecture === undefined
-        ? {}
-        : { architecture: parsed.data.architecture }),
-      ...(options.signal === undefined ? {} : { signal: options.signal }),
-    });
-    // Each digest must describe the same file whose headers were parsed.
-    const digests = new Map<string, string>();
-    for (const { path } of trace.images)
-      digests.set(
-        path,
-        await fileSha256(join(root, path), {
-          path,
-          expected: view.identity(path),
-          ...(options.signal === undefined ? {} : { signal: options.signal }),
-        }),
+  const resources = options.resourceScope ?? new ArtifactResourceScope();
+  return await resources.run(async () => {
+    // Canonicalization is inside the translated region: a revoked permission
+    // keeps its reason and path.
+    let root = options.rootPath;
+    try {
+      assertArtifactReadActive(options.signal);
+      root = await realpath(options.rootPath);
+      assertArtifactReadActive(options.signal);
+      const files = new DylibFileAccess(resources, root, options.signal);
+      const target = relative(root, await realpath(options.targetPath))
+        .split(sep)
+        .join("/");
+      assertArtifactReadActive(options.signal);
+      const view = new FilesystemTreeView(root, files, options.signal);
+      const { roots: requested, unclassified } =
+        parsed.data.roots !== undefined
+          ? { roots: parsed.data.roots, unclassified: [] }
+          : options.enumerateRoots
+            ? await executableRoots(root, view, files, options.signal)
+            : { roots: [target], unclassified: [] };
+      const roots = await requireMachoRoots(
+        view,
+        requested,
+        parsed.data.roots !== undefined,
       );
-    const targetDigest =
-      digests.get(target) ??
-      (await fileSha256(join(root, target), {
-        path: target,
-        expected: undefined,
+      const trace = await traceDylibLoading(view, {
+        roots,
+        unclassified,
+        ...(parsed.data.architecture === undefined
+          ? {}
+          : { architecture: parsed.data.architecture }),
         ...(options.signal === undefined ? {} : { signal: options.signal }),
-      }));
-    if (targetDigest !== options.targetSha256)
-      throw new ArtifactReaderFailure(
-        "integrity",
-        `Active target digest changed: expected ${options.targetSha256}, observed ${targetDigest}`,
-      );
-    return dylibResolutionResultSchema.parse({
-      ...trace,
-      root_path: options.rootPath,
-      target_sha256: options.targetSha256,
-      images: trace.images.map((image) => ({
-        ...image,
-        sha256: digests.get(image.path),
-      })),
-    });
-  } catch (cause: unknown) {
-    if (options.signal?.aborted === true)
-      throw new ArtifactReaderFailure(
-        "cancelled",
-        "Dylib resolution was cancelled",
-        { cause },
-      );
-    const denied = permissionDenied(cause);
-    if (denied !== undefined)
-      throw new ArtifactReaderFailure(
-        "unavailable",
-        `Permission denied (${denied.code}) reading ${deniedPath(root, denied.path)}`,
-        { cause },
-      );
-    throw cause;
-  }
+      });
+      // Each digest must describe the same file whose headers were parsed.
+      const digests = new Map<string, string>();
+      for (const { path } of trace.images)
+        digests.set(
+          path,
+          await files.sha256(join(root, path), view.identity(path)),
+        );
+      const targetDigest =
+        digests.get(target) ??
+        (await files.sha256(join(root, target), undefined));
+      if (targetDigest !== options.targetSha256)
+        throw new ArtifactReaderFailure(
+          "integrity",
+          `Active target digest changed: expected ${options.targetSha256}, observed ${targetDigest}`,
+        );
+      assertArtifactReadActive(options.signal);
+      return dylibResolutionResultSchema.parse({
+        ...trace,
+        root_path: options.rootPath,
+        target_sha256: options.targetSha256,
+        images: trace.images.map((image) => ({
+          ...image,
+          sha256: digests.get(image.path),
+        })),
+      });
+    } catch (cause: unknown) {
+      throw classifyDylibReadFailure(root, cause);
+    }
+  });
 };
 
 /**
@@ -183,6 +172,7 @@ export const traceDylibResolution = async (options: {
 const executableRoots = async (
   root: string,
   view: FilesystemTreeView,
+  files: DylibFileAccess,
   signal?: AbortSignal,
 ): Promise<{ readonly roots: string[]; readonly unclassified: string[] }> => {
   const roots: string[] = [];
@@ -193,9 +183,7 @@ const executableRoots = async (
     new DirectoryArtifactReader(root).entries(signal),
     MAGIC_READ_CONCURRENCY,
     (entry) =>
-      entry.kind === "file"
-        ? startsWithMachoMagic(entry.adapterKey)
-        : undefined,
+      entry.kind === "file" ? files.startsWithMachoMagic(entry) : undefined,
     async (entry, macho) => {
       if (!macho) return;
       const facts = await view.image(entry.path);
@@ -252,129 +240,6 @@ const requireMachoRoots = async (
     if (!resolved.includes(lookup.path)) resolved.push(lookup.path);
   }
   return resolved;
-};
-
-const startsWithMachoMagic = async (path: string): Promise<boolean> => {
-  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
-  try {
-    const buffer = new Uint8Array(4);
-    const { bytesRead } = await handle.read(buffer, 0, 4, 0);
-    return hasMachoMagic(buffer.subarray(0, bytesRead));
-  } finally {
-    await handle.close();
-  }
-};
-
-const identityOf = (metadata: {
-  readonly dev: bigint;
-  readonly ino: bigint;
-  readonly size: bigint;
-  readonly mtimeNs: bigint;
-  readonly ctimeNs: bigint;
-}): FileIdentity =>
-  [
-    metadata.dev,
-    metadata.ino,
-    metadata.size,
-    metadata.mtimeNs,
-    metadata.ctimeNs,
-  ].join(":");
-
-const readImage = async (
-  path: string,
-  signal?: AbortSignal,
-): Promise<{
-  readonly facts: MachoImageFacts;
-  readonly identity: FileIdentity;
-}> => {
-  cancelled(signal);
-  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
-  try {
-    const metadata = await handle.stat({ bigint: true });
-    const size = Number(metadata.size);
-    const facts = await readMachoImage(async (offset, length) => {
-      cancelled(signal);
-      const buffer = new Uint8Array(
-        Math.max(0, Math.min(length, size - offset)),
-      );
-      const { bytesRead } = await handle.read(buffer, 0, buffer.length, offset);
-      return buffer.subarray(0, bytesRead);
-    }, size);
-    return { facts, identity: identityOf(metadata) };
-  } finally {
-    await handle.close();
-  }
-};
-
-/** Hash a file, failing if it is not the file (or the version) that was parsed. */
-const fileSha256 = async (
-  absolute: string,
-  options: {
-    readonly path: string;
-    readonly expected: FileIdentity | undefined;
-    readonly signal?: AbortSignal;
-  },
-): Promise<string> => {
-  const { signal } = options;
-  const handle = await open(
-    absolute,
-    constants.O_RDONLY | constants.O_NOFOLLOW,
-  );
-  const unchanged = async (): Promise<void> => {
-    if (
-      options.expected !== undefined &&
-      identityOf(await handle.stat({ bigint: true })) !== options.expected
-    )
-      throw new ArtifactReaderFailure(
-        "integrity",
-        `${options.path} changed while its dyld load commands were traced`,
-      );
-  };
-  try {
-    await unchanged();
-    const hash = createHash("sha256");
-    const buffer = new Uint8Array(HASH_CHUNK_BYTES);
-    for (;;) {
-      cancelled(signal);
-      const { bytesRead } = await handle.read(buffer, 0, buffer.length, null);
-      if (bytesRead === 0) break;
-      hash.update(buffer.subarray(0, bytesRead));
-    }
-    await unchanged();
-    return hash.digest("hex");
-  } finally {
-    await handle.close();
-  }
-};
-
-const cancelled = (signal?: AbortSignal): void => {
-  if (signal?.aborted === true)
-    throw new ArtifactReaderFailure(
-      "cancelled",
-      "Dylib resolution was cancelled",
-    );
-};
-
-/** A denied path relative to the analyzed root, or absolute when outside it. */
-const deniedPath = (root: string, path: string | undefined): string => {
-  if (path === undefined) return "a file in the analyzed root";
-  const inside = relative(root, path);
-  return inside === "" || inside.startsWith("..") ? path : inside;
-};
-
-/** Host permission denials, kept distinct from malformed or missing files. */
-const permissionDenied = (
-  cause: unknown,
-): { readonly code: string; readonly path: string | undefined } | undefined => {
-  if (!(cause instanceof Error) || !("code" in cause)) return undefined;
-  if (cause.code !== "EACCES" && cause.code !== "EPERM") return undefined;
-  return {
-    code: cause.code,
-    path:
-      "path" in cause && typeof cause.path === "string"
-        ? cause.path
-        : undefined,
-  };
 };
 
 const missing = (cause: unknown): boolean =>

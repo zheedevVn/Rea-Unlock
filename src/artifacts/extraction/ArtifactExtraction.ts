@@ -214,9 +214,16 @@ const materializeSelection = async ({
   readonly selected: readonly SelectedOccurrence[];
   readonly signal: AbortSignal | undefined;
 }): Promise<ArtifactExtractionResult> => {
-  const byPath = new Map(
-    selected.map((item) => [item.occurrence.logical_path, item]),
-  );
+  const byPath = new Map<string, SelectedOccurrence>();
+  for (const item of selected) {
+    const path = item.occurrence.logical_path;
+    if (byPath.has(path))
+      throw new ArtifactReaderFailure(
+        "path",
+        `Artifact extraction path collision: ${JSON.stringify(path)}. Multiple selected occurrences share this normalized logical path; they cannot be materialized at the same destination path, even when the archive is valid. Inventory retains each occurrence.`,
+      );
+    byPath.set(path, item);
+  }
   const reader = await createReader(sourcePath, input);
   const readerOwner: ArtifactResourceOwner = {
     kind: "reader" as const,

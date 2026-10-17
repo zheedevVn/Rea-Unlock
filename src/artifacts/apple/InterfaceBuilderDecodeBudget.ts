@@ -49,6 +49,14 @@ export class InterfaceBuilderDecodeBudget {
     this.#remainingBytes -= bytes;
   }
 
+  /** Return a reservation whose representation was rejected and not retained. */
+  release(bytes: number): void {
+    this.#remainingBytes = Math.min(
+      this.#initialBytes,
+      this.#remainingBytes + bytes,
+    );
+  }
+
   /** Reserve an upper bound for one JSON-serialized string occurrence. */
   reserveJsonStringOccurrence(value: string): void {
     // JSON escaping uses at most six ASCII bytes per UTF-16 code unit, plus
@@ -94,11 +102,18 @@ export const preflightPropertyListDecode = (
   bytes: Buffer,
   maxBytes: number,
   xmlText?: string,
+  options: Pick<BinaryPlistExpansionOptions, "numberProjection"> = {},
 ): PlistDecodePreflight => {
+  const { numberProjection = false } = options;
   const expansion = hasBinaryPlistSignature(bytes)
-    ? estimateBinaryPlistExpansion(bytes, maxBytes)
+    ? estimateBinaryPlistExpansion(bytes, maxBytes, { numberProjection })
     : {
-        estimatedBytes: estimateXmlPlistExpansion(bytes, maxBytes, xmlText),
+        estimatedBytes: estimateXmlPlistExpansion(
+          bytes,
+          maxBytes,
+          xmlText,
+          numberProjection,
+        ),
         binaryPrototypeKeyObserved: false,
       };
   if (expansion.estimatedBytes > maxBytes)
@@ -113,11 +128,15 @@ const estimateXmlPlistExpansion = (
   bytes: Buffer,
   maxBytes: number,
   xmlText?: string,
+  numberProjection = false,
 ): number => {
   const xml = xmlText ?? decodeXmlPlistText(bytes);
   const decodedSourceBytes = xml.length * 2;
   let elementCount = 0;
-  let xmlDepth = 0;
+  // Reserve room for numeric source metadata and the projected attribute copy.
+  const elementBytes = numberProjection ? 256 : 128;
+  // Value nesting is bounded by the shared plist parser, which counts plist
+  // value depth; raw element depth would also count the envelope and keys.
   for (const token of xmlPreflightTokens(xml)) {
     if (token.doctype) {
       // Only a declaration outside opaque text can introduce an internal
@@ -130,19 +149,10 @@ const estimateXmlPlistExpansion = (
       continue;
     }
     elementCount += 1;
-    if (token.closing) xmlDepth -= 1;
-    else if (!token.selfClosing) {
-      xmlDepth += 1;
-      if (xmlDepth > 128)
-        throw new InterfaceBuilderDecodeBudgetExceeded(
-          "aggregate_decode_budget_exhausted",
-          "XML plist nesting exceeds the aggregate Interface Builder decode budget",
-        );
-    }
-    if (decodedSourceBytes * 2 + elementCount * 128 > maxBytes)
+    if (decodedSourceBytes * 2 + elementCount * elementBytes > maxBytes)
       return maxBytes + 1;
   }
-  return decodedSourceBytes * 2 + elementCount * 128;
+  return decodedSourceBytes * 2 + elementCount * elementBytes;
 };
 
 /** Consume each XML span once; malformed tokens cannot restart suffix scans. */
@@ -179,13 +189,7 @@ function* xmlPreflightTokens(xml: string) {
     }
     if (end === xml.length) return;
     cursor = end + 1;
-    if (doctype || element)
-      yield {
-        doctype,
-        internalSubset,
-        closing: xml[start + 1] === "/",
-        selfClosing: xml[end - 1] === "/",
-      };
+    if (doctype || element) yield { doctype, internalSubset };
   }
 }
 
@@ -203,6 +207,8 @@ const interfaceBuilderBudgetFailure = (
 
 /** How a caller names and reports binary plist expansion failures. */
 export interface BinaryPlistExpansionOptions {
+  /** Include original number metadata and exact-integer attribute projection. */
+  readonly numberProjection?: boolean;
   /** Budget named in failure messages. */
   readonly budget?: string;
   /** Error for budget, depth, and reference-cycle failures. */
@@ -235,6 +241,7 @@ export const estimateBinaryPlistExpansion = (
     budget = "the aggregate Interface Builder decode budget",
     fail = interfaceBuilderBudgetFailure,
     bounds = "strict",
+    numberProjection = false,
   }: BinaryPlistExpansionOptions = {},
 ): PlistDecodePreflight => {
   if (bytes.length < 40)
@@ -267,7 +274,13 @@ export const estimateBinaryPlistExpansion = (
     offsetTable + objectCount * offsetSize > tableEnd
   )
     throw new TypeError("binary plist trailer or object table is invalid");
-  let estimate = bytes.length * 2 + objectCount * 16;
+  // Metadata covers the full object table; projected values may repeat through references.
+  const objectBytes = numberProjection ? 144 : 16;
+  const expandedNodeBytes = numberProjection ? 224 : 96;
+  // Number projection may require a same-sized parser-compatible input copy
+  // for wide integers. Reserve for it before the caller allocates that copy.
+  let estimate =
+    bytes.length * (numberProjection ? 3 : 2) + objectCount * objectBytes;
   let binaryPrototypeKeyObserved = false;
   if (estimate > maxBytes)
     throw fail("expansion", `binary plist object table exceeds ${budget}`);
@@ -292,7 +305,7 @@ export const estimateBinaryPlistExpansion = (
       throw fail("depth", `binary plist nesting exceeds ${budget}`);
     if (active.has(entry.object))
       throw fail("cycle", `binary plist reference cycle exceeds ${budget}`);
-    estimate += 96;
+    estimate += expandedNodeBytes;
     if (estimate > maxBytes)
       throw fail(
         "expansion",
@@ -358,7 +371,9 @@ export const estimateBinaryPlistExpansion = (
     const refsEnd = cursor + childCount * referenceSize;
     if (!Number.isSafeInteger(refsEnd) || refsEnd > objectsEnd)
       throw new TypeError("binary plist reference table is truncated");
-    const availableNodes = Math.floor((maxBytes - estimate) / 96);
+    const availableNodes = Math.floor(
+      (maxBytes - estimate) / expandedNodeBytes,
+    );
     if (childCount > availableNodes - pendingObjectCount)
       throw fail(
         "expansion",
