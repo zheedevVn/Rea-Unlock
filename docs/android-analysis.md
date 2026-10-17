@@ -300,8 +300,25 @@ down to MiB and retains exact bytes, Java version and visible processors in its
 raw runtime response. The observed allocatable heap can differ from configured
 `-Xmx`, especially with Serial GC. Heap is not a total RSS cap: the JVM also
 uses native memory. Independent REA instances have independent queues. Whole
-operations have a **120-second** execution deadline after reaching the queue's
-front; upstream decompilation is limited to **90 seconds**.
+operations have a **120-second** execution deadline by default, starting after
+they reach the queue's front. For a known slow cold load, such as a large
+multidex APK, select another finite deadline:
+
+```sh
+export REA_JADX_OPERATION_TIMEOUT_MS=600000
+```
+
+The value must be a decimal millisecond count from 1 to 2147483647; anything
+else is refused before Java starts. The same deadline bounds each upstream
+call, a timeout reports the selected value, and a passing JADX configuration
+check in `rea doctor` reports the effective `operation_timeout_ms`. Explicit
+cancellation still ends the operation immediately, and partial observations
+and owned-process cleanup are unchanged. Raising the deadline does not extend
+the bridge's 30-second startup handshake or the upstream **90-second**
+decompilation limit. MCP clients enforce their own tool-call timeouts, and
+setup's derived [client tool timeout](client-configuration.md) does not include
+this setting, so also raise the client timeout when selecting a longer
+deadline.
 
 Decoded manifest and method text have a **1 MiB** upstream byte budget and report
 truncation. Class-name pages use indexed slices of up to 4,096 names without changing the

@@ -60,6 +60,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: "IDA", link: "/ida-provider" },
+          { text: "Kuna", link: "/kuna-provider" },
           { text: "Ghidra on Windows", link: "/windows-ghidra-p0" },
           { text: "Ghidra DOS analysis", link: "/ghidra-dos" },
           { text: "Ghidra raw binary", link: "/raw-binary" },

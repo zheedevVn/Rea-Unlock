@@ -147,6 +147,24 @@ received signal alone does not establish its exact cause. Dynamic tags require
 a complete DT_NULL inside PT_DYNAMIC; interpreter names and ranges end at the
 first NUL, with any padding still represented by the original segment range.
 
+## Ghidra process failures
+
+When output from the failing Ghidra startup or operation reports
+`java.lang.OutOfMemoryError`, REA returns `resource_constraint`. Java heap or GC
+overhead exhaustion includes heap-specific recovery advice. Metaspace and array
+size failures do not recommend increasing the heap; native-thread exhaustion is
+reported as a capacity constraint with unknown limits.
+
+`configured_jvm_max_heap` records the explicit `-Xmx` value selected by REA's
+launch builder. It is a configuration fact, not measured memory use or proof of
+the effective JVM limit; JVM environment options may affect that limit.
+When a Windows script wrapper selects the JVM, this value remains unknown.
+Historical stdout and stderr remain available, but classification uses only the
+failing operation's `failure_output`. Output draining waits at most one second,
+subject to earlier cancellation or the startup deadline. `output_incomplete`
+marks a snapshot taken before stream closure; cleanup ownership remains with
+the session until release succeeds.
+
 ## Portable PE resources
 
 `inspect_pe_resources` / `inspect-pe-resources` inspects an explicit PE32 or

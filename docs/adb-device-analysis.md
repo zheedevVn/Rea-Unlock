@@ -108,6 +108,13 @@ The `replaced` result is `null`: the successful install response does not say
 whether the package was installed fresh or replaced, and REA does not query the
 device first. The install verdict and host APK digest remain available.
 
+Push and install consume a private snapshot of the selected local input. The
+reported size and SHA-256 identify those consumed bytes; `local_path` and
+`apk_path` retain the original input path, whose contents may change later.
+Snapshot creation needs temporary disk space proportional to the input size.
+Failed snapshot cleanup remains owned and is retried before later operations
+and during shutdown.
+
 ## Interpret the result
 
 - **Directory names retain whitespace and newlines.** Symlink targets do too,
@@ -146,8 +153,10 @@ device first. The install verdict and host APK digest remain available.
 - **Mutations are explicit.** `push_adb_file`, `install_adb_package`, and
   `uninstall_adb_package` declare `mutatesTarget` and never run implicitly:
   pushes check for existing device files before transfer and refuse them
-  unless `overwrite` is set. The check is not atomic, so a different process
-  can create the path before `adb push` writes it. When available, the device's
+  unless `overwrite` is set. A failed or unexpected existence probe stops
+  transfer even with `overwrite`; only a clean `test -e` exit of 1 with no
+  output is interpreted as absence. The check is not atomic, so a different
+  process can create the path before `adb push` writes it. When available, the device's
   `sha256sum` verifies the transfer; installs preserve the
   device's `Failure [...]` reason verbatim.
 - **Producer identity stays attached.** Every result embeds the producing
@@ -160,14 +169,19 @@ device first. The install verdict and host APK digest remain available.
   The app/activity lifecycle tools use `am start -W` and `am force-stop`.
 - Per-invocation budgets: client/devices 10-20 s, shell reads 20-60 s with
   64 KiB-8 MiB capture caps (logcat 4 MiB, screen 32 MiB), transfers and
-  bugreports 600 s. Exceeded budgets report `resource_constraint`; stopped
-  commands report `provider_timeout`.
+  bugreports 600 s. Output capture overflow reports `resource_constraint`;
+  deadline expiration, including the client-version probe, reports
+  `provider_timeout`. Command cancellation preserves the caller's exact reason;
+  a later abort does not replace an already completed command failure.
 - Pull and capture outputs are additive: the destination must not already
   exist. Re-running a completed pull refuses the existing directory instead
   of overwriting evidence.
 - Cancellation during a package pull preserves caller-selected output. The
   error includes partial observations identifying completed artifacts and the
   interrupted local path; remaining APKs were not attempted.
+- Screen capture checks cancellation before publishing its exclusive output.
+  If cancellation arrives after publication, the error retains the committed
+  file's path, digest and dimensions; the file remains available as evidence.
 - Bugreports collect into isolated staging and publish with exclusive creation;
   filename collisions select the next numeric suffix. If publication fails, the
   completed archive remains in staging. The error's partial observation gives
