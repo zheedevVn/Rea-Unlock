@@ -5,6 +5,10 @@ import { ok } from "../domain/result.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import { parseEvidence } from "../domain/evidence.js";
 import {
+  AnalysisCancelledError,
+  AnalysisOutputError,
+} from "../domain/analysisErrorCore.js";
+import {
   webNetworkCaptureSchema,
   type WebNetworkCapture,
 } from "../domain/webNetworkCapture.js";
@@ -123,6 +127,43 @@ it("rejects an adapter omitting its original observed digest before caller proje
   }).inspect({ capture_path: report.artifact.path, format: "har" });
   expect(result.ok).toBe(false);
   if (!result.ok) expect(result.error._tag).toBe("AnalysisOutputError");
+});
+
+it("retains valid completed capture Evidence on late cancellation and preserves invalid output", async () => {
+  const controller = new AbortController();
+  const report = fixture();
+  const late = await new WebNetworkCaptureService({
+    inspect: () => {
+      controller.abort();
+      return Promise.resolve(ok(report));
+    },
+  }).inspect(
+    { capture_path: report.artifact.path, format: "har" },
+    { signal: controller.signal },
+  );
+  expect(late.ok).toBe(false);
+  if (!late.ok) {
+    expect(late.error).toBeInstanceOf(AnalysisCancelledError);
+    expect(parseEvidence(late.error.partialObservation)).toMatchObject({
+      operation: "inspect_web_network_capture",
+      normalized_result: expect.objectContaining({ total_records: 1 }),
+    });
+  }
+
+  const malformed = fixture();
+  malformed.artifact.path = "/other.har";
+  const outputController = new AbortController();
+  const invalid = await new WebNetworkCaptureService({
+    inspect: () => {
+      outputController.abort();
+      return Promise.resolve(ok(malformed));
+    },
+  }).inspect(
+    { capture_path: "/capture.har", format: "har" },
+    { signal: outputController.signal },
+  );
+  expect(invalid.ok).toBe(false);
+  if (!invalid.ok) expect(invalid.error).toBeInstanceOf(AnalysisOutputError);
 });
 
 it.each([

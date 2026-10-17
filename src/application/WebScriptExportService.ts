@@ -243,11 +243,11 @@ const readCapture = async (
         incomplete: retry.cleanup !== undefined,
         cause: cause.cleanupCause,
       };
-      if (cause.outcome.kind === "completed")
-        return ok({ bytes: cause.outcome.value as Buffer, cleanup });
+      if (retry.outcome.kind === "completed")
+        return ok({ bytes: retry.outcome.value as Buffer, cleanup });
       const primary = captureReadFailure(
         path,
-        cause.outcome.cause,
+        retry.outcome.cause,
         signal,
         retry.cleanup === undefined ? { cause: cause.cleanupCause } : undefined,
       );

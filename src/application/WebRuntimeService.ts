@@ -7,7 +7,7 @@ import {
   AnalysisOutputError,
 } from "../domain/analysisErrorCore.js";
 import { createEvidence, type Evidence } from "../domain/evidence.js";
-import { jsonObjectSchema, jsonValueSchema } from "../domain/jsonValue.js";
+import { jsonObjectSchema } from "../domain/jsonValue.js";
 import { analysisInputErrorFromIssues } from "../domain/inputIssueProjection.js";
 import { err, ok, type Result } from "../domain/result.js";
 import {
@@ -18,6 +18,7 @@ import {
   inspectWebEventListenersInputSchema,
   webEventListenersSchema,
 } from "../domain/webEventListeners.js";
+import { completeProviderEvidence } from "./ProviderOperationExecution.js";
 
 /** Shared public workflows keep instrumentation and listener inspection independently selectable. */
 export class WebRuntimeService {
@@ -37,7 +38,35 @@ export class WebRuntimeService {
     );
     if (!parsed.ok) return parsed;
     const result = await this.provider.observeExecution(parsed.value, options);
-    if (!result.ok) return result;
+    if (!result.ok) {
+      const partial = result.error.partialObservation;
+      if (
+        partial !== undefined &&
+        !("evidence_id" in partial) &&
+        "instrumentation" in partial &&
+        "window" in partial
+      ) {
+        const verifiedPartial = webExecutionSchema.safeParse(partial);
+        if (verifiedPartial.success) {
+          const evidence = this.evidence(
+            operation,
+            parsed.value,
+            verifiedPartial.data,
+          );
+          if (evidence.ok) result.error.partialObservation = evidence.value;
+          else if (result.error instanceof AnalysisCancelledError)
+            return evidence;
+        } else if (result.error instanceof AnalysisCancelledError)
+          return err(
+            new AnalysisOutputError(
+              operation,
+              "Provider retained a malformed completed execution observation.",
+              { cause: verifiedPartial.error },
+            ),
+          );
+      }
+      return result;
+    }
     const verified = webExecutionSchema.safeParse(result.value);
     if (!verified.success)
       return err(new AnalysisOutputError(operation, verified.error.message));
@@ -71,7 +100,35 @@ export class WebRuntimeService {
       parsed.value,
       options,
     );
-    if (!result.ok) return result;
+    if (!result.ok) {
+      const partial = result.error.partialObservation;
+      if (
+        partial !== undefined &&
+        !("evidence_id" in partial) &&
+        "selected_node" in partial &&
+        "listeners" in partial
+      ) {
+        const verifiedPartial = webEventListenersSchema.safeParse(partial);
+        if (verifiedPartial.success) {
+          const evidence = this.evidence(
+            operation,
+            parsed.value,
+            verifiedPartial.data,
+          );
+          if (evidence.ok) result.error.partialObservation = evidence.value;
+          else if (result.error instanceof AnalysisCancelledError)
+            return evidence;
+        } else if (result.error instanceof AnalysisCancelledError)
+          return err(
+            new AnalysisOutputError(
+              operation,
+              "Provider retained malformed completed event-listener data.",
+              { cause: verifiedPartial.error },
+            ),
+          );
+      }
+      return result;
+    }
     const verified = webEventListenersSchema.safeParse(result.value);
     if (!verified.success)
       return err(new AnalysisOutputError(operation, verified.error.message));
@@ -98,8 +155,6 @@ export class WebRuntimeService {
       | z.infer<typeof webEventListenersSchema>,
     options?: ExecutionOptions,
   ): Result<Evidence, AnalysisError> {
-    if (options?.signal?.aborted)
-      return err(new AnalysisCancelledError(operation));
     if (
       input.allowed_origins.length > 0 &&
       !input.allowed_origins.includes(result.target.origin)
@@ -110,16 +165,17 @@ export class WebRuntimeService {
           "Provider returned a document outside the selected origin scope.",
         ),
       );
-    return ok(
+    return completeProviderEvidence(
       createEvidence(undefined, this.provider.identity(), {
         predicateType: `rea.${operation.replaceAll("_", "-")}`,
         operation,
         parameters: jsonObjectSchema.parse(input),
-        result: jsonValueSchema.parse(result),
+        result,
         confidence: "observed",
         authority: "external-service",
         limitations: result.limitations,
       }),
+      options?.signal,
     );
   }
 }

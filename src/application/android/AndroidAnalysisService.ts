@@ -12,7 +12,8 @@ import {
 import type { AnalysisError } from "../../domain/analysisErrorBase.js";
 import { createEvidence, type Evidence } from "../../domain/evidence.js";
 import { jsonObjectSchema } from "../../domain/jsonValue.js";
-import { err, ok, type Result } from "../../domain/result.js";
+import { err, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
 
 /** Shared CLI/MCP admission, execution and Evidence composition for Android. */
 export class AndroidAnalysisService {
@@ -41,7 +42,7 @@ export class AndroidAnalysisService {
     );
     if (!executed.ok) return executed;
     const execution = executed.value;
-    return ok(
+    return completeProviderEvidence(
       createEvidence(execution.subject ?? target.value, execution.provider, {
         operation,
         parameters: jsonObjectSchema.parse(request.data.input),
@@ -52,6 +53,7 @@ export class AndroidAnalysisService {
         confidence:
           operation === "inspect_android_method" ? "derived" : "observed",
       }),
+      options?.signal,
     );
   }
 }
