@@ -78,6 +78,10 @@ const scenario = (
     },
   });
 
+const connectedPlatformEmulationLimitation = expect.stringContaining(
+  "Detaching a CDP page session may clear caller-owned navigator.platform emulation",
+);
+
 type SnapshotKind = BrowserScenario["capture"]["after_each_step"][number];
 
 interface FakeSessionFailures {
@@ -117,6 +121,7 @@ class FakeSession implements BrowserScenarioSessionPort {
   performCalls = 0;
   captureCalls = 0;
   onPerform: (() => void) | undefined;
+  onClose: (() => void) | undefined;
   eventGaps: readonly string[] = [];
   eventItems: readonly BrowserScenarioEvent[] = [];
 
@@ -206,6 +211,7 @@ class FakeSession implements BrowserScenarioSessionPort {
 
   close() {
     this.closeCalls += 1;
+    this.onClose?.();
     if (this.failures.close !== undefined)
       return Promise.reject(this.failures.close);
     return Promise.resolve(
@@ -355,7 +361,9 @@ describe("PlaywrightBrowserScenarioProvider", () => {
     expect(session.closeCalls).toBe(1);
     expect(result.value.completeness.equality_eligible).toBe(false);
   });
+});
 
+describe("connected browser scenario captures", () => {
   it("disconnects external CDP sessions and marks pre-attach events missing", async () => {
     const session = new FakeSession("connect");
     const provider = new PlaywrightBrowserScenarioProvider(() =>
@@ -374,7 +382,36 @@ describe("PlaywrightBrowserScenarioProvider", () => {
       equality_eligible: false,
       missing_sections: ["events"],
     });
+    expect(result.value.limitations).toEqual(
+      expect.arrayContaining([connectedPlatformEmulationLimitation]),
+    );
     expect(session.closeCalls).toBe(1);
+  });
+
+  it("retains the attached platform-emulation limitation in partial observations", async () => {
+    const session = new FakeSession("connect", {
+      capture: { call: 1, error: new Error("fixture capture failure") },
+    });
+    const provider = new PlaywrightBrowserScenarioProvider(() =>
+      Promise.resolve(session),
+    );
+    const result = await provider.captureScenario(
+      scenario({ mode: "connect" }),
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(projectAnalysisError(result.error)).toMatchObject({
+      details: {
+        partial_observation: {
+          capture: {
+            limitations: expect.arrayContaining([
+              connectedPlatformEmulationLimitation,
+            ]),
+          },
+        },
+      },
+    });
   });
 });
 
@@ -660,17 +697,97 @@ describe("PlaywrightBrowserScenarioProvider request cancellation", () => {
 
   it("cancels an active action and still closes the session", async () => {
     const controller = new AbortController();
+    const cancellationReason = new Error("cancel active scenario");
     const session = new FakeSession("launch");
-    session.onPerform = () => controller.abort();
+    session.onPerform = () => controller.abort(cancellationReason);
     const provider = new PlaywrightBrowserScenarioProvider(() =>
       Promise.resolve(session),
     );
     const result = await provider.captureScenario(scenario(), {
       signal: controller.signal,
     });
-    if (!result.ok) throw result.error;
-    expect(result.value.steps[1]?.status).toBe("cancelled");
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        _tag: "AnalysisCancelledError",
+        partialObservation: {
+          kind: "browser-scenario-observation",
+          capture: {
+            browser: { cleanup: "terminated-owned-process" },
+            steps: [{ status: "completed" }, { status: "cancelled" }],
+          },
+        },
+      },
+    });
+    if (result.ok) throw new Error("Expected active scenario cancellation");
+    expect(result.error.cause).toBe(cancellationReason);
     expect(session.closeCalls).toBe(1);
+  });
+
+  it("retains the completed capture when cancellation arrives during final close", async () => {
+    const controller = new AbortController();
+    const cancellationReason = new Error("cancel final close");
+    const session = new FakeSession("launch");
+    session.onClose = () => controller.abort(cancellationReason);
+    const provider = new PlaywrightBrowserScenarioProvider(() =>
+      Promise.resolve(session),
+    );
+
+    const result = await provider.captureScenario(scenario(), {
+      signal: controller.signal,
+    });
+
+    expect(session.closeCalls).toBe(1);
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        _tag: "AnalysisCancelledError",
+        partialObservation: {
+          kind: "browser-scenario-observation",
+          capture: {
+            browser: { cleanup: "terminated-owned-process" },
+            steps: [{ status: "completed" }, { status: "completed" }],
+          },
+        },
+      },
+    });
+    if (result.ok) throw new Error("Expected final-close cancellation");
+    expect(result.error.cause).toBe(cancellationReason);
+  });
+
+  it("keeps cleanup failure primary when cancellation arrives during a failed close", async () => {
+    const controller = new AbortController();
+    const session = new FakeSession("launch", {
+      close: new Error("fixture close failed"),
+    });
+    session.onClose = () => controller.abort();
+    const provider = new PlaywrightBrowserScenarioProvider(() =>
+      Promise.resolve(session),
+    );
+
+    const result = await provider.captureScenario(scenario(), {
+      signal: controller.signal,
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        _tag: "BrowserObservationError",
+        reason: "cleanup_failed",
+        partialObservation: {
+          kind: "browser-scenario-observation",
+          capture: {
+            browser: { cleanup: "incomplete" },
+            steps: [{ status: "completed" }, { status: "completed" }],
+          },
+        },
+      },
+    });
+    await expect(provider.close()).rejects.toMatchObject({
+      _tag: "ProviderAdapterError",
+      operation: "capture_browser_scenario",
+    });
+    expect(session.closeCalls).toBe(2);
   });
 });
 
@@ -730,3 +847,49 @@ it("keeps failed event finalization failed across cleanup retries", async () => 
   expect(finishEvents).toHaveBeenCalledTimes(1);
   expect(closeBrowser).toHaveBeenCalledTimes(1);
 });
+
+it.each(["launch", "connect"] as const)(
+  "reports locale coverage in %s success and retained operation/cleanup failures",
+  async (mode) => {
+    const input = scenario({ mode });
+    input.environment.locale = "fr-FR";
+    for (const failures of [
+      {},
+      {
+        capture: {
+          call: 1,
+          error: new AnalysisCancelledError("capture_browser_scenario"),
+        },
+      },
+      { close: new Error("fixture cleanup interrupted") },
+    ]) {
+      const session = new FakeSession(mode, failures);
+      const provider = new PlaywrightBrowserScenarioProvider(
+        async () => session,
+      );
+      const result = await provider.captureScenario(input);
+      expect(result.ok).toBe(!("capture" in failures || "close" in failures));
+      const expected = {
+        limitations:
+          mode === "connect"
+            ? expect.arrayContaining([
+                "Attached locale fr-FR applies to Intl formatting only; navigator.language(s) and Accept-Language remain caller-controlled. Use launch mode for matching page and request languages.",
+              ])
+            : expect.not.arrayContaining([
+                expect.stringContaining("Attached locale"),
+              ]),
+      };
+      if (result.ok) expect(result.value).toMatchObject(expected);
+      else
+        expect(projectAnalysisError(result.error)).toMatchObject({
+          details: {
+            partial_observation: {
+              kind: "browser-scenario-observation",
+              capture: expected,
+            },
+          },
+        });
+      expect(session.closeCalls).toBe(1);
+    }
+  },
+);

@@ -1,13 +1,22 @@
 // Fixture-backed action coverage; real Electron verification lives in
 // `npm run verify:electron`.
-import { expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
+import type { ElectronApplication } from "playwright-core";
 
 import {
   electronActiveObservationInputSchema,
   electronActiveObservationResultSchema,
 } from "../domain/javascript/electronActiveObservation.js";
 import { createElectronActiveObservationFixtureResult } from "../domain/javascript/electronActiveObservation.fixture.js";
-import { runElectronActions } from "./PlaywrightElectronActiveActions.js";
+import {
+  readFinalApplicationState,
+  runElectronActions,
+  runWithExecutionLimits,
+} from "./PlaywrightElectronActiveActions.js";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 it("requires observed Electron retention and coverage instead of repairing old results", () => {
   const result = createElectronActiveObservationFixtureResult("/opt/app");
@@ -366,4 +375,181 @@ it("rejects action outcomes that disagree with their error state", () => {
       actions: [{ ...action, status: "failed", error: null }],
     }).success,
   ).toBe(false);
+});
+
+it("cancels a wait without window_index while the app has no window", async () => {
+  const controller = new AbortController();
+  const application = {
+    firstWindow: vi.fn(() => {
+      queueMicrotask(() => controller.abort());
+      return new Promise<never>(() => undefined);
+    }),
+  } as unknown as ElectronApplication;
+
+  const actions = await runElectronActions(
+    application,
+    electronActiveObservationInputSchema.parse({
+      executable_path: "/opt/electron",
+      application_path: "/opt/app/main.js",
+      application_root: "/opt/app",
+      actions: [{ step_id: "settle", kind: "wait", duration_ms: 10 }],
+    }),
+    { signal: controller.signal },
+  );
+
+  expect(actions).toEqual([
+    {
+      step_id: "settle",
+      kind: "wait",
+      window_index: null,
+      target: null,
+      status: "cancelled",
+      elapsed_ms: expect.any(Number),
+      error: expect.stringContaining("cancel"),
+    },
+  ]);
+});
+
+it("bounds a final state read that is still pending after cancellation", async () => {
+  vi.useFakeTimers();
+  const controller = new AbortController();
+  const application = {
+    evaluate: vi.fn(() => new Promise<never>(() => undefined)),
+  } as unknown as ElectronApplication;
+
+  const reason = new Error("caller-reason");
+
+  const state = readFinalApplicationState(application, controller.signal);
+  const outcome = state.then(
+    () => null,
+    (cause: unknown) => cause,
+  );
+  controller.abort(reason);
+  await vi.advanceTimersByTimeAsync(4_000);
+  expect(await Promise.race([outcome, Promise.resolve("pending")])).toBe(
+    "pending",
+  );
+  await vi.advanceTimersByTimeAsync(1_000);
+
+  const cause = await outcome;
+  expect(cause).toMatchObject({
+    _tag: "BrowserObservationError",
+    reason: "cancelled",
+    diagnostics: {
+      final_state_read: "cancellation_grace_expired",
+      cancellation_grace_ms: 5_000,
+    },
+  });
+  expect((cause as Error).cause).toBe(reason);
+});
+
+it("keeps a final state read failure inside the cancellation grace period primary", async () => {
+  const controller = new AbortController();
+  controller.abort(new Error("caller-reason"));
+  const failure = new Error("renderer state unavailable");
+  const application = {
+    evaluate: vi.fn(() => Promise.reject(failure)),
+  } as unknown as ElectronApplication;
+
+  await expect(
+    readFinalApplicationState(application, controller.signal),
+  ).rejects.toBe(failure);
+});
+
+const finalState = {
+  windows: [],
+  metrics: [],
+  electronVersion: "44.0.0",
+  hookSnapshot: {
+    events: [],
+    retention_budget_bytes: 0,
+    estimated_retained_bytes: 0,
+    event_serialized_byte_upper_bound: 0,
+    retained: 0,
+    dropped: 0,
+    dropped_ipc: 0,
+    dropped_runtime: 0,
+    dropped_event_families: [],
+    dropped_event_roles: [],
+    observed: 0,
+    observed_ipc: 0,
+    observed_runtime: 0,
+    hook_error: false,
+  },
+};
+
+/** An application whose four state reads settle only when `release` runs. */
+const gatedStateApplication = () => {
+  let release = (): void => undefined;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const evaluate = vi
+    .fn()
+    .mockImplementationOnce(() => gate.then(() => finalState.windows))
+    .mockImplementationOnce(() => gate.then(() => finalState.metrics))
+    .mockImplementationOnce(() => gate.then(() => finalState.electronVersion))
+    .mockImplementationOnce(() => gate.then(() => finalState.hookSnapshot));
+  return {
+    application: { evaluate } as unknown as ElectronApplication,
+    release,
+  };
+};
+
+it("returns a final state read that settles in the grace period after cancellation during the read", async () => {
+  vi.useFakeTimers();
+  const controller = new AbortController();
+  const { application, release } = gatedStateApplication();
+
+  const state = readFinalApplicationState(application, controller.signal);
+  controller.abort();
+  await vi.advanceTimersByTimeAsync(1_000);
+  release();
+
+  await expect(state).resolves.toEqual(finalState);
+});
+
+it("returns a final state read that settles in the grace period when cancellation preceded it", async () => {
+  vi.useFakeTimers();
+  const controller = new AbortController();
+  controller.abort();
+  const { application, release } = gatedStateApplication();
+
+  const state = readFinalApplicationState(application, controller.signal);
+  await vi.advanceTimersByTimeAsync(1_000);
+  release();
+
+  await expect(state).resolves.toEqual(finalState);
+});
+
+it("observes an operation abandoned by an already-cancelled signal", async () => {
+  const unhandled: unknown[] = [];
+  const recordUnhandled = (reason: unknown) => {
+    unhandled.push(reason);
+  };
+  process.on("unhandledRejection", recordUnhandled);
+  try {
+    const controller = new AbortController();
+    const reason = new Error("caller-reason");
+    controller.abort(reason);
+    let reject = (_cause: Error): void => undefined;
+    const operation = new Promise<never>((_, rejectOperation) => {
+      reject = rejectOperation;
+    });
+
+    await expect(
+      runWithExecutionLimits(operation, controller.signal),
+    ).rejects.toMatchObject({
+      _tag: "BrowserObservationError",
+      reason: "cancelled",
+      cause: reason,
+    });
+    reject(new Error("application closed during cleanup"));
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(unhandled).toEqual([]);
+  } finally {
+    process.off("unhandledRejection", recordUnhandled);
+  }
 });

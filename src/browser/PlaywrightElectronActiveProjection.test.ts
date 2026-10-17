@@ -2,28 +2,87 @@ import { expect, it } from "vitest";
 
 import { projectElectronActiveCapture } from "./PlaywrightElectronActiveProjection.js";
 
+const event = {
+  sequence: 1,
+  correlation_id: "capture:123:1",
+  kind: "main-handler-invocation" as const,
+  event: null,
+  phase: "observed" as const,
+  channel: "readiness:echo",
+  direction: "renderer-to-main" as const,
+  sender: null,
+  receiver: "main",
+  frame: null,
+  target: null,
+  argument_shapes: [],
+  result_shape: null,
+  process_type: "main",
+  source: "electron-active-hook",
+  capture_method: "api-wrapper" as const,
+  artifact_path: null,
+  artifact_sha256: null,
+  error: false,
+};
+
+it.each(["custom-apply", "listener-chain"])(
+  "keeps %s gaps distinct from captured IPC and retention loss",
+  (boundary) => {
+    const result = projectElectronActiveCapture(
+      { executable: "/opt/electron", application: "/opt/app/main.js" },
+      [],
+      {
+        windows: [],
+        metrics: [],
+        electronVersion: "test-electron",
+        hookSnapshot: {
+          events: [
+            {
+              ...event,
+              kind: "ipc-observation-gap",
+              event: boundary,
+              channel: "custom",
+              direction: null,
+              receiver: null,
+              target: "ipcMain.on",
+            },
+          ],
+          retention_budget_bytes: 16 * 1024 * 1024,
+          estimated_retained_bytes: 1_024,
+          event_serialized_byte_upper_bound: 512,
+          retained: 1,
+          dropped: 2,
+          dropped_ipc: 0,
+          dropped_runtime: 2,
+          dropped_event_families: [{ family: "ipc-observation-gap", count: 2 }],
+          dropped_event_roles: [{ role: "main", count: 2 }],
+          observed: 3,
+          observed_ipc: 0,
+          observed_runtime: 3,
+          hook_error: false,
+        },
+      },
+    );
+    expect(result.ipc).toEqual({ events: [], observed: 0, dropped: 0 });
+    expect(result.timeline.events[0]).toMatchObject({
+      kind: "ipc-observation-gap",
+      channel: "custom",
+    });
+    expect(result.coverage.status).toBe("partial_attach");
+    expect(result.coverage.observed_event_families).toContain(
+      "ipc-observation-gap",
+    );
+    expect(result.coverage.unavailable_event_families).toContain("ipc");
+    expect(result.retention.dropped).toBe(2);
+    expect(result.limitations).toContainEqual(
+      expect.stringContaining("unobserved callback arguments and execution"),
+    );
+    expect(result.limitations).not.toContain(
+      "The active IPC hook could not be installed.",
+    );
+  },
+);
+
 it("projects hook retention and dropped event families through the result schema", () => {
-  const event = {
-    sequence: 1,
-    correlation_id: "capture:123:1",
-    kind: "main-handler-invocation" as const,
-    event: null,
-    phase: "observed" as const,
-    channel: "readiness:echo",
-    direction: "renderer-to-main" as const,
-    sender: null,
-    receiver: "main",
-    frame: null,
-    target: null,
-    argument_shapes: [],
-    result_shape: null,
-    process_type: "main",
-    source: "electron-active-hook",
-    capture_method: "api-wrapper" as const,
-    artifact_path: null,
-    artifact_sha256: null,
-    error: false,
-  };
   const result = projectElectronActiveCapture(
     {
       executable: "/opt/electron",
