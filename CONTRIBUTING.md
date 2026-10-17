@@ -225,7 +225,10 @@ manifest. A source checkout does not: `native/windows/build/` is ignored by
 Git, and neither `npm ci` nor `npm run build:cached` (or `npm run build`)
 produces `rea-windows-x64.node` or `manifest.json` in that directory.
 Windows workflows and tests that require native controls need these artifacts;
-without them, those controls are unavailable even after a successful runtime build.
+this includes `run-exclusive` commands, which use the native Job Object to keep
+the artifact lock until every command descendant has exited. Without the
+artifacts, those controls are unavailable even after a successful runtime
+build.
 
 Follow the [Windows native build guide](native/windows/README.md#build) before
 running those workflows from source. The artifact build requires Linux,
@@ -254,6 +257,23 @@ The separate GitHub Pages host uses only the manual
 `.github/workflows/website-pages.yml` workflow on `main`. The repository's
 **Settings → Pages → Build and deployment → Source** must be set to
 **GitHub Actions** before deploying there.
+
+### Translation corrections
+
+README editions and website editions have separate translation sources:
+
+- Find the language's `readme` path in the
+  [language inventory](website/locales/languages.json) and edit that file.
+  Locale codes and README suffixes can differ. Use the
+  [English README](README.md) to check commands, requirements, and analysis claims.
+- Edit `msgstr` values in `website/locales/<language>/messages.po` for website
+  text. Follow the [website translation guide](website/locales/README.md) for
+  the Python environment, catalog validation, and local preview. Preserve source
+  strings, contexts, placeholders, commands, paths, and recorded evidence.
+
+Before submitting a website translation, run the catalog and website checks in
+that guide. Translated HTML in `website/_site/` is generated; edit the PO catalog
+rather than the generated pages.
 
 ## Development feedback and PR verification
 
