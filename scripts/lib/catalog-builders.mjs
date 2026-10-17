@@ -220,6 +220,13 @@ export const providerCatalog = (sources) => {
       contracts: declaredContracts("ida", sources.idaProvider.IDA_OPERATIONS),
     },
     {
+      identity: sources.kunaProvider.KUNA_PROVIDER_IDENTITY,
+      contracts: declaredContracts(
+        "kuna",
+        sources.kunaProvider.KUNA_OPERATIONS,
+      ),
+    },
+    {
       identity: sources.nativeProvider.NATIVE_MACOS_PROVIDER_IDENTITY,
       contracts: sources.nativeContracts.NATIVE_TOOL_CONTRACTS,
     },

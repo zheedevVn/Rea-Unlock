@@ -10,6 +10,7 @@ import {
   runScenarioCli,
   scenarioProfiles,
 } from "./browser-scenario-verifier.mjs";
+import { closeVerifierResources } from "./verifier-cleanup.mjs";
 
 const scenarioFor = (browser, origin) =>
   browserScenarioSchema.parse({
@@ -299,6 +300,7 @@ const verifyConnectedStorage = async (endpoint, targetId, origin) => {
     target.webSocketDebuggerUrl,
     "capture_browser_scenario",
   );
+  let failure;
   try {
     await assertStorageKeyPartition(observer, origin);
     const result = await runScenarioCli(scenario);
@@ -313,11 +315,14 @@ const verifyConnectedStorage = async (endpoint, targetId, origin) => {
     assert.equal(capture.browser.cleanup, "disconnected-external");
     await verifyCallerDebuggerPause(observer, origin, scenario);
     await verifyCancelledStorage(observer, endpoint, targetId, scenario);
+  } catch (cause) {
+    failure = cause;
+    throw cause;
   } finally {
-    await raceWithTimeout(restoreTarget(observer, target.url), 1_000).catch(
-      () => undefined,
+    await closeVerifierResources(
+      [() => restoreTarget(observer, target.url), () => observer.close()],
+      failure,
     );
-    await raceWithTimeout(observer.close(), 1_000).catch(() => undefined);
   }
 };
 
@@ -503,7 +508,8 @@ const verifyCallerDebuggerPause = async (caller, origin, scenario) => {
     ],
   });
   let settled = false;
-  const pending = createBrowserScenarioProvider(process.env)
+  const provider = createBrowserScenarioProvider(process.env);
+  const pending = provider
     .captureScenario(debuggerScenario, { signal: controller.signal })
     .finally(() => {
       settled = true;
@@ -586,9 +592,10 @@ const verifyCallerDebuggerPause = async (caller, origin, scenario) => {
     });
   } finally {
     unsubscribe();
-    await raceWithTimeout(caller.send("Debugger.disable"), 1_000).catch(
-      () => undefined,
-    );
+    await closeVerifierResources([
+      () => caller.send("Debugger.disable"),
+      () => provider.close(),
+    ]);
   }
 };
 
@@ -615,38 +622,48 @@ const verifyCancelledStorage = async (
     expression: "performance.timeOrigin",
     returnByValue: true,
   });
-  const pending = createBrowserScenarioProvider(process.env).captureScenario(
-    cancelledScenario,
-    { signal: controller.signal },
-  );
-  await waitForNewDocument(
-    observer,
-    "/storage-main",
-    priorDocument.result.value,
-  );
-  const state = await observer.send("Runtime.evaluate", {
-    expression:
-      "JSON.parse(document.querySelector('#main-report').textContent)",
-    returnByValue: true,
+  const provider = createBrowserScenarioProvider(process.env);
+  const pending = provider.captureScenario(cancelledScenario, {
+    signal: controller.signal,
   });
-  assert.deepEqual(state.result.value, {
-    local: "main-initial",
-    session: "main-session-initial",
-    removed: "main-remove-seed",
-    empty: "main-empty-seed",
-  });
-  controller.abort(new Error("cancel storage seed scenario"));
-  const result = await pending;
-  assert.ok(
-    !result.ok ||
-      result.value.steps.some(({ status }) => status === "cancelled"),
-    "Cancellation unexpectedly completed every scenario step",
-  );
-  const targets = await (await fetch(`${endpoint}/json/list`)).json();
-  assert.ok(
-    targets.some(({ id }) => id === targetId),
-    "Cancelled connect-mode storage cleanup closed the external target",
-  );
+  let failure;
+  try {
+    await waitForNewDocument(
+      observer,
+      "/storage-main",
+      priorDocument.result.value,
+    );
+    const state = await observer.send("Runtime.evaluate", {
+      expression:
+        "JSON.parse(document.querySelector('#main-report').textContent)",
+      returnByValue: true,
+    });
+    assert.deepEqual(state.result.value, {
+      local: "main-initial",
+      session: "main-session-initial",
+      removed: "main-remove-seed",
+      empty: "main-empty-seed",
+    });
+    controller.abort(new Error("cancel storage seed scenario"));
+    const result = await pending;
+    if (result.ok)
+      assert.ok(
+        result.value.steps.some(({ status }) => status === "cancelled"),
+        "Cancellation unexpectedly completed every scenario step",
+      );
+    else assert.equal(result.error._tag, "AnalysisCancelledError");
+    const targets = await (await fetch(`${endpoint}/json/list`)).json();
+    assert.ok(
+      targets.some(({ id }) => id === targetId),
+      "Cancelled connect-mode storage cleanup closed the external target",
+    );
+  } catch (cause) {
+    failure = cause;
+    throw cause;
+  } finally {
+    controller.abort(new Error("cancel failed storage verification"));
+    await closeVerifierResources([() => provider.close()], failure);
+  }
 };
 
 const waitForNewDocument = async (connection, path, priorTimeOrigin) => {
@@ -669,15 +686,38 @@ const waitForNewDocument = async (connection, path, priorTimeOrigin) => {
 };
 
 const restoreTarget = async (connection, url) => {
-  await connection.send("Page.navigate", { url });
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
-    const result = await connection.send("Runtime.evaluate", {
-      expression: "location.href",
-      returnByValue: true,
-    });
-    if (result.result.value === url) return;
-    await new Promise((resolve) => setTimeout(resolve, 25));
+  const loaded = new Set();
+  let loaderId;
+  let resolveLoaded;
+  const load = new Promise((resolve) => {
+    resolveLoaded = resolve;
+  });
+  const unsubscribe = connection.onEvent((event) => {
+    if (
+      event.method !== "Page.lifecycleEvent" ||
+      event.params?.name !== "load" ||
+      typeof event.params.loaderId !== "string"
+    )
+      return;
+    loaded.add(event.params.loaderId);
+    if (event.params.loaderId === loaderId) resolveLoaded();
+  });
+  try {
+    await connection.send("Page.setLifecycleEventsEnabled", { enabled: true });
+    const navigation = await connection.send("Page.navigate", { url });
+    assert.equal(navigation.errorText, undefined);
+    assert.equal(typeof navigation.loaderId, "string");
+    loaderId = navigation.loaderId;
+    // A URL changes at commit, before old child frames have been retired.
+    // Do not hand the shared page to the next verifier until this load ends.
+    if (!loaded.has(loaderId))
+      await raceWithTimeout(load, 10_000, () => {
+        throw new Error(
+          "External browser did not finish restoring its document",
+        );
+      });
+  } finally {
+    unsubscribe();
+    await connection.send("Page.setLifecycleEventsEnabled", { enabled: false });
   }
-  throw new Error("External browser did not return to its original URL");
 };

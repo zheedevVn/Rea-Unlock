@@ -11,6 +11,7 @@ import { browserScenarioSchema } from "../../dist/domain/browserScenario.js";
 import { AnalysisCancelledError } from "../../dist/domain/analysisErrorCore.js";
 import { runScenarioCli } from "./browser-scenario-verifier.mjs";
 import { requireMcpEvidenceResult } from "./mcp-verifier-results.mjs";
+import { closeVerifierResources } from "./verifier-cleanup.mjs";
 
 const expected = {
   timezone: "Pacific/Honolulu",
@@ -96,8 +97,32 @@ const assertCapture = (capture, values = expected) => {
   }
 };
 
+const assertCallerLanguage = (capture, baseline) => {
+  assert.ok(
+    capture.limitations.some((value) =>
+      value.includes("Attached locale fr-FR applies to Intl formatting only"),
+    ),
+    "Attached capture must identify its page/request language limitation",
+  );
+  for (const step of capture.steps) {
+    const text = step.artifacts.dom.value.text;
+    const observed = /<pre id="language">([^<]+)<\/pre>/u.exec(text);
+    assert.ok(
+      observed,
+      "DOM omitted the navigator/request language observations",
+    );
+    assert.deepEqual(JSON.parse(observed[1]), baseline);
+  }
+};
+
 /** Verify actual attached-page emulation and restoration across scenario outcomes. */
 export async function verifyScenarioEnvironment(endpoint, targetId, origin) {
+  const languageExpression = `(async () => JSON.stringify({
+    language: navigator.language, languages: [...navigator.languages],
+    request_language: await (await fetch(
+      ${JSON.stringify(`${origin}/scenario-request-language`)}, { cache: "no-store" }
+    )).json()
+  }))()`;
   const targets = await (await fetch(`${endpoint}/json/list`)).json();
   const target = targets.find(({ id }) => id === targetId);
   assert.ok(target, "External fixture target is missing");
@@ -105,28 +130,38 @@ export async function verifyScenarioEnvironment(endpoint, targetId, origin) {
     target.webSocketDebuggerUrl,
     "capture_browser_scenario",
   );
-  const readEnvironment = async () => {
+  const readEnvironment = async (expressionToRead = expression) => {
     const value = await connection.send("Runtime.evaluate", {
-      expression,
+      expression: expressionToRead,
       returnByValue: true,
+      awaitPromise: true,
     });
     assert.equal(value.result.type, "string");
     return JSON.parse(value.result.value);
   };
-  const baseline = await readEnvironment();
-  const scenario = environmentScenario({
-    endpoint,
-    targetId,
-    origin,
-    values: expected,
-  });
-  const assertRestored = async () => {
-    assert.deepEqual(await readEnvironment(), baseline);
-    const remaining = await (await fetch(`${endpoint}/json/list`)).json();
-    assert.ok(remaining.some(({ id }) => id === targetId));
-  };
+  const provider = createBrowserScenarioProvider(process.env);
+  let verificationError;
   try {
-    assertCapture((await runScenarioCli(scenario)).normalized_result);
+    const baseline = await readEnvironment();
+    const callerLanguage = await readEnvironment(languageExpression);
+    const scenario = environmentScenario({
+      endpoint,
+      targetId,
+      origin,
+      values: expected,
+    });
+    const assertRestored = async () => {
+      assert.deepEqual(await readEnvironment(), baseline);
+      assert.deepEqual(
+        await readEnvironment(languageExpression),
+        callerLanguage,
+      );
+      const remaining = await (await fetch(`${endpoint}/json/list`)).json();
+      assert.ok(remaining.some(({ id }) => id === targetId));
+    };
+    const cliCapture = (await runScenarioCli(scenario)).normalized_result;
+    assertCapture(cliCapture);
+    assertCallerLanguage(cliCapture, callerLanguage);
     await assertRestored();
     const transport = new StdioClientTransport({
       command: process.execPath,
@@ -144,15 +179,15 @@ export async function verifyScenarioEnvironment(endpoint, targetId, origin) {
         ({ name }) => name === "capture_browser_scenario",
       );
       assert.ok(definition, "Scenario tool is absent from the current catalog");
-      assertCapture(
-        requireMcpEvidenceResult(
-          await client.callTool(
-            { name: "capture_browser_scenario", arguments: scenario },
-            { toolDefinition: definition },
-          ),
-          "capture_browser_scenario",
+      const mcpCapture = requireMcpEvidenceResult(
+        await client.callTool(
+          { name: "capture_browser_scenario", arguments: scenario },
+          { toolDefinition: definition },
         ),
+        "capture_browser_scenario",
       );
+      assertCapture(mcpCapture);
+      assertCallerLanguage(mcpCapture, callerLanguage);
       await verifyConcurrentMcpCapture({
         client,
         definition,
@@ -167,7 +202,6 @@ export async function verifyScenarioEnvironment(endpoint, targetId, origin) {
       await transport.close();
     }
     await assertRestored();
-    const provider = createBrowserScenarioProvider(process.env);
     const initializationFailure = await provider.captureScenario({
       ...scenario,
       environment: { ...scenario.environment, timezone: "REA/Invalid" },
@@ -199,13 +233,21 @@ export async function verifyScenarioEnvironment(endpoint, targetId, origin) {
       stdio_mcp: true,
       observed: expected,
       restored: baseline,
+      caller_language_preserved: callerLanguage,
+      attached_locale_limitation: true,
       initialization_failure_cleanup: true,
       action_failure_cleanup: true,
       cancellation_cleanup: true,
       external_target_preserved: true,
     };
+  } catch (cause) {
+    verificationError = cause;
+    throw cause;
   } finally {
-    await connection.close();
+    await closeVerifierResources(
+      [() => provider.close(), () => connection.close()],
+      verificationError,
+    );
   }
 }
 
@@ -356,7 +398,11 @@ const releaseScenario = async (connection) => {
   });
 };
 
-async function verifyCancelledEnvironment(provider, connection, scenario) {
+export async function verifyCancelledEnvironment(
+  provider,
+  connection,
+  scenario,
+) {
   const controller = new AbortController();
   const priorSnapshot = await readScenarioSnapshot(connection);
   const pending = provider.captureScenario(
@@ -378,9 +424,15 @@ async function verifyCancelledEnvironment(provider, connection, scenario) {
     await settlement;
   }
   const cancelled = await pending;
-  assert.ok(
-    !cancelled.ok ||
+  if (!cancelled.ok) {
+    if (!(cancelled.error instanceof AnalysisCancelledError))
+      throw cancelled.error;
+    assert.equal(cancelled.error.cleanupIncomplete, false);
+  } else {
+    assert.ok(
       cancelled.value.steps.some(({ status }) => status === "cancelled"),
-    "Cancellation unexpectedly completed every action",
-  );
+      "Cancellation unexpectedly completed every action",
+    );
+    assert.equal(cancelled.value.browser.cleanup, "disconnected-external");
+  }
 }
