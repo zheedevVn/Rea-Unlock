@@ -91,6 +91,10 @@ host permission denial, changed artifacts and cancellation retain distinct
 errors. The selected file is never modified; this inspection creates no
 temporary files, starts no subprocesses and accesses no network endpoint.
 
+An input above 256 MiB returns `resource_constraint` with resource `file-size`
+and `reported_limits.maximum_input_bytes`. Select a suitable input within that
+fixed allowance; changing an output-write or transport budget does not admit it.
+
 Resource guards bound the selected file and cumulative header searches to 256 MiB
 each, aggregate embedded strings
 to 1 MiB, structural table decoding to 16 MiB and the complete normalized metadata

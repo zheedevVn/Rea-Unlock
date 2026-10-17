@@ -103,6 +103,12 @@ existing analysis families directly, for example
 | `start_adb_activity`    | **mutates device** | Starts an intent (`am start -a` with optional URI, component, and up to 16 typed extras); preserves the activity manager's verdict                                                                                                    |
 | `stop_adb_app`          | **mutates device** | Force-stops every process of a package, ending a dynamic-analysis run                                                                                                                                                                 |
 
+For `inspect_adb_window`, an explicitly printed null focus reference becomes
+JSON `null`. `observed_lines` retains the original focus declarations, including
+their field names, so explicit absence can be distinguished from omitted
+declarations. REA reads the displays section only when the windows section
+declares neither focus field. If both sections omit them, focus remains unknown.
+
 For `install_adb_package`, `replace_requested` records whether `-r` was sent.
 The `replaced` result is `null`: the successful install response does not say
 whether the package was installed fresh or replaced, and REA does not query the

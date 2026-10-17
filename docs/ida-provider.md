@@ -8,6 +8,8 @@ Choose one lifecycle mode in an upstream MCP JSON registration. Set `REA_IDA_MCP
 
 Each mode accepts one upstream tool profile, checked against `tools/list` before any analysis runs. The attached profile requires the legacy GUI tool names; upstream 2.0.0 renamed those tools, and REA has not established an equivalent attached-mode lifecycle and ownership contract for that catalog. It therefore fails closed with the missing tool names in the error diagnostics.
 
+Startup failures identify the accepted REA analysis operation. Missing-profile and typed startup transport failures retain the original stage in `details.diagnostics.startup_operation`; existing diagnostics, timeout budgets and resource limits remain available. Startup remains shared within a session; each caller receives its own operation attribution. Cancellation retains live cleanup ownership, so a successful retry releases the originating cancellation outcome as well.
+
 The headless profile is defined by the database-supervisor API, not by an upstream version string. The upstream source snapshot [`c133c385`](https://github.com/mrexodia/ida-pro-mcp/tree/c133c3853faa111a9b00ee615c013b720d0c4acd) includes `idb_close` (introduced by [upstream PR #495](https://github.com/mrexodia/ida-pro-mcp/pull/495)) alongside `idb_open` and `idb_list`. Earlier builds may report the same `2.0.0` version while lacking that tool, so REA checks the live catalog rather than treating a version number or branch name as a compatibility guarantee.
 
 | Mode     | Upstream profile    | Known working                                          |
