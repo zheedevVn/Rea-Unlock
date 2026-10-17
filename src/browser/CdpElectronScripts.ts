@@ -17,7 +17,6 @@ interface ElectronScriptCaptureInput {
   readonly signal?: AbortSignal;
   readonly request: InspectElectronPageInput;
   readonly scripts: readonly ElectronScriptDraft[];
-  readonly executionContextFrames: ReadonlyMap<string, string>;
   readonly frameIds: ReadonlySet<string>;
   readonly completeness: CdpCaptureCompleteness;
 }
@@ -35,14 +34,10 @@ export const captureElectronScripts = async (
       input.completeness.exclude("scripts", "out_of_target_scope");
       continue;
     }
-    const mappedFrame =
-      script.executionContextKey === null
-        ? undefined
-        : input.executionContextFrames.get(script.executionContextKey);
     const identity = {
       frame_id:
-        mappedFrame !== undefined && input.frameIds.has(mappedFrame)
-          ? mappedFrame
+        script.frameId !== null && input.frameIds.has(script.frameId)
+          ? script.frameId
           : null,
       file_path: path,
       cdp_hash: script.hash,

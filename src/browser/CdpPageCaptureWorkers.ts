@@ -1,10 +1,10 @@
 import type { WebPageInspection } from "../domain/browserObservationSchemas.js";
 import type { CdpCaptureEvents } from "./CdpCaptureEvents.js";
 import {
+  admitRecords,
   allowedSanitizedUrl,
   isHttpUrl,
   recordValue,
-  recordsValue,
   cdpStringValue,
 } from "./CdpCaptureValues.js";
 import type { CaptureContext } from "./CdpPageCapture.js";
@@ -31,14 +31,53 @@ export const captureWorkers = async (
   );
   const items: WebPageInspection["workers"] = [];
   if (result === undefined) completeness.unavailable("workers");
-  for (const target of recordsValue(recordValue(result)?.targetInfos)) {
-    const type = cdpStringValue(target.type) ?? "";
+  const targets = admitRecords(recordValue(result)?.targetInfos);
+  if (result !== undefined && targets === undefined) {
+    completeness.exclude("workers", "invalid_protocol_value", null);
+    return items;
+  }
+  let malformedEntries = 0;
+  for (const entry of targets ?? []) {
+    const target = recordValue(entry);
+    if (target === undefined) {
+      malformedEntries += 1;
+      continue;
+    }
+    const type = cdpStringValue(target.type);
+    if (type === undefined || type.length === 0) {
+      malformedEntries += 1;
+      continue;
+    }
+    if (!type.includes("worker")) continue;
+    const targetId = cdpStringValue(target.targetId);
+    if (
+      targetId === undefined ||
+      targetId.length === 0 ||
+      typeof target.attached !== "boolean" ||
+      typeof target.url !== "string"
+    ) {
+      malformedEntries += 1;
+      continue;
+    }
+    const openerId =
+      target.openerId === undefined
+        ? undefined
+        : cdpStringValue(target.openerId);
+    const parentFrameId =
+      target.parentFrameId === undefined
+        ? undefined
+        : cdpStringValue(target.parentFrameId);
+    if (
+      (target.openerId !== undefined && openerId === undefined) ||
+      (target.parentFrameId !== undefined && parentFrameId === undefined)
+    ) {
+      malformedEntries += 1;
+      continue;
+    }
     const url = allowedSanitizedUrl(target.url, allowedOrigins);
     const relatedToPage =
-      cdpStringValue(target.openerId) === context.target.id ||
-      (cdpStringValue(target.parentFrameId) !== undefined &&
-        frameIds.has(cdpStringValue(target.parentFrameId) ?? ""));
-    if (!type.includes("worker")) continue;
+      openerId === context.target.id ||
+      (parentFrameId !== undefined && frameIds.has(parentFrameId));
     if (!relatedToPage) {
       completeness.exclude("workers", "out_of_target_scope");
       continue;
@@ -55,19 +94,17 @@ export const captureWorkers = async (
       );
       continue;
     }
-    if (typeof target.attached !== "boolean") {
-      completeness.exclude("workers", "invalid_protocol_value");
-      continue;
-    }
     items.push({
-      target_id: cdpStringValue(target.targetId) ?? "",
+      target_id: targetId,
       type,
       url: url.url,
       origin: url.origin,
       attached: target.attached,
-      opener_target_id: cdpStringValue(target.openerId) ?? null,
-      parent_frame_id: cdpStringValue(target.parentFrameId) ?? null,
+      opener_target_id: openerId ?? null,
+      parent_frame_id: parentFrameId ?? null,
     });
   }
+  if (malformedEntries > 0)
+    completeness.exclude("workers", "invalid_protocol_value", malformedEntries);
   return items;
 };

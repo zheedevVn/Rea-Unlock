@@ -4,11 +4,7 @@ import type {
 } from "../domain/javascript/electronObservation.js";
 import type { CdpConnection } from "./CdpConnection.js";
 import { CdpCaptureCompleteness } from "./CdpCaptureCompleteness.js";
-import {
-  recordValue,
-  recordsValue,
-  cdpStringValue,
-} from "./CdpCaptureValues.js";
+import { recordValue, cdpStringValue } from "./CdpCaptureValues.js";
 import type { CdpEndpointTarget } from "./CdpEndpoint.js";
 import { optionalCdpCommand } from "./CdpOptionalCommand.js";
 import { authorizedElectronFile } from "./ElectronFileScope.js";
@@ -39,7 +35,18 @@ export const captureElectronWorkers = async (input: {
     return [];
   }
   const workers: ElectronPageInspection["workers"] = [];
-  for (const target of recordsValue(recordValue(result)?.targetInfos)) {
+  // A missing target list or a non-record entry is unreadable, not empty.
+  const targetInfos = recordValue(result)?.targetInfos;
+  if (!Array.isArray(targetInfos)) {
+    input.completeness.exclude("workers", "invalid_protocol_value", null);
+    return [];
+  }
+  for (const entry of targetInfos) {
+    const target = recordValue(entry);
+    if (target === undefined) {
+      input.completeness.exclude("workers", "invalid_protocol_value");
+      continue;
+    }
     const type = cdpStringValue(target.type) ?? "";
     if (!type.includes("worker")) continue;
     const openerTargetId = boundedTargetField(target.openerId);

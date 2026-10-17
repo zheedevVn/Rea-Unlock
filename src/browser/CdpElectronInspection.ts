@@ -12,11 +12,15 @@ import {
   delayWithCancellation,
   numberValue,
   recordValue,
-  recordsValue,
   requiredRecord,
   cdpStringValue,
 } from "./CdpCaptureValues.js";
-import { walkFrameTrees } from "./CdpCaptureDocuments.js";
+import {
+  frameTreeResources,
+  snapshotDocumentNodes,
+  snapshotDocuments,
+  walkFrameTrees,
+} from "./CdpCaptureDocuments.js";
 import {
   ingestElectronScriptEvent,
   type ElectronScriptDraft,
@@ -188,7 +192,6 @@ const captureElectronContent = async (
     ...(context.signal === undefined ? {} : { signal: context.signal }),
     request: context.input,
     scripts: state.scripts,
-    executionContextFrames: state.executionContextFrames,
     frameIds,
     completeness: state.completeness,
   });
@@ -276,38 +279,34 @@ const captureResources = async (
   const root = recordValue(requiredRecord(result).frameTree);
   if (root === undefined)
     throw new BrowserObservationError("inspect_web_page", "protocol_error");
-  const pending = [root];
   const resources: ElectronPageInspection["resources"] = [];
   const seen = new Set<string>();
-  while (pending.length > 0) {
-    const tree = pending.shift();
-    if (tree === undefined) break;
-    for (const resource of recordsValue(tree.resources)) {
-      const path = await authorizedElectronFile(
-        cdpStringValue(resource.url) ?? "",
-      );
-      if (path === undefined) {
-        completeness.exclude("resources", "out_of_target_scope");
-        continue;
-      }
-      const item = {
-        file_path: path,
-        type: cdpStringValue(resource.type) ?? "Other",
-        mime_type: cdpStringValue(resource.mimeType) ?? "",
-        content_size:
-          numberValue(resource.contentSize) === undefined
-            ? null
-            : Math.max(0, numberValue(resource.contentSize) ?? 0),
-      };
-      const resourceKey = `electron_resource_${digestCanonicalValue(item, "CDP capture")}`;
-      if (seen.has(resourceKey)) continue;
-      seen.add(resourceKey);
-      resources.push({
-        resource_key: resourceKey,
-        ...item,
-      });
+  for (const resource of frameTreeResources(root, (count) =>
+    completeness.exclude("resources", "invalid_protocol_value", count),
+  )) {
+    const path = await authorizedElectronFile(
+      cdpStringValue(resource.url) ?? "",
+    );
+    if (path === undefined) {
+      completeness.exclude("resources", "out_of_target_scope");
+      continue;
     }
-    pending.push(...recordsValue(tree.childFrames));
+    const item = {
+      file_path: path,
+      type: cdpStringValue(resource.type) ?? "Other",
+      mime_type: cdpStringValue(resource.mimeType) ?? "",
+      content_size:
+        numberValue(resource.contentSize) === undefined
+          ? null
+          : Math.max(0, numberValue(resource.contentSize) ?? 0),
+    };
+    const resourceKey = `electron_resource_${digestCanonicalValue(item, "CDP capture")}`;
+    if (seen.has(resourceKey)) continue;
+    seen.add(resourceKey);
+    resources.push({
+      resource_key: resourceKey,
+      ...item,
+    });
   }
   return resources.sort((left, right) =>
     compareUnicodeCodePoints(left.resource_key, right.resource_key),
@@ -326,23 +325,33 @@ const captureDom = async (
       context.signal,
     ),
   );
-  const strings = Array.isArray(result.strings)
-    ? result.strings.map((value) => (typeof value === "string" ? value : ""))
-    : [];
+  const invalid = (count: number | null) =>
+    completeness.exclude("dom", "invalid_protocol_value", count);
+  if (!Array.isArray(result.strings)) {
+    invalid(null);
+    return { total_nodes: 0, nodes: [] };
+  }
+  const strings = result.strings.map((value) =>
+    typeof value === "string" ? value : "",
+  );
   const nodes: ElectronPageInspection["dom"]["nodes"] = [];
   let total = 0;
-  for (const document of recordsValue(result.documents)) {
+  for (const document of snapshotDocuments(result.documents, invalid)) {
     const documentUrl = stringAt(strings, document.documentURL);
     if ((await authorizedElectronFile(documentUrl)) === undefined) {
       completeness.exclude("dom", "out_of_target_scope");
       continue;
     }
-    const nodeData = recordValue(document.nodes);
-    const nodeTypes = arrayValue(nodeData?.nodeType);
-    const nodeNames = arrayValue(nodeData?.nodeName);
-    const nodeValues = arrayValue(nodeData?.nodeValue);
-    const parents = arrayValue(nodeData?.parentIndex);
-    const attributes = arrayValue(nodeData?.attributes);
+    // The shared snapshot owner validates the parallel node arrays.
+    const documentNodes = snapshotDocumentNodes(document.nodes);
+    if (documentNodes === undefined) {
+      invalid(1);
+      continue;
+    }
+    if (documentNodes.excessAttributes > 0)
+      invalid(documentNodes.excessAttributes);
+    const { nodeTypes, nodeNames, nodeValues, parents, attributes } =
+      documentNodes;
     const baseIndex = nodes.length;
     total += nodeTypes.length;
     for (let index = 0; index < nodeTypes.length; index += 1) {

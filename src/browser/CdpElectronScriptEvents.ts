@@ -14,7 +14,7 @@ export interface ElectronScriptDraft {
   readonly length: number | null;
   readonly isModule: boolean | null;
   readonly language: string | null;
-  readonly executionContextKey: string | null;
+  readonly frameId: string | null;
 }
 
 /** Retain script/frame metadata from passive Electron events. */
@@ -50,12 +50,16 @@ export const ingestElectronScriptEvent = (input: {
     input.completeness.exclude("scripts", "unattributed_origin");
     return;
   }
+  const contextKey = executionContextKey(value?.executionContextId);
   input.scripts.push({
     scriptId,
     rawUrl,
     ...scriptMetadataValues(value),
     language: cdpStringValue(value?.scriptLanguage) ?? null,
-    executionContextKey: executionContextKey(value?.executionContextId),
+    frameId:
+      contextKey === null
+        ? null
+        : (input.executionContextFrames.get(contextKey) ?? null),
   });
 };
 

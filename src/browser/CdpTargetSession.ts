@@ -1,7 +1,13 @@
 import type { BrowserObservationEndpoint } from "../domain/browserObservation.js";
+import { AnalysisError } from "../domain/analysisErrorBase.js";
+import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.js";
 import { BrowserObservationError } from "../domain/browserObservationError.js";
 import type { BrowserObservationOperation } from "../domain/browserObservationErrors.js";
 import { CdpConnection } from "./CdpConnection.js";
+import {
+  CdpTargetSessionOwner,
+  bindCdpTransportCleanup,
+} from "./CdpTargetSessionOwner.js";
 import {
   cdpTargetWebSocket,
   discoverCdpBrowserSocket,
@@ -36,6 +42,7 @@ export const openCdpEndpoint = async (
   operation: BrowserObservationOperation,
   signal?: AbortSignal,
   timeoutMs?: number,
+  owner?: CdpTargetSessionOwner,
 ): Promise<CdpOpenedEndpoint> => {
   if (endpoint.transport === "http_discovery")
     return {
@@ -46,11 +53,15 @@ export const openCdpEndpoint = async (
     operation,
     signal,
     async (deadlineSignal) => {
-      const connection = await CdpConnection.connect(
-        endpoint.url,
-        operation,
-        deadlineSignal,
-      );
+      const connection =
+        owner === undefined
+          ? await CdpConnection.connect(endpoint.url, operation, deadlineSignal)
+          : await owner.connect(
+              endpoint.url,
+              operation,
+              { signal: deadlineSignal },
+              "browser-endpoint",
+            );
       try {
         return {
           discovery: await discoverCdpBrowserSocket(
@@ -62,7 +73,15 @@ export const openCdpEndpoint = async (
           connection,
         };
       } catch (cause: unknown) {
-        await connection.close();
+        if (owner === undefined) {
+          await connection.close();
+          throw cause;
+        }
+        try {
+          await owner.finish(connection);
+        } catch (cleanupCause: unknown) {
+          throw combineOpenFailure(cause, cleanupCause, operation);
+        }
         throw cause;
       }
     },
@@ -77,16 +96,37 @@ export const openCdpTargetSession = async (
   operation: BrowserObservationOperation,
   signal?: AbortSignal,
   limits?: { readonly maxPayloadBytes: number },
+  owner?: CdpTargetSessionOwner,
 ): Promise<CdpTargetSession> => {
   const webSocket = cdpTargetWebSocket(discovery, target, operation);
-  const connection = await CdpConnection.connect(
-    webSocket.url,
-    operation,
-    signal,
-    limits,
-  );
+  const connection =
+    owner === undefined
+      ? await CdpConnection.connect(webSocket.url, operation, signal, limits)
+      : await owner.connect(
+          webSocket.url,
+          operation,
+          signal === undefined ? {} : { signal },
+          target.id,
+          limits,
+        );
   if (webSocket.scope === "page") return { connection, sessionId: undefined };
-  return await attachCdpTargetSession(connection, target, operation, signal);
+  try {
+    return await attachCdpTargetSession(
+      connection,
+      target,
+      operation,
+      signal,
+      owner,
+    );
+  } catch (cause: unknown) {
+    if (owner === undefined) throw cause;
+    try {
+      await owner.finish(connection);
+    } catch (cleanupCause: unknown) {
+      throw combineOpenFailure(cause, cleanupCause, operation);
+    }
+    throw cause;
+  }
 };
 
 /** Attach one target through an open browser socket, which the session then owns. */
@@ -95,6 +135,7 @@ export const attachCdpTargetSession = async (
   target: CdpEndpointTarget,
   operation: BrowserObservationOperation,
   signal?: AbortSignal,
+  owner?: CdpTargetSessionOwner,
 ): Promise<CdpTargetSession> => {
   try {
     const attached = await connection.send(
@@ -105,13 +146,48 @@ export const attachCdpTargetSession = async (
     );
     return { connection, sessionId: attachedSessionId(attached, operation) };
   } catch (cause: unknown) {
-    await connection.close();
+    if (owner === undefined) {
+      await connection.close();
+      throw cause;
+    }
     throw cause;
   }
 };
 
+const combineOpenFailure = (
+  primary: unknown,
+  cleanup: unknown,
+  operation: BrowserObservationOperation,
+): unknown =>
+  primary instanceof AnalysisError && cleanup instanceof AnalysisError
+    ? bindCdpTransportCleanup(
+        cleanup,
+        analysisErrorWithCleanupFailure(primary, cleanup, operation),
+      )
+    : new AggregateError(
+        [primary, cleanup],
+        `CDP operation ${operation} failed and its transport cleanup is incomplete.`,
+        { cause: primary },
+      );
+
 /** Disable enabled domains, detach browser sessions, and close REA's socket. */
 export const closeCdpTargetSession = async (
+  targetSession: CdpTargetSession,
+  enabledDomains: readonly string[],
+  signal?: AbortSignal,
+  owner?: CdpTargetSessionOwner,
+): Promise<void> => {
+  if (owner !== undefined) {
+    await owner.finish(targetSession.connection, () =>
+      cleanupCdpTargetCommands(targetSession, enabledDomains, signal),
+    );
+    return;
+  }
+  await cleanupCdpTargetCommands(targetSession, enabledDomains, signal);
+  await targetSession.connection.close();
+};
+
+const cleanupCdpTargetCommands = async (
   targetSession: CdpTargetSession,
   enabledDomains: readonly string[],
   signal?: AbortSignal,
@@ -156,7 +232,6 @@ export const closeCdpTargetSession = async (
   } finally {
     clearTimeout(timeout);
     cleanup.abort();
-    await connection.close();
   }
 };
 
