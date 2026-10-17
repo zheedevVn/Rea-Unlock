@@ -95,6 +95,11 @@ pauses or resumes execution, calls `Runtime.runIfWaitingForDebugger`, launches
 the target, instruments JavaScript, or invokes Electron APIs. Closing a call
 closes only REA's WebSocket.
 
+Each WebSocket handshake and command response has its own 20-second deadline,
+separate from the caller-selected observation window. A stalled handshake or
+command reports `provider_timeout` and retains observations already received;
+caller cancellation still reports cancellation.
+
 The direct observations are:
 
 - `Debugger.scriptParsed`, establishing that a bounded script location was

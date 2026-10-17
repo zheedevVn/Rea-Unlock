@@ -91,17 +91,20 @@ nodes. REA evaluates compatible static candidates conservatively:
 
 1. A captured-source SHA-256 plus one matching mapped location yields
    a content-and-location match.
-2. One unique exact content digest can match even when no location mapping is
-   available. Whole-asset digests and reconstructed module-factory source
+2. When no static candidate exists at a mapped location, one unique exact
+   content digest can match. Whole-asset digests and reconstructed module-factory source
    digests remain distinguishable in the reported basis.
 3. Without captured bytes, one unique mapped artifact path can produce a
    medium-confidence location match.
 4. Multiple candidates remain `ambiguous`; no `observed_as` edge is emitted.
+   With captured source and mapped candidates, only mapped content matches
+   qualify; unrelated content matches elsewhere are excluded.
    `candidate_static_count` reports the full qualified layer/node count, and
    `candidate_static_nodes` includes every unique candidate reference.
 5. If captured bytes disagree with the static candidate at the mapped path,
-   the result is an explicit mismatch. A path never overrides a digest
-   disagreement.
+   the result is an explicit mismatch. An equal digest elsewhere cannot hide
+   that disagreement. If a mapped candidate's digest is unavailable and no
+   mapped content match is known, the comparison remains `unknown`.
 6. Missing authorization mappings and incomplete or truncated input coverage
    remain unknown or truncated rather than becoming absence claims.
 

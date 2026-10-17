@@ -52,6 +52,7 @@ All four are read-only with respect to the target file; only `open_jeb_project` 
 - The engine caps `list_units` pages at 100; a full page is reported as `coverage: "partial"` because more units may exist. An empty remainder is `complete` only when fewer units than requested were returned.
 - When `decompile_jeb_item` omits `unit_path`, the engine implicitly selects the project's first code unit; REA reports `unit_path: null` and a limitation instead of guessing the effective unit.
 - Engine refusals (`success: false` envelopes) are preserved as unsupported-target errors carrying the engine's own message, for example a nonexistent item address.
+- Successfully parsed client information is reused for the lifetime of the MCP connection, including when the engine omits its version. Explicit client inspection and availability probes refresh it.
 - An unreachable endpoint is a provider-availability failure with recovery guidance; REA does not retry or spawn the engine.
 
 Real-engine verification lives in the JEB lane described in [testing.md](testing.md); mock transport tests do not establish real-engine compatibility.
