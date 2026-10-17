@@ -163,7 +163,7 @@ npx rea-unlock@latest setup
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Οι μορφές κώδικα μηχανής και τα υποστηριζόμενα συστήματα διαφέρουν ανά πάροχο ανάλυσης. Δες τη [ρύθμιση Hopper και Ghidra](../installation.md#hopper), τον [οδηγό IDA](../ida-provider.md) (που περιλαμβάνει προαιρετική γέφυρα MCP για κώδικα μηχανής) και την [πειραματική υποστήριξη Ghidra στα Windows](../windows-ghidra-p0.md). Το Ghidra υποστηρίζει επίσης [ανάλυση DOS 16 bit](../ghidra-dos.md). Για μεγάλα δυαδικά αρχεία, αύξησε το χρονικό όριο εκκίνησης του παρόχου με `REA_GHIDRA_STARTUP_TIMEOUT_MS` ή `REA_HOPPER_STARTUP_TIMEOUT_MS`. Για την επιλογή παρόχου, δες τον [οδηγό CLI](../cli.md#choose-a-provider). Έλεγξε τη [διαθεσιμότητα ανά έκδοση](../installation.md#released-package-and-main) για λειτουργίες που προστέθηκαν μετά την τελευταία έκδοση στο npm.
+Οι μορφές κώδικα μηχανής και τα υποστηριζόμενα συστήματα διαφέρουν ανά πάροχο ανάλυσης. Δες τη [ρύθμιση Hopper και Ghidra](../installation.md#hopper), τον [οδηγό IDA](../ida-provider.md) (που περιλαμβάνει προαιρετική γέφυρα MCP για κώδικα μηχανής), [Kuna](../kuna-provider.md) και την [πειραματική υποστήριξη Ghidra στα Windows](../windows-ghidra-p0.md). Το Ghidra υποστηρίζει επίσης [ανάλυση DOS 16 bit](../ghidra-dos.md). Για μεγάλα δυαδικά αρχεία, αύξησε το χρονικό όριο εκκίνησης του παρόχου με `REA_GHIDRA_STARTUP_TIMEOUT_MS` ή `REA_HOPPER_STARTUP_TIMEOUT_MS`. Για την επιλογή παρόχου, δες τον [οδηγό CLI](../cli.md#choose-a-provider). Έλεγξε τη [διαθεσιμότητα ανά έκδοση](../installation.md#released-package-and-main) για λειτουργίες που προστέθηκαν μετά την τελευταία έκδοση στο npm.
 
 ## Μελέτες περίπτωσης
 
@@ -269,7 +269,7 @@ npx rea-unlock@latest setup
 
 ## Ιστορικό αστεριών
 
-🎉 **200.000 αστέρια στο GitHub — σας ευχαριστούμε!**
+🎉 **250.000 αστέρια στο GitHub — σας ευχαριστούμε!**
 
 Ευχαριστούμε όλους όσοι χρησιμοποιούν το REA, αναφέρουν σφάλματα, ζητούν νέες λειτουργίες, δοκιμάζουν builds και συνεισφέρουν διορθώσεις.
 
