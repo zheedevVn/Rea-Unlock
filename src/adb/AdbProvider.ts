@@ -1762,11 +1762,11 @@ export class AdbProvider {
             {
               client,
               serial: request.input.serial,
-              focused_window: focusedWindow,
-              focused_app: focusedApp,
+              focused_window: focusedWindow?.value ?? null,
+              focused_app: focusedApp?.value ?? null,
               observed_lines: [
-                ...(focusedWindow === null ? [] : [focusedWindow]),
-                ...(focusedApp === null ? [] : [focusedApp]),
+                ...(focusedWindow === null ? [] : [focusedWindow.rawLine]),
+                ...(focusedApp === null ? [] : [focusedApp.rawLine]),
               ],
             },
             provider,
