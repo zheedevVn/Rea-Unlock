@@ -11,7 +11,7 @@ import { parseBinaryTarget } from "../dist/application/BinaryTargetResolver.js";
 import { parseConfig } from "../dist/config/parseConfig.js";
 import { GhidraClient } from "../dist/ghidra/GhidraClient.js";
 import { inspectGhidraInstallation } from "../dist/ghidra/GhidraInstallation.js";
-import { SUPPORTED_GHIDRA_VERSION } from "../dist/ghidra/GhidraInstallationPolicy.js";
+import { SUPPORTED_GHIDRA_VERSION } from "../dist/ghidra/GhidraReleasePolicy.js";
 import { GhidraProvider } from "../dist/ghidra/GhidraProvider.js";
 import { silentLogger } from "../dist/logger.js";
 import { cleanupOwnedProcessGroup } from "../dist/process/ProcessOwnership.js";

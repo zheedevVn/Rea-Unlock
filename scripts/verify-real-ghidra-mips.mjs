@@ -12,6 +12,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { parseBinaryTarget } from "../dist/application/BinaryTargetResolver.js";
 import {
   inspectMipsReadelf,
+  expectedMipsElfProfile,
   inspectLegacyMipsReadelf,
   assertMipsLoadedImage,
   assertMipsProbe,
@@ -120,6 +121,17 @@ async function verifySoftFloat(call, symbols, byteOrder) {
     );
   return { storage: boundaries };
 }
+function assertIncompleteMipsInspection(error) {
+  assert.equal(error.code, "capability_unavailable");
+  assert.equal(error.details.selection_reason, "target_unsupported");
+  const rejection = error.details.rejections.find(
+    (candidate) => candidate.provider_id === "ghidra",
+  );
+  assert.equal(rejection?.code, "architecture_unsupported");
+  assert.match(rejection.reason, /ABI declaration inspection is incomplete/u);
+  assert.match(rejection.reason, /section header table/u);
+}
+
 const reports = [];
 let primaryFailure;
 try {
@@ -475,28 +487,9 @@ try {
         JSON.parse(await readFile(snapshotPath, "utf8")),
       );
       assert.equal(snapshot.target.architecture, "mips");
-      const abi = independent.mips.abiFlags;
       assert.deepEqual(
         snapshot.binding.analysis_profile.parameters.mips_elf,
-        {
-          elf_class: independent.mips.elfClass,
-          byte_order: independent.mips.byteOrder,
-          type: independent.mips.type,
-          flags: independent.mips.flags,
-          abi_flags: {
-            version: abi.version,
-            isa_level: abi.isaLevel,
-            isa_revision: abi.isaRevision,
-            gpr_size: abi.gprSize,
-            cpr1_size: abi.cpr1Size,
-            cpr2_size: abi.cpr2Size,
-            fp_abi: abi.fpAbi,
-            isa_extension: abi.isaExtension,
-            ases: abi.ases,
-            flags1: abi.flags1,
-            flags2: abi.flags2,
-          },
-        },
+        expectedMipsElfProfile(independent.mips),
         "Snapshot profile did not retain the independently inspected ELF/ABI declaration",
       );
       assert.equal(
@@ -617,7 +610,8 @@ try {
       // PSP keeps its independent Allegrex/A-B-A checks; carved PSP is not verified.
       let carved;
       if (!psp) {
-        // Carved firmware keeps all program headers/load bytes but loses sections.
+        // A program-header ABI record survives carving, but GNU declarations in
+        // uncaptured section headers remain unknown: both adapters must refuse.
         const read16 = (offset) =>
           byteOrder === "little"
             ? sourceBytes.readUInt16LE(offset)
@@ -655,79 +649,50 @@ try {
           carvedResolved.value.mips.limitations.join(" "),
           /section header table/u,
         );
-        const carvedTarget = await call("open_binary", {
-          path: carvedPath,
-          provider_id: "ghidra",
-        });
-        assert.equal(carvedTarget.sha256, carvedSha256);
-        const carvedImage = await call("inspect_native_load_image");
-        assertMipsLoadedImage(
-          carvedImage.observations,
-          byteOrder,
-          carvedSha256,
-        );
-        const carvedProcedures = await call("list_procedures");
-        assert.ok(
-          carvedProcedures.some(
-            (p) =>
-              BigInt(p.address) === BigInt(independent.symbols.rea_mips_entry),
+        const carvedError = requireMcpToolError(
+          await client.callTool(
+            {
+              name: "open_binary",
+              arguments: { path: carvedPath, provider_id: "ghidra" },
+            },
+            { timeout: 60000 },
           ),
         );
-        const carvedDossier = functionDossierSchema.parse(
-          await call("analyze_function", {
-            procedure: independent.symbols.rea_mips_entry,
-          }),
-        );
-        assert.ok(carvedDossier.pseudocode.trim().length > 0);
-        const carvedSnapshotPath = join(
-          workspace,
-          `${byteOrder}-${floatAbi}-carved.snapshot.json`,
-        );
-        await call("close_binary", { snapshot_path: carvedSnapshotPath });
-        const carvedSnapshot = parseAnalysisSnapshot(
-          JSON.parse(await readFile(carvedSnapshotPath, "utf8")),
-        );
-        assert.equal(carvedSnapshot.target.sha256, carvedSha256);
+        assertIncompleteMipsInspection(carvedError);
+        let carvedCliError;
+        try {
+          await execute(
+            process.execPath,
+            [
+              entrypoint,
+              "function",
+              carvedPath,
+              independent.symbols.rea_mips_entry,
+              "--provider",
+              "ghidra",
+              "--json",
+            ],
+            { env, timeout: 60000, maxBuffer: 1024 * 1024 },
+          );
+        } catch (cause) {
+          carvedCliError = cause;
+        }
         assert.ok(
-          carvedSnapshot.evidence_bundle.records.some((record) =>
-            parseEvidence(record).limitations.some((item) =>
-              item.includes("section header table"),
-            ),
-          ),
+          carvedCliError &&
+            Number.isInteger(carvedCliError.code) &&
+            carvedCliError.code !== 0,
+          "Expected an incomplete-ABI refusal, not a timeout or success",
         );
-        const carvedCli = await execute(
-          process.execPath,
-          [
-            entrypoint,
-            "function",
-            carvedPath,
-            independent.symbols.rea_mips_entry,
-            "--provider",
-            "ghidra",
-            "--json",
-          ],
-          { env, timeout: 240000, maxBuffer: 16 * 1024 * 1024 },
-        );
-        const carvedEvidence = parseEvidence(JSON.parse(carvedCli.stdout));
-        assert.equal(carvedEvidence.subject?.digest.sha256, carvedSha256);
-        assert.ok(
-          carvedEvidence.limitations.some((item) =>
-            item.includes("section header table"),
-          ),
-        );
-        assert.equal(
-          functionDossierSchema.parse(carvedEvidence.normalized_result)
-            .procedure.address,
-          carvedDossier.procedure.address,
-        );
+        assertIncompleteMipsInspection(JSON.parse(carvedCliError.stdout));
         assert.deepEqual(await readFile(carvedPath), carvedBytes);
         carved = {
           sha256: carvedSha256,
           source_bytes: carvedBytes.length,
           section_header_offset: sectionOffset,
-          effective_language: carvedImage.observations.language_id,
+          status: "expected-incomplete-abi-refusal",
           limitations: carvedResolved.value.mips.limitations,
-          procedures: carvedProcedures.length,
+          cli_exit: carvedCliError.code,
+          mcp_error: carvedError,
         };
       }
       reports.push({

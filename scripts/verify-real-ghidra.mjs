@@ -11,7 +11,7 @@ import { parseBinaryTarget } from "../dist/application/BinaryTargetResolver.js";
 import { resolveGhidraAnalysisProfile } from "../dist/ghidra/GhidraAnalysisProfile.js";
 import { GhidraClient } from "../dist/ghidra/GhidraClient.js";
 import { inspectGhidraInstallation } from "../dist/ghidra/GhidraInstallation.js";
-import { SUPPORTED_GHIDRA_VERSION } from "../dist/ghidra/GhidraInstallationPolicy.js";
+import { SUPPORTED_GHIDRA_VERSION } from "../dist/ghidra/GhidraReleasePolicy.js";
 import { GhidraHeadlessLauncher } from "../dist/ghidra/GhidraLauncher.js";
 import { GHIDRA_PROVIDER_IDENTITY } from "../dist/ghidra/GhidraProviderCapabilities.js";
 
@@ -489,6 +489,7 @@ async function verifyTarget(targetPath, variant, expectedTarget = null) {
 
   const client = new GhidraClient({
     launcher: new GhidraHeadlessLauncher({
+      configurationDirectoryName: installation.configurationDirectoryName,
       environment: process.env,
       analyzeHeadlessPath: installation.analyzeHeadlessPath,
       ...(process.env.JAVA_HOME === undefined
