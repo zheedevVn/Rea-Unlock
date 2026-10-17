@@ -68,6 +68,9 @@ describe("Apple asset catalog application workflow", () => {
     const bundle = await createTestTempDirectory("rea-asset-catalog-absent-");
     await mkdir(join(bundle, "Contents", "Resources"), { recursive: true });
     await writeFile(join(bundle, "Contents", "Resources", "icon.icns"), "");
+    // Names that merely end in Assets.car are ordinary resources.
+    await mkdir(join(bundle, "Contents", "Resources", "NotAssets.car"));
+    await writeFile(join(bundle, "Contents", "Resources", "OldAssets.car"), "");
     const result = await analyzeAppleAssetCatalogs({
       environment: {},
       bundlePath: bundle,

@@ -1,4 +1,5 @@
-import { mkdtemp, realpath, rm } from "node:fs/promises";
+import { regularFileCancellation } from "../filesystem/OwnedRegularFile.js";
+import { mkdtemp, realpath, rm, type FileHandle } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import type { Readable } from "node:stream";
@@ -11,6 +12,12 @@ import {
   type ArtifactTraversalOptions,
 } from "./ArtifactReader.js";
 import { DirectoryArtifactReader } from "./DirectoryArtifactReader.js";
+import {
+  NonRegularFileReadError,
+  RegularFileAdmissionFailure,
+  openRegularFile,
+} from "../filesystem/RegularFile.js";
+import { OwnedFileHandle } from "../filesystem/OwnedFileHandle.js";
 import {
   execFileOutput,
   execFileOutputFailure,
@@ -44,16 +51,24 @@ export interface NativeDmgHost {
   delay?(milliseconds: number): Promise<void>;
 }
 
+interface NativeDmgFailureClassification {
+  readonly reason: ArtifactReaderFailure["reason"];
+  readonly verifyDiagnostic?: string;
+  /**
+   * hdiutil could not recognize the target, for a reason it reported only in
+   * localized text; the cause stays unknown unless the target cannot be opened.
+   */
+  readonly unrecognizedImage?: boolean;
+}
+
 class NativeDmgCommandFailure extends ArtifactReaderFailure {
   readonly processNotStarted: boolean;
   readonly verifyDiagnostic: string | undefined;
+  readonly unrecognizedImage: boolean;
   readonly exitCode: number | null;
 
   constructor(
-    failure: {
-      readonly reason: ArtifactReaderFailure["reason"];
-      readonly verifyDiagnostic?: string;
-    },
+    failure: NativeDmgFailureClassification,
     message: string,
     readonly stdout: string,
     options?: {
@@ -69,6 +84,7 @@ class NativeDmgCommandFailure extends ArtifactReaderFailure {
     );
     this.processNotStarted = options?.processNotStarted ?? false;
     this.verifyDiagnostic = failure.verifyDiagnostic;
+    this.unrecognizedImage = failure.unrecognizedImage ?? false;
     this.exitCode = options?.exitCode ?? null;
   }
 }
@@ -136,6 +152,7 @@ export class NativeDmgArtifactReader implements ArtifactReader {
   #closed = false;
   #closePromise: Promise<void> | undefined;
   readonly #activeDirectoryOperations = new Set<Promise<unknown>>();
+  #verificationProbeHandle: OwnedFileHandle | undefined;
 
   constructor(
     private readonly path: string,
@@ -207,6 +224,7 @@ export class NativeDmgArtifactReader implements ArtifactReader {
   async #closeOwnedResources(): Promise<void> {
     await this.#initialization?.catch(() => undefined);
     await Promise.allSettled(this.#activeDirectoryOperations);
+    await this.#closeVerificationProbeHandle();
     await this.#closeMountedDirectory();
     let detachFailure = await this.#detachOwnedDevices();
     if (
@@ -251,6 +269,23 @@ export class NativeDmgArtifactReader implements ArtifactReader {
           },
         },
       );
+  }
+
+  async #closeVerificationProbeHandle(): Promise<void> {
+    const owner = this.#verificationProbeHandle;
+    if (owner === undefined) return;
+    try {
+      await owner.close();
+      this.#verificationProbeHandle = undefined;
+    } catch (cause: unknown) {
+      throw ArtifactReaderFailure.withCleanup(
+        cause,
+        ArtifactReaderFailure.cleanupObservation(
+          cause,
+          `DMG verification target descriptor ${this.path}`,
+        ),
+      );
+    }
   }
 
   async #detachOwnedDevices(): Promise<unknown> {
@@ -455,13 +490,7 @@ export class NativeDmgArtifactReader implements ArtifactReader {
     const arguments_ = ["verify", this.path];
     const deadline = performance.now() + HDIUTIL_COMMAND_TIMEOUT_MS;
     for (let attempt = 0; ; attempt += 1) {
-      if (signal?.aborted === true)
-        throw new NativeDmgCommandFailure(
-          { reason: "cancelled" },
-          "DMG operation cancelled",
-          "",
-          { cause: signal.reason },
-        );
+      this.#throwIfVerificationCancelled(signal);
       try {
         await runChecked(this.host, arguments_, signal, {
           timeoutMs: Math.max(1, Math.ceil(deadline - performance.now())),
@@ -471,10 +500,28 @@ export class NativeDmgArtifactReader implements ArtifactReader {
       } catch (cause: unknown) {
         if (!(cause instanceof NativeDmgCommandFailure)) throw cause;
         this.#provenance.push(command(arguments_, ["read"], cause.exitCode));
+        if (cause.unrecognizedImage) {
+          const unreadable = await this.#isUnreadableTarget(signal, cause);
+          this.#throwIfVerificationCancelled(signal);
+          if (unreadable)
+            throw new NativeDmgCommandFailure(
+              { reason: "io" },
+              cause.message,
+              cause.stdout,
+              {
+                cause: cause.cause,
+                ...(cause.exitCode === null
+                  ? {}
+                  : { exitCode: cause.exitCode }),
+              },
+            );
+        }
         const delayMs = VERIFY_SETTLE_DELAYS_MS[attempt];
-        // Retry only the producer's explicit transient diagnostic, before any mount.
+        // Retry only the producer's explicit transient diagnostic, or a localized
+        // refusal of a readable target that may be the same, before any mount.
         if (
-          cause.verifyDiagnostic !== "Resource temporarily unavailable" ||
+          (cause.verifyDiagnostic !== "Resource temporarily unavailable" &&
+            !cause.unrecognizedImage) ||
           delayMs === undefined ||
           deadline - performance.now() <= delayMs
         )
@@ -522,6 +569,74 @@ export class NativeDmgArtifactReader implements ArtifactReader {
     this.#ownershipUncertainty = undefined;
     this.#devices = [];
     return "none";
+  }
+
+  #cancelledVerification(cause: unknown): NativeDmgCommandFailure {
+    return new NativeDmgCommandFailure(
+      { reason: "cancelled" },
+      "DMG operation cancelled",
+      "",
+      { cause },
+    );
+  }
+
+  #throwIfVerificationCancelled(signal: AbortSignal | undefined): void {
+    if (signal?.aborted === true)
+      throw this.#cancelledVerification(signal.reason);
+  }
+
+  async #isUnreadableTarget(
+    signal: AbortSignal | undefined,
+    primaryFailure: NativeDmgCommandFailure,
+  ): Promise<boolean> {
+    let handle: FileHandle;
+    try {
+      handle = await openRegularFile(this.path, {
+        symlinks: "follow",
+        ...(signal === undefined ? {} : { signal }),
+      });
+    } catch (cause: unknown) {
+      if (cause instanceof RegularFileAdmissionFailure) {
+        this.#verificationProbeHandle = cause.owner;
+        const cancellation = regularFileCancellation(cause.cause);
+        const failure =
+          cancellation === undefined
+            ? primaryFailure
+            : this.#cancelledVerification(cancellation.reason);
+        throw ArtifactReaderFailure.withCleanup(
+          failure,
+          ArtifactReaderFailure.cleanupObservation(
+            cause.cleanupCause,
+            `DMG verification target descriptor ${this.path}`,
+          ),
+        );
+      }
+      const cancellation = regularFileCancellation(cause);
+      if (cancellation !== undefined)
+        throw this.#cancelledVerification(cancellation.reason);
+      if (cause instanceof NonRegularFileReadError) return false;
+      return classifyCommandFailure(cause, undefined).reason === "io";
+    }
+
+    const owner = new OwnedFileHandle(handle);
+    this.#verificationProbeHandle = owner;
+    try {
+      await owner.close();
+      this.#verificationProbeHandle = undefined;
+    } catch (cause: unknown) {
+      throw ArtifactReaderFailure.withCleanup(
+        signal?.aborted === true
+          ? this.#cancelledVerification(signal.reason)
+          : primaryFailure,
+        ArtifactReaderFailure.cleanupObservation(
+          cause,
+          `DMG verification target descriptor ${this.path}`,
+        ),
+      );
+    }
+    if (signal?.aborted === true)
+      throw this.#cancelledVerification(signal.reason);
+    return false;
   }
 }
 
@@ -644,24 +759,17 @@ const processOutput = (cause: unknown, field: "stdout" | "stderr"): string => {
 const classifyCommandFailure = (
   cause: unknown,
   operation: string | undefined,
-): {
-  readonly reason: ArtifactReaderFailure["reason"];
-  readonly verifyDiagnostic?: string;
-} => {
+): NativeDmgFailureClassification => {
   if (typeof cause !== "object" || cause === null)
     return { reason: "unavailable" };
   const code = Reflect.get(cause, "code");
   const exitCode = Reflect.get(cause, "exitCode");
   if (typeof code === "number" || typeof exitCode === "number") {
     if (operation !== "verify") return { reason: "unavailable" };
-    const diagnostic = verifyFailureDiagnostic(
+    return classifyVerifyFailure(
       processOutput(cause, "stdout"),
       processOutput(cause, "stderr"),
     );
-    return {
-      reason: verifyFailureReason(diagnostic),
-      ...(diagnostic === undefined ? {} : { verifyDiagnostic: diagnostic }),
-    };
   }
   if (code === "ENOENT") {
     const syscall = Reflect.get(cause, "syscall");
@@ -687,9 +795,26 @@ const classifyCommandFailure = (
   return { reason: "unavailable" };
 };
 
+const classifyVerifyFailure = (
+  stdout: string,
+  stderr: string,
+): NativeDmgFailureClassification => {
+  const diagnostic = verifyFailureDiagnostic(stdout, stderr);
+  const reason = verifyFailureReason(diagnostic);
+  const untranslated =
+    reason === undefined
+      ? untranslatedVerifyFailure(stdout, stderr)
+      : undefined;
+  return {
+    ...untranslated,
+    reason: reason ?? untranslated?.reason ?? "unavailable",
+    ...(diagnostic === undefined ? {} : { verifyDiagnostic: diagnostic }),
+  };
+};
+
 const verifyFailureReason = (
   diagnostic: string | undefined,
-): ArtifactReaderFailure["reason"] => {
+): ArtifactReaderFailure["reason"] | undefined => {
   switch (diagnostic) {
     // hdiutil follows AppleLanguages, so en-GB and en-AU spell it "recognised".
     case "image not recognized":
@@ -702,8 +827,10 @@ const verifyFailureReason = (
     case "Permission denied":
     case "Input/output error":
       return "io";
-    default:
+    case "Resource temporarily unavailable":
       return "unavailable";
+    default:
+      return undefined;
   }
 };
 
@@ -712,12 +839,32 @@ const verifyFailureDiagnostic = (
   stderr: string,
 ): string | undefined => {
   const prefix = "hdiutil: verify failed - ";
-  return `${stdout}\n${stderr}`
-    .split(/\r?\n/u)
-    .map((line) => line.trim())
+  return outputLines(stdout, stderr)
     .find((line) => line.startsWith(prefix))
     ?.slice(prefix.length);
 };
+
+// hdiutil localizes the trailing failure reason but not its own status lines.
+const INVALID_CHECKSUM_LINE = /^hdiutil: verify: checksum of ".*" is INVALID$/u;
+const UNRECOGNIZED_IMAGE_LINE =
+  /^hdiutil: verify: unable to recognize ".*" as a disk image\./u;
+
+const untranslatedVerifyFailure = (
+  stdout: string,
+  stderr: string,
+): NativeDmgFailureClassification | undefined => {
+  const lines = outputLines(stdout, stderr);
+  if (lines.some((line) => INVALID_CHECKSUM_LINE.test(line)))
+    return { reason: "integrity" };
+  // Malformed, unreadable and transiently busy targets all produce this line;
+  // only the localized reason distinguishes them, so the cause stays unknown.
+  if (lines.some((line) => UNRECOGNIZED_IMAGE_LINE.test(line)))
+    return { reason: "unavailable", unrecognizedImage: true };
+  return undefined;
+};
+
+const outputLines = (stdout: string, stderr: string): string[] =>
+  `${stdout}\n${stderr}`.split(/\r?\n/u).map((line) => line.trim());
 
 const command = (
   arguments_: readonly string[],

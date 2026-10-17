@@ -7,7 +7,7 @@ import {
   realpath,
   type FileHandle,
 } from "node:fs/promises";
-import { basename, dirname, isAbsolute, join, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join } from "node:path";
 import type { Readable } from "node:stream";
 import { OwnedFileHandle } from "../filesystem/OwnedFileHandle.js";
 import { streamChunkToBuffer } from "./StreamBytes.js";
@@ -17,6 +17,7 @@ import {
   destinationCaseCollisionMessage,
   normalizeArtifactPath,
 } from "./ArtifactPaths.js";
+import { absoluteCallerPath } from "../filesystem/callerPath.js";
 import { ArtifactReaderFailure } from "./ArtifactReader.js";
 import { SafeOutputTreeCreationFailure } from "./SafeOutputTreeCreationFailure.js";
 import { hashOutputFile } from "./SafeOutputTreeReadback.js";
@@ -92,7 +93,8 @@ export class SafeOutputTree {
         "path",
         "Extraction output root must be absolute",
       );
-    const requested = resolve(outputRoot);
+    // Path syntax follows the host; `platform` selects only the name policy.
+    const requested = absoluteCallerPath(outputRoot);
     const name = basename(requested);
     if (name === "." || name === "..")
       throw new ArtifactReaderFailure("path", "Invalid extraction output root");
@@ -603,6 +605,7 @@ const abortIfNeeded = (signal?: AbortSignal): void => {
     throw new ArtifactReaderFailure(
       "cancelled",
       "Artifact extraction cancelled",
+      { cause: signal.reason },
     );
 };
 

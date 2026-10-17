@@ -7,6 +7,7 @@ import {
   NonRegularFileReadError,
   openRegularFile,
   RegularFileAdmissionFailure,
+  RegularFileOperationCancelled,
   sameRegularFileState,
 } from "../filesystem/RegularFile.js";
 
@@ -65,7 +66,10 @@ it.each(["cancellation after open", "non-regular metadata", "stat failure"])(
       expect(cause.cause).toBeInstanceOf(NonRegularFileReadError);
     else if (failureCase === "stat failure")
       expect(cause.cause).toBe(statFailure);
-    else expect(cause.cause).toBe(cancellation);
+    else {
+      expect(cause.cause).toBeInstanceOf(RegularFileOperationCancelled);
+      expect(cause.cause).toMatchObject({ reason: cancellation });
+    }
   },
 );
 
@@ -107,7 +111,7 @@ it.each([
   },
 );
 
-it("keeps cancellation that arrives during the non-regular metadata probe", async () => {
+it("preserves the non-regular admission failure when cancellation arrives during its metadata probe", async () => {
   const controller = new AbortController();
   const cancellation = new Error("cancelled during probe");
   mockOpen.mockImplementation(async () => {
@@ -120,5 +124,5 @@ it("keeps cancellation that arrives during the non-regular metadata probe", asyn
       symlinks: "follow",
       signal: controller.signal,
     }),
-  ).rejects.toBe(cancellation);
+  ).rejects.toBeInstanceOf(NonRegularFileReadError);
 });

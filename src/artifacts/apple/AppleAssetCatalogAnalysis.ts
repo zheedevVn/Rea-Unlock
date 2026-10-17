@@ -122,7 +122,9 @@ const collectAssetCatalogs = async (input: {
   let totalMetadataBytes = 0;
   try {
     for await (const entry of reader.entries(input.signal)) {
-      if (!entry.path.endsWith("Assets.car")) continue;
+      // Reader paths are `/`-separated; only an entry named exactly
+      // Assets.car is a compiled catalog, not e.g. NotAssets.car.
+      if (entry.path.split("/").at(-1) !== "Assets.car") continue;
       if (entry.kind !== "file") {
         uninspected.push(`${entry.path} (${entry.kind})`);
         continue;
