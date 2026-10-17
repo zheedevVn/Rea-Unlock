@@ -146,6 +146,9 @@ async function verifySourceReadFailures({
     ...(permissionDenied ? ["permission"] : []),
   ];
   for (const scenario of scenarios) {
+    // Same-target reopen may admit restored bytes through retained-client health.
+    // Each rejection needs a cold client, without an existing private snapshot.
+    await call("close_binary");
     await call("open_binary", { path: source, provider_id: "ghidra" });
     const before = await call("binary_session");
     if (scenario === "permission") await chmod(source, 0);

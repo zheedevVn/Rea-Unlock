@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import patch
 from http.server import ThreadingHTTPServer
 from urllib.error import HTTPError
+from urllib.parse import urlsplit
 from urllib.request import urlopen
 import xml.etree.ElementTree as ET
 
@@ -308,19 +309,95 @@ class WebsiteMaintenanceChecks(unittest.TestCase):
 
     def test_repository_links_reject_missing_files_and_old_markdown_anchors(self):
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+            container = Path(directory)
+            root = container / "repository"
             (root / "website/public").mkdir(parents=True)
             (root / "docs").mkdir()
             (root / "docs/guide.md").write_text("# Guide\n## Set up REA\n")
+            (container / "outside.md").write_text("# Outside\n")
             page = root / "website/README.md"
             page.write_text("[Guide](../docs/guide.md#set-up-rea)\n")
             (root / "website/.venv").mkdir()
             (root / "website/.venv/vendor.md").write_text("[File](missing.md)")
             self.assertEqual(VERIFY.check_repository_links(root), [])
-            page.write_text("[Guide](../docs/guide.md#removed)\n[File](../docs/removed.md)\n")
-            errors = VERIFY.check_repository_links(root)
+            alias = container / "repository-alias"
+            alias.symlink_to(root.resolve(), target_is_directory=True)
+            self.assertEqual(VERIFY.check_repository_links(alias), [])
+            page.write_text(
+                "[Guide](../docs/guide.md#removed)\n"
+                "[File](../docs/removed.md)\n"
+                "[Escape](../../outside.md)\n"
+            )
+            errors = VERIFY.check_repository_links(alias)
             self.assertTrue(any("missing Markdown fragment" in error for error in errors))
             self.assertTrue(any("missing repository target" in error for error in errors))
+            self.assertTrue(
+                any("missing repository target: ../../outside.md" in error for error in errors)
+            )
+
+    def test_site_links_accept_directory_aliases_and_still_reject_escape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            site = Path(directory) / "public"
+            shutil.copytree(ROOT / "website/_site", site)
+            canonical_site = site.resolve()
+            alias = Path(directory) / "public-alias"
+            alias.symlink_to(canonical_site, target_is_directory=True)
+            self.assertEqual(VERIFY.check_site(canonical_site)[3], [])
+            self.assertEqual(VERIFY.check_site(alias)[3], [])
+
+            page = canonical_site / "faq/index.html"
+            page.write_text(
+                page.read_text().replace(
+                    "</main>",
+                    '<a href="https://github.com/zheedevVn/Rea-Unlock/../../outside/">Escape</a></main>',
+                    1,
+                )
+            )
+            errors = VERIFY.check_site(alias)[3]
+            self.assertTrue(
+                any("reference leaves the website" in error for error in errors)
+            )
+
+    def test_repository_links_accept_aliased_roots_and_reject_escaping_links(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = (Path(directory) / "repository").resolve()
+            (root / "website/public").mkdir(parents=True)
+            (root / "docs").mkdir()
+            (root / "docs/guide.md").write_text("# Guide\n")
+            page = root / "website/README.md"
+            page.write_text("[Guide](../docs/guide.md#guide)\n")
+            alias = Path(directory) / "repository-alias"
+            alias.symlink_to(root, target_is_directory=True)
+            self.assertEqual(VERIFY.check_repository_links(root), [])
+            self.assertEqual(VERIFY.check_repository_links(alias), [])
+            (root.parent / "outside.md").write_text("# Outside\n")
+            page.write_text("[Outside](../../outside.md)\n")
+            for boundary in (root, alias):
+                with self.subTest(boundary=boundary):
+                    self.assertEqual(VERIFY.check_repository_links(boundary), [
+                        "website/README.md: missing repository target: ../../outside.md"
+                    ])
+
+    def test_site_links_preserve_containment_through_aliased_roots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            site = (Path(directory) / "site").resolve()
+            site.mkdir()
+            page = site / "index.html"
+            page.write_text('<html lang="en"><head><title>Fixture</title><meta name="robots" content="noindex"></head><body><h1>Fixture</h1><a href="guide.html#answer">Guide</a></body></html>')
+            (site / "guide.html").write_text('<html lang="en"><head><title>Guide</title><meta name="robots" content="noindex"></head><body><h1 id="answer">Answer</h1></body></html>')
+            (site / "sitemap.xml").write_text('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>')
+            (site / "robots.txt").write_text("User-agent: *\nAllow: /\nSitemap: https://github.com/zheedevVn/Rea-Unlock/sitemap.xml\n")
+            alias = Path(directory) / "site-alias"
+            alias.symlink_to(site, target_is_directory=True)
+            # The tiny link fixture intentionally omits the social preview.
+            expected = ["Social preview PNG is missing; run scripts/prepare-website.py"]
+            self.assertEqual(VERIFY.check_site(site)[3], expected)
+            self.assertEqual(VERIFY.check_site(alias)[3], expected)
+            (site.parent / "outside.html").write_text("<p>Outside</p>")
+            page.write_text(page.read_text().replace("guide.html#answer", "../outside.html"))
+            for boundary in (site, alias):
+                with self.subTest(boundary=boundary):
+                    self.assertIn("index.html: reference leaves the website: ../outside.html", VERIFY.check_site(boundary)[3])
 
     def test_preview_preserves_pages_prefix_for_assets_and_directory_redirects(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -485,6 +562,15 @@ class WebsiteTranslationChecks(unittest.TestCase):
                     parser = VERIFY.HtmlReferences()
                     parser.feed(translated)
                     self.assertEqual(parser.lang, "en" if parser.translation_fallback else code)
+                    font_stylesheets = [
+                        node.attrs["href"] for node in Document(translated).nodes
+                        if node.tag == "link" and node.attrs.get("rel") == "stylesheet"
+                        and urlsplit(node.attrs.get("href", "")).netloc == "fonts.googleapis.com"
+                    ]
+                    self.assertEqual(len(font_stylesheets), int(parser.lang == "ko"))
+                    if font_stylesheets:
+                        self.assertIn("family=Noto+Sans+KR:wght@100..900", font_stylesheets[0])
+                        self.assertIn("&display=swap", font_stylesheets[0])
                     if code != "en" and not parser.translation_fallback:
                         self.assertEqual(parser.direction, language["dir"])
                     if parser.translation_fallback:

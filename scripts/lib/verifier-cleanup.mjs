@@ -8,6 +8,7 @@ export async function closeVerifierResources(tasks, primaryError) {
       failures.push(cause);
     }
   }
+
   if (failures.length > 0)
     throw new AggregateError(
       primaryError === undefined ? failures : [primaryError, ...failures],
