@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, readdir } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 
-import { exec, pathExists } from "./lib/verify-package-core.mjs";
+import { exec, execNpm, pathExists } from "./lib/verify-package-core.mjs";
 
 /** Exercise Skills' default root discovery without ignored build outputs. */
 export async function verifyRepositorySkill({ root, workspace }) {
@@ -34,8 +34,7 @@ export async function verifyRepositorySkill({ root, workspace }) {
   await mkdir(consumer, { recursive: true });
   await mkdir(home, { recursive: true });
   const skillsVersion = "1.7.2";
-  await exec(
-    "npm",
+  await execNpm(
     [
       "exec",
       "--yes",

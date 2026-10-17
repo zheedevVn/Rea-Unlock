@@ -44,6 +44,7 @@ def markdown_ids(path):
 
 def check_repository_links(root):
     """Check local links in website Markdown and current-repository source links."""
+    root = root.resolve()
     errors = []
     sources = {}
     for path in authored_markdown(root):
@@ -318,6 +319,7 @@ def check_search_metadata(site, pages):
 
 def check_site(site):
     """Check assets, HTML fragment destinations and SVG syntax."""
+    site = site.resolve()
     pages = {}
     errors = []
     references = 0

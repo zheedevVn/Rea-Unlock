@@ -12,6 +12,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { PrivateRuntimeRoot } from "../dist/process/PrivateRuntimeRoot.js";
 import { parseEvidence } from "../dist/domain/evidence.js";
+import { closeVerifierResources } from "./lib/verifier-cleanup.mjs";
 import { createVerifierRun, completeVerifierRun } from "./lib/verifier-run.mjs";
 
 if (process.platform !== "linux")
@@ -83,6 +84,7 @@ const expectedAddressSpace = Math.min(
     .map((value) => (value === "unlimited" ? Infinity : Number(value))),
 );
 
+let primaryError;
 try {
   await writeFile(path, source);
   await client.connect(transport);
@@ -383,10 +385,14 @@ try {
     "paged.vcd",
     "recording with spaces.vcd",
   ]);
+} catch (cause) {
+  primaryError = cause;
+  throw cause;
 } finally {
-  await client.close();
-  await transport.close();
-  await root.close();
+  await closeVerifierResources(
+    [() => client.close(), () => transport.close(), () => root.close()],
+    primaryError,
+  );
 }
 console.log(
   JSON.stringify(
