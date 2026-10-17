@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { AnalysisError } from "../domain/analysisErrorBase.js";
+import type {
+  AnalysisError,
+  AnalysisErrorOptions,
+} from "../domain/analysisErrorBase.js";
 import {
   AnalysisCancelledError,
   AnalysisInputError,
@@ -44,7 +47,9 @@ export const executeProviderOperation = async <
   confidence: "observed" | "derived",
 ): Promise<Result<Evidence, AnalysisError>> => {
   if (options?.signal?.aborted)
-    return err(new AnalysisCancelledError(operation));
+    return err(
+      new AnalysisCancelledError(operation, { cause: options.signal.reason }),
+    );
   const request = schema.safeParse({ operation, input });
   if (!request.success)
     return err(new AnalysisInputError(operation, { cause: request.error }));
@@ -64,14 +69,22 @@ export const executeProviderOperation = async <
       confidence,
     },
   );
-  // A provider that cannot observe the signal may finish its work after the
-  // caller cancelled, so re-check rather than reporting a completed operation
-  // the caller no longer wants. The observation it completed is still this
-  // provider's Evidence, so the cancellation carries it as the partial
-  // observation instead of discarding a finished result.
-  if (options?.signal?.aborted)
+  return completeProviderEvidence(evidence, options?.signal);
+};
+
+/** Classify completion after Evidence assembly, preserving facts on late abort. */
+export const completeProviderEvidence = (
+  evidence: Evidence,
+  signal?: AbortSignal,
+  capturedOutput?: AnalysisErrorOptions["capturedOutput"],
+): Result<Evidence, AnalysisCancelledError> => {
+  if (signal?.aborted)
     return err(
-      new AnalysisCancelledError(operation, { partialObservation: evidence }),
+      new AnalysisCancelledError(evidence.operation, {
+        cause: signal.reason,
+        partialObservation: evidence,
+        ...(capturedOutput === undefined ? {} : { capturedOutput }),
+      }),
     );
   return ok(evidence);
 };

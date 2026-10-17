@@ -107,11 +107,20 @@ type PackageMain =
  */
 const readPackageMains = (
   read: ReferenceSourceRead,
-): ReadonlyMap<string, PackageMain> => {
+): {
+  readonly mains: ReadonlyMap<string, PackageMain>;
+  readonly pathLookup: ReferenceSourcePathLookup;
+} => {
   const mains = new Map<string, PackageMain>();
+  const manifestPaths: string[] = [];
   for (const entry of read.entries) {
     if (posix.basename(entry.path) !== "package.json") continue;
+    manifestPaths.push(entry.path);
     const directory = posix.dirname(entry.path);
+    if (mains.has(directory)) {
+      mains.set(directory, { state: "unknown" });
+      continue;
+    }
     if (entry.status !== "read" || entry.kind !== "file") {
       mains.set(directory, { state: "unknown" });
       continue;
@@ -134,55 +143,134 @@ const readPackageMains = (
       mains.set(directory, { state: "unknown" });
     }
   }
-  return mains;
+  return {
+    mains,
+    pathLookup: createReferenceSourcePathLookup(manifestPaths),
+  };
 };
 
-const RESOLUTION_SUFFIXES = ["", ".ts", ".js", ".mjs", ".cjs", ".tsx", ".jsx"];
+/**
+ * Extension slots in probe order. Within a slot, files precede directory
+ * indexes. The CommonJS loader tries `X.json` after `X.js` and before any
+ * directory index; ESM and TypeScript require an explicit `.json`.
+ */
+const RESOLUTION_SUFFIXES: readonly (readonly string[])[] = [
+  [""],
+  [".ts"],
+  [".mts"],
+  [".cts"],
+  [".js"],
+  [".mjs"],
+  [".cjs"],
+  [".tsx"],
+  [".jsx"],
+];
+const REQUIRE_RESOLUTION_SUFFIXES = RESOLUTION_SUFFIXES.map((slot) =>
+  slot.includes(".js") ? [...slot, ".json"] : slot,
+);
+const NODE_REQUIRE_SUFFIXES = ["", ".js", ".json", ".node"] as const;
+
+type InternalSpecifierResolutionMode =
+  | "source-import"
+  | "source-require"
+  | "runtime-require";
+
+const resolutionSuffixes = (
+  mode: InternalSpecifierResolutionMode,
+): readonly (readonly string[])[] =>
+  mode === "source-require" ? REQUIRE_RESOLUTION_SUFFIXES : RESOLUTION_SUFFIXES;
+
+const nodeRequireFileCandidates = (path: string): string[] =>
+  NODE_REQUIRE_SUFFIXES.map((suffix) => `${path}${suffix}`);
+
+const nodeRequireIndexCandidates = (directory: string): string[] =>
+  NODE_REQUIRE_SUFFIXES.filter((suffix) => suffix !== "").map((suffix) =>
+    posix.join(directory, `index${suffix}`),
+  );
 
 /** Inventory facts an internal specifier resolves against. */
 interface SpecifierContext {
   readonly lookupPath: ReferenceSourcePathLookup;
   readonly packageMains: ReadonlyMap<string, PackageMain>;
+  readonly packageManifestPathLookup: ReferenceSourcePathLookup;
 }
 
-/**
- * Apply a package `main` to a directory resolved through its index. Node loads
- * the declared entry as a file, then as a directory index, and falls back to
- * the package's own index only when neither exists.
- */
-const selectPackageMain = (
-  index: string,
+const packageMainForDirectory = (
+  directory: string,
   context: SpecifierContext,
+): { readonly directory: string; readonly main: PackageMain } | undefined => {
+  const manifestPath = context.packageManifestPathLookup.resolve(
+    posix.join(directory, "package.json"),
+  );
+  if (manifestPath !== undefined) {
+    const manifestDirectory = posix.dirname(manifestPath);
+    const main = context.packageMains.get(manifestDirectory);
+    return main === undefined
+      ? undefined
+      : { directory: manifestDirectory, main };
+  }
+  return context.packageManifestPathLookup.has(
+    posix.join(directory, "package.json"),
+  )
+    ? { directory, main: { state: "unknown" } }
+    : undefined;
+};
+
+/** Apply a package main, retaining an existing index as the fallback target. */
+const selectPackageMain = (
+  directory: string,
+  indexFallback: string | undefined,
+  context: SpecifierContext,
+  mode: InternalSpecifierResolutionMode,
 ): { to: string; resolution: "internal" | "unresolved" } => {
-  const directory = posix.dirname(index);
-  const manifest = context.packageMains.get(directory);
+  const packageSelection = packageMainForDirectory(directory, context);
+  const packageDirectory = packageSelection?.directory ?? directory;
+  const manifest = packageSelection?.main;
   if (manifest === undefined || manifest.state === "none")
-    return { to: index, resolution: "internal" };
+    return indexFallback === undefined
+      ? { to: directory, resolution: "unresolved" }
+      : { to: indexFallback, resolution: "internal" };
   if (manifest.state === "unknown")
-    return { to: directory, resolution: "unresolved" };
+    return { to: packageDirectory, resolution: "unresolved" };
   // Node resolves `main` with path.resolve: an absolute main leaves the
   // package, and a trailing separator does not make the entry a directory.
   if (posix.isAbsolute(manifest.main))
     return { to: posix.normalize(manifest.main), resolution: "unresolved" };
   const target = posix
-    .normalize(posix.join(directory, manifest.main))
+    .normalize(posix.join(packageDirectory, manifest.main))
     .replace(/(?<=.)\/+$/u, "");
   // Node would load a declared entry outside the imported root.
   if (logicalPathEscapesRoot(target))
     return { to: target, resolution: "unresolved" };
-  const selected = context.lookupPath.resolveCandidates([
-    ...RESOLUTION_SUFFIXES.map((suffix) => `${target}${suffix}`),
-    ...RESOLUTION_SUFFIXES.filter((suffix) => suffix !== "").map((suffix) =>
-      posix.join(target, `index${suffix}`),
-    ),
-  ]);
-  return { to: selected ?? index, resolution: "internal" };
+  const slots = resolutionSuffixes(mode);
+  const candidates =
+    mode === "runtime-require"
+      ? [
+          ...nodeRequireFileCandidates(target),
+          ...nodeRequireIndexCandidates(target),
+        ]
+      : [
+          ...slots.flatMap((slot) =>
+            slot.map((suffix) => `${target}${suffix}`),
+          ),
+          ...slots
+            .flat()
+            .filter((suffix) => suffix !== "")
+            .map((suffix) => posix.join(target, `index${suffix}`)),
+        ];
+  const selected = context.lookupPath.resolveCandidates(candidates);
+  return selected === undefined
+    ? indexFallback === undefined
+      ? { to: packageDirectory, resolution: "unresolved" }
+      : { to: indexFallback, resolution: "internal" }
+    : { to: selected, resolution: "internal" };
 };
 
 const resolveInternalSpecifier = (
   fromPath: string,
   specifier: string,
   context: SpecifierContext,
+  mode: InternalSpecifierResolutionMode,
 ): { to: string; resolution: "internal" | "unresolved" } => {
   if (posix.isAbsolute(specifier))
     return { to: specifier, resolution: "unresolved" };
@@ -196,10 +284,21 @@ const resolveInternalSpecifier = (
     specifier.endsWith("/") || [".", ".."].includes(posix.basename(specifier));
   // A directory resolves only to an index with an extension; neither Node nor
   // TypeScript selects an extensionless `index` file.
-  const candidates = RESOLUTION_SUFFIXES.flatMap((suffix) => [
-    ...(directoryReference ? [] : [`${normalized}${suffix}`]),
-    ...(suffix === "" ? [] : [posix.join(normalized, `index${suffix}`)]),
-  ]);
+  const slots = resolutionSuffixes(mode);
+  const candidates =
+    mode === "runtime-require"
+      ? [
+          ...(directoryReference ? [] : nodeRequireFileCandidates(normalized)),
+          ...nodeRequireIndexCandidates(normalized),
+        ]
+      : slots.flatMap((slot) => [
+          ...(directoryReference
+            ? []
+            : slot.map((suffix) => `${normalized}${suffix}`)),
+          ...slot
+            .filter((suffix) => suffix !== "")
+            .map((suffix) => posix.join(normalized, `index${suffix}`)),
+        ]);
   // Retain present runtime files first; substitute only a missing counterpart.
   // Counterparts cover explicit filenames, not directory/index resolution.
   if (!directoryReference)
@@ -209,12 +308,15 @@ const resolveInternalSpecifier = (
       ),
     );
   const match = context.lookupPath.resolveCandidates(candidates);
-  if (match === undefined) return { to: normalized, resolution: "unresolved" };
+  if (match === undefined)
+    return packageMainForDirectory(normalized, context) !== undefined
+      ? selectPackageMain(normalized, undefined, context, mode)
+      : { to: normalized, resolution: "unresolved" };
   const resolvedThroughIndex =
     posix.basename(match).startsWith("index.") &&
     posix.dirname(match).normalize("NFC") === normalized.normalize("NFC");
   return resolvedThroughIndex
-    ? selectPackageMain(match, context)
+    ? selectPackageMain(posix.dirname(match), match, context, mode)
     : { to: match, resolution: "internal" };
 };
 
@@ -242,17 +344,25 @@ const appendFile = (
   });
   if (parsed === undefined) return;
   for (const relationship of parsed.relationships) {
-    if (relationship.resolution !== "internal") {
-      output.relationships.push(relationship);
+    const { resolutionStrategy, ...graphRelationship } = relationship;
+    if (graphRelationship.resolution !== "internal") {
+      output.relationships.push(graphRelationship);
       continue;
     }
+    const mode: InternalSpecifierResolutionMode =
+      resolutionStrategy === "runtime-require"
+        ? "runtime-require"
+        : graphRelationship.kind === "requires"
+          ? "source-require"
+          : "source-import";
     const resolved = resolveInternalSpecifier(
-      relationship.from_path,
-      relationship.to,
+      graphRelationship.from_path,
+      graphRelationship.to,
       context,
+      mode,
     );
     output.relationships.push({
-      ...relationship,
+      ...graphRelationship,
       to: resolved.to,
       resolution: resolved.resolution,
     });
@@ -309,9 +419,11 @@ export const parseReferenceSourceEntries = (
     parseFailures: [],
     limitations: [...read.limitations],
   };
+  const packageMainInventory = readPackageMains(read);
   const context: SpecifierContext = {
     lookupPath: createReferenceSourcePathLookup(filePaths),
-    packageMains: readPackageMains(read),
+    packageMains: packageMainInventory.mains,
+    packageManifestPathLookup: packageMainInventory.pathLookup,
   };
   for (const entry of read.entries) {
     if (signal?.aborted === true) break;

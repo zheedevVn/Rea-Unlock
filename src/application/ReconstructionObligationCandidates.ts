@@ -36,6 +36,14 @@ export interface ReconstructionObligationCandidateSet {
   readonly limitations: readonly string[];
 }
 
+/** Caller input cites review Evidence that its bundle does not contain. */
+export class MissingReviewEvidenceError extends TypeError {
+  constructor(evidenceId: string) {
+    super(`Reviewed obligation Evidence is missing: ${evidenceId}`);
+    this.name = "MissingReviewEvidenceError";
+  }
+}
+
 /** Derive conservative candidates from graph, process, and reviewed inputs. */
 export const deriveReconstructionObligationCandidates = (
   bundleInput: EvidenceBundle,
@@ -322,9 +330,7 @@ const reviewedCandidate = (
     authority_references: reviewEvidenceIds.map((evidenceId) => {
       const evidence = records.get(evidenceId);
       if (evidence === undefined)
-        throw new TypeError(
-          `Reviewed obligation Evidence is missing: ${evidenceId}`,
-        );
+        throw new MissingReviewEvidenceError(evidenceId);
       return {
         evidence_id: evidenceId,
         authority: evidence.authority,

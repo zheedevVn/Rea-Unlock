@@ -112,8 +112,8 @@ const buildIgnored = async (
       const retry = await retryRegularFileCleanup(cause, resources);
       if (retry.cleanup !== undefined) {
         const primary =
-          cause.outcome.kind === "failed"
-            ? cause.outcome.cause
+          retry.outcome.kind === "failed"
+            ? retry.outcome.cause
             : cause.cleanupCause;
         return err({
           ...failure(
