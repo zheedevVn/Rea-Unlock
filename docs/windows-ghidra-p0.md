@@ -17,7 +17,7 @@ additional permission flag or degraded mode is required.
 - Node.js 22.x (>=22.19), 24.x (>=24.11), or 26+;
 - an operator-installed Ghidra 12.1.x distribution (verified with 12.1.4);
 - a 64-bit full JDK inside that installation's declared Java range (JDK 21 or newer, with no maximum, for current 12.1 releases);
-- an explicit native, non-managed x86 or x86-64 PE application/DLL, or a
+- an explicit native, non-managed x86, x86-64, ARMNT (Thumb-2) or ARM64 PE application/DLL, or a
   [raw NMOS 6502 image](raw-binary.md#nmos-6502) with a caller-supplied entry; and
 - the 26 read-only Ghidra inventory, memory, and function-analysis operations.
 
@@ -135,9 +135,55 @@ and artifact SHA-256 before loading the package-owned addon. Native failure
 reasons remain distinct from a valid installation and an unsupported target.
 
 PE header classification and SHA-256 come from the same open file. The Windows
-provider admits native x86 and x86-64 PE applications and DLLs and rejects unsupported roles,
+provider admits native x86, x86-64, ARMNT (Thumb-2) and ARM64 PE applications and DLLs and rejects unsupported roles,
 architectures, managed images, and malformed headers. The original selected
-source coordinate is preserved for native admission.
+source coordinate is preserved for native admission. The original COFF machine is
+retained separately from the normalized CPU family. ARM admission requires the
+observed ARMNT machine 0x01C4; ARM64 requires 0xAA64. Legacy ARM (0x01C0), Thumb
+(0x01C2), and unavailable machine facts do not select this Windows lane.
+Without a caller-selected processor override, Ghidra's PE loader
+selects the language from the PE machine field: ARM (`IMAGE_FILE_MACHINE_ARMNT`)
+imports as `ARM:LE:32:v8` (Thumb), ARM64 (`IMAGE_FILE_MACHINE_ARM64`) as
+`AARCH64:LE:64:v8A`. Explicit language/compiler selections remain caller choices
+in the analysis profile and are recorded as explicit imports. The source
+fixture verifier compares the complete observed language ID, not just its CPU
+family prefix. ARM/ARM64 admission is a bounded extension of the x86/x64
+lane. `npm run verify:ghidra:windows -- --arm` or `-- --arm64`, optionally
+combined with `--dll`, selects encoded Thumb or ARM64 PE fixtures on a Windows
+x64 host. The packaged verifier accepts the same flags. These fixtures are not
+compiler-produced programs. ARM64EC (machine 0xA641) and ARM64X are not admitted;
+this target support does not establish Windows-on-Arm host support.
+
+Real Windows x64 verification with Ghidra 12.1.4 and JDK 21 completed the ARM64
+application and ARMNT/Thumb DLL fixtures' 26 read-only operations, constant-return
+decompilation, byte searches, CLI/MCP file-offset parity, source identity, and
+owned cleanup. The DLL fixture also verifies the exported caller/callee
+relationship. The x86/x64 compact-reference value-flow battery does not cover
+ARM or ARM64 instructions. ARM64 EXE file-offset verification includes ambiguous
+mappings; the single-section ARM32 DLL cannot exercise that case.
+
+The runs used two logical CPUs, 512 MiB Node/JVM heaps, a 900-second startup
+budget, and an explicit `REA_GHIDRA_DISABLED_ANALYZERS=WindowsResourceReference`
+test configuration. Default-analyzer runs exceeded the selected startup budget;
+resource-reference analysis and default-configuration completion are not
+established by these results. A Microsoft-signed Coreinfo ARM64 application also
+completed focused MCP decompilation, repeated readback, source-mapped memory
+reads, unchanged-input and cleanup checks. On this constrained host the first
+function query, including cold analysis, took about 434 seconds; its identical
+same-session read took about 23 ms and returned about 4.6 KiB of Evidence. These
+are individual observations, not general latency guarantees. Public ARM32
+DLL verification also completed against Microsoft Visual C++ 2013 ARM
+`msvcr120.dll`, including decompilation of its exported `abs`, repeated readback,
+source-mapped bytes, unchanged-input and cleanup checks. Its first function
+query took about 601 seconds; the same-session repeat took about 11 ms and
+returned about 4.8 KiB of Evidence. After preserving original COFF machines in the
+admission/profile, a further real Windows check rejected legacy ARM/Thumb and
+retained ARMNT/ARM64 admission. A rebuilt-candidate MSVCR120 query completed
+in about 407 seconds with a 15 ms repeat (4,830 bytes of Evidence), unchanged
+input and complete cleanup. That retry selected an 1,800-second startup budget
+after an additional 900-second attempt timed out. The resource bounds were
+unchanged; these observations do not establish a speedup. Configured processor
+selection is covered by profile tests, not these real-provider runs.
 
 Admission opens and checks every path component without following a reparse
 point. It retains handles, verifies local NTFS semantics, and observes volume
@@ -200,6 +246,8 @@ npm run verify:ghidra:windows
 npm run verify:ghidra:windows -- --x86
 npm run verify:ghidra:windows -- --dll
 npm run verify:ghidra:windows -- --x86 --dll
+npm run verify:ghidra:windows -- --arm64
+npm run verify:ghidra:windows -- --arm64 --dll
 npm run verify:ghidra:windows:package -- --x86
 npm run verify:ghidra:windows:package -- --dll
 npm run verify:ghidra:windows:package -- --x86 --dll
