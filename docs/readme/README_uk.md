@@ -151,7 +151,7 @@ REA потребує Node.js 22.x (>=22.19), 24.x (>=24.11) або 26+, а та�
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Нативні формати й підтримка систем відрізняються залежно від провайдера. Дивіться [налаштування Hopper і Ghidra](../installation.md#hopper), [посібник IDA](../ida-provider.md) та [експериментальну підтримку Ghidra у Windows](../windows-ghidra-p0.md). Ghidra також підтримує [аналіз 16-бітного DOS](../ghidra-dos.md). Для вибору провайдера дивіться [посібник CLI](../cli.md#choose-a-provider). Для функцій, доданих після найновішої версії в npm, перевірте [доступність у випусках](../installation.md#released-package-and-main).
+Нативні формати й підтримка систем відрізняються залежно від провайдера. Дивіться [налаштування Hopper і Ghidra](../installation.md#hopper), [посібник IDA](../ida-provider.md), [Kuna](../kuna-provider.md) та [експериментальну підтримку Ghidra у Windows](../windows-ghidra-p0.md). Ghidra також підтримує [аналіз 16-бітного DOS](../ghidra-dos.md). Для вибору провайдера дивіться [посібник CLI](../cli.md#choose-a-provider). Для функцій, доданих після найновішої версії в npm, перевірте [доступність у випусках](../installation.md#released-package-and-main).
 
 ## Приклади
 
@@ -257,7 +257,7 @@ npx rea-unlock@latest setup
 
 ## Історія зірок
 
-🎉 **200 000 зірок на GitHub — дякуємо!**
+🎉 **250 000 зірок на GitHub — дякуємо!**
 
 Дякуємо всім, хто використовує REA, повідомляє про помилки, пропонує нові функції, тестує збірки й допомагає з виправленнями.
 
