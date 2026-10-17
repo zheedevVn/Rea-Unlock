@@ -202,15 +202,22 @@ const addEndpoint = (
     ) ?? input.asset;
   const key = compactStringIdentityKey(input.value.value);
   const candidate = input.value.interpretation === "candidate";
+  const partial = input.value.resolution === "partial";
   const candidateLimitation =
     "The unbound method-like argument is only a candidate; its receiver does not establish a network call.";
+  const partialLimitation =
+    "The request target is not an exact literal; the endpoint value retains the unresolved source expression.";
   const label = `${input.value.kind} ${candidate ? "endpoint candidate" : "endpoint"}`;
   const node = context.accumulator.addNode({
     kind: "endpoint",
     identity: artifactLocalIdentity(
       input.file.sha256,
       input.value.kind,
-      JSON.stringify([input.value.interpretation ?? "literal", key]),
+      JSON.stringify([
+        input.value.interpretation ?? "literal",
+        ...(partial ? ["partial", input.value.location] : []),
+        key,
+      ]),
     ),
     observations: [
       {
@@ -221,6 +228,7 @@ const addEndpoint = (
           value: input.value.value,
           mechanism: input.value.mechanism,
           ...(candidate ? { interpretation: input.value.interpretation } : {}),
+          ...(partial ? { resolution: input.value.resolution } : {}),
         },
         evidence: candidate
           ? staticInferenceEvidence({
@@ -238,6 +246,7 @@ const addEndpoint = (
               range: input.value.location,
               operation: "discover-static-endpoint",
               coverage: input.coverage,
+              ...(partial ? { limitations: [partialLimitation] } : {}),
             }),
       },
     ],
@@ -252,13 +261,16 @@ const addEndpoint = (
     properties: {
       mechanism: input.value.mechanism,
       ...(candidate ? { interpretation: input.value.interpretation } : {}),
+      ...(partial ? { resolution: input.value.resolution } : {}),
     },
     ...(candidate
       ? {
           confidence: "low" as const,
           limitations: [candidateLimitation],
         }
-      : {}),
+      : partial
+        ? { limitations: [partialLimitation] }
+        : {}),
   });
 };
 

@@ -5,6 +5,7 @@ import type { Evidence } from "../../domain/evidence.js";
 import {
   AnalysisCancelledError,
   AnalysisCapabilityUnavailableError,
+  AnalysisOutputError,
 } from "../../domain/analysisErrorCore.js";
 import type { AnalysisError } from "../../domain/analysisErrorBase.js";
 import type {
@@ -12,6 +13,11 @@ import type {
   ObserveJavaScriptRuntimeInput,
 } from "../../domain/javascript/javascriptRuntimeObservation.js";
 import { err, ok, type Result } from "../../domain/result.js";
+import { completeProviderEvidence } from "../ProviderOperationExecution.js";
+import {
+  javascriptRuntimeObservationSchema,
+  javascriptRuntimeTargetListSchema,
+} from "../../domain/javascript/javascriptRuntimeObservation.js";
 
 /** List targets exposed by the explicitly selected loopback Inspector. */
 export const listJavaScriptRuntimeTargets = async (
@@ -21,19 +27,26 @@ export const listJavaScriptRuntimeTargets = async (
 ): Promise<Result<Evidence, AnalysisError>> => {
   const ready = requireProvider(provider, "list_javascript_runtime_targets");
   if (!ready.ok) return ready;
-  const result = await ready.value.listTargets(input, options);
-  if (result.ok && options.signal?.aborted === true)
+  if (options.signal?.aborted)
     return err(new AnalysisCancelledError("list_javascript_runtime_targets"));
-  return result.ok
-    ? ok(
-        createJavaScriptRuntimeObservationEvidence(
-          "list_javascript_runtime_targets",
-          input,
-          result.value,
-          ready.value.identity(),
-        ),
-      )
-    : result;
+  const result = await ready.value.listTargets(input, options);
+  if (!result.ok) return result;
+  const report = javascriptRuntimeTargetListSchema.safeParse(result.value);
+  if (!report.success)
+    return err(
+      new AnalysisOutputError(
+        "list_javascript_runtime_targets",
+        "Inspector returned a malformed target list.",
+        { cause: report.error },
+      ),
+    );
+  return runtimeEvidence(
+    "list_javascript_runtime_targets",
+    input,
+    report.data,
+    ready.value.identity(),
+    options,
+  );
 };
 
 /** Observe one attach-only Inspector target selected by the request. */
@@ -44,17 +57,51 @@ export const observeJavaScriptRuntime = async (
 ): Promise<Result<Evidence, AnalysisError>> => {
   const ready = requireProvider(provider, "observe_javascript_runtime");
   if (!ready.ok) return ready;
-  const result = await ready.value.observe(input, options);
-  if (!result.ok) return result;
-  if (options.signal?.aborted === true)
+  if (options.signal?.aborted)
     return err(new AnalysisCancelledError("observe_javascript_runtime"));
-  return ok(
-    createJavaScriptRuntimeObservationEvidence(
-      "observe_javascript_runtime",
-      input,
-      result.value,
-      ready.value.identity(),
-    ),
+  const result = await ready.value.observe(input, options);
+  if (!result.ok) {
+    const partial = result.error.partialObservation;
+    if (
+      partial !== undefined &&
+      !("evidence_id" in partial) &&
+      !("kind" in partial)
+    ) {
+      const report = javascriptRuntimeObservationSchema.safeParse(partial);
+      if (!report.success && result.error instanceof AnalysisCancelledError)
+        return err(
+          new AnalysisOutputError(
+            "observe_javascript_runtime",
+            "Inspector retained a malformed completed runtime observation.",
+            { cause: report.error },
+          ),
+        );
+      if (report.success)
+        result.error.partialObservation =
+          createJavaScriptRuntimeObservationEvidence(
+            "observe_javascript_runtime",
+            input,
+            report.data,
+            ready.value.identity(),
+          );
+    }
+    return result;
+  }
+  const report = javascriptRuntimeObservationSchema.safeParse(result.value);
+  if (!report.success)
+    return err(
+      new AnalysisOutputError(
+        "observe_javascript_runtime",
+        "Inspector returned a malformed runtime observation.",
+        { cause: report.error },
+      ),
+    );
+  return runtimeEvidence(
+    "observe_javascript_runtime",
+    input,
+    report.data,
+    ready.value.identity(),
+    options,
   );
 };
 
@@ -71,3 +118,21 @@ const requireProvider = (
         ),
       )
     : ok(provider);
+
+const runtimeEvidence = (
+  operation: Parameters<typeof createJavaScriptRuntimeObservationEvidence>[0],
+  input: Parameters<typeof createJavaScriptRuntimeObservationEvidence>[1],
+  result: Parameters<typeof createJavaScriptRuntimeObservationEvidence>[2],
+  provider: Parameters<typeof createJavaScriptRuntimeObservationEvidence>[3],
+  options: ExecutionOptions,
+): Result<Evidence, AnalysisError> => {
+  return completeProviderEvidence(
+    createJavaScriptRuntimeObservationEvidence(
+      operation,
+      input,
+      result,
+      provider,
+    ),
+    options.signal,
+  );
+};

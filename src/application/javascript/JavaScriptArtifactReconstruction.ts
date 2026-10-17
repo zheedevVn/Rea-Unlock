@@ -20,6 +20,7 @@ import type { ArtifactInventorySnapshot } from "../../domain/artifactInventorySn
 import type { ArtifactInventoryPartialObservation } from "../../domain/artifactPartialObservation.js";
 import type { ArtifactResourceScope } from "../../artifacts/ArtifactResourceScope.js";
 import { analyzeAndAdoptJavaScriptArtifactFiles } from "./JavaScriptArtifactAnalysis.js";
+import { javascriptArtifactAnalysisScopes } from "./JavaScriptArtifactAnalysisTypes.js";
 import { createJavaScriptSourceAnalysis } from "../../artifacts/javascript/JavaScriptSourceAnalysis.js";
 import { JAVASCRIPT_ANALYSIS_RESOURCE_DEFAULTS } from "../../domain/javascript/javascriptAnalysisResourceControls.js";
 import { createOwnedJavaScriptApplicationEvidenceCooperatively } from "./JavaScriptApplicationEvidence.js";
@@ -137,7 +138,7 @@ export const reconstructJavaScriptArtifact = async (
         );
       await reportPhase(
         "parse_javascript_sources",
-        `Parsing and projecting ${String(files.files.length - (files.source_selection?.unselected_files ?? 0))} selected application source files`,
+        `Processing ${String(files.files.length - (files.source_selection?.unselected_files ?? 0))} selected application files`,
       );
       const semanticProjection = createJavaScriptSemanticGraphProjection({
         ...(input.max_semantic_nodes === undefined
@@ -168,11 +169,16 @@ export const reconstructJavaScriptArtifact = async (
           semanticProjection,
           async (file, completed, total) => {
             abortIfNeeded(signal);
+            const ast =
+              javascriptArtifactAnalysisScopes[file.kind]?.authority ===
+              "ast-static-analysis";
             await progress?.report({
-              phase: "parse_javascript_source",
+              phase: ast
+                ? "parse_javascript_source"
+                : "process_javascript_artifact_metadata",
               completed: 0,
               total: 1,
-              message: `Parsing and projecting ${file.path} (${String(completed + 1)}/${String(total)})`,
+              message: `${ast ? "Parsing and projecting" : "Processing metadata for"} ${file.path} (${String(completed + 1)}/${String(total)})`,
             });
             abortIfNeeded(signal);
           },
