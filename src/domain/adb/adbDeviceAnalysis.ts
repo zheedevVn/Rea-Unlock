@@ -757,15 +757,17 @@ export type AdbAcquiredFilePartialObservation =
   | {
       readonly provider_id: "adb";
       readonly operation: "pull_adb_file";
-      readonly result: {
-        readonly client: z.infer<
-          typeof adbResultSchemas.pull_adb_file
-        >["client"];
-        readonly serial: string;
-        readonly local_path: string;
-        readonly device_path: string;
-        readonly digest_status: "unknown";
-      };
+      readonly result:
+        | {
+            readonly client: z.infer<
+              typeof adbResultSchemas.pull_adb_file
+            >["client"];
+            readonly serial: string;
+            readonly local_path: string;
+            readonly device_path: string;
+            readonly digest_status: "unknown";
+          }
+        | z.infer<typeof adbResultSchemas.pull_adb_file>;
     }
   | {
       readonly provider_id: "adb";

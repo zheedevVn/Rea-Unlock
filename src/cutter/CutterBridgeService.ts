@@ -1,3 +1,5 @@
+import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.js";
+import { ProviderCleanupError } from "../domain/providerCleanupError.js";
 import { jsonValueSchema } from "../domain/jsonValue.js";
 import {
   AnalysisCancelledError,
@@ -13,11 +15,16 @@ import {
   CutterBridgeClient,
   type CutterBridgeDiscovery,
   type CutterBridgeExecution,
+  type CutterDiscoveryOptions,
 } from "./CutterBridgeClient.js";
 import { CUTTER_PROVIDER_IDENTITY } from "./CutterBridgeClient.js";
 
 interface CutterBridgePort {
-  listSessions(): Promise<CutterBridgeDiscovery>;
+  listSessions(
+    options?: CutterDiscoveryOptions,
+  ): Promise<CutterBridgeDiscovery>;
+  close?(): Promise<void>;
+  retryDescriptorCleanup?(): Promise<void>;
   confirmCommandCompletion?(
     sessionId: string,
     requestId: string,
@@ -74,8 +81,64 @@ export class CutterBridgeService {
     return ok(null);
   }
 
-  listSessions(): Promise<CutterBridgeDiscovery> {
-    return this.client.listSessions();
+  async listSessions(
+    options: CutterDiscoveryOptions = {},
+  ): Promise<Result<CutterBridgeDiscovery, AnalysisError>> {
+    const { signal } = options;
+    try {
+      signal?.throwIfAborted();
+      const discovery = await this.client.listSessions(options);
+      signal?.throwIfAborted();
+      return ok(discovery);
+    } catch (cause) {
+      if (
+        cause instanceof AnalysisError &&
+        !(signal?.aborted && cause === signal.reason)
+      )
+        return err(cause);
+      if (signal?.aborted)
+        return err(
+          new AnalysisCancelledError("list_cutter_sessions", {
+            cause: signal.reason,
+          }),
+        );
+      return err(
+        new AnalysisCapabilityUnavailableError(
+          "cutter",
+          "list_cutter_sessions",
+          cause instanceof Error ? cause.message : "Cutter discovery failed",
+          { cause },
+        ),
+      );
+    }
+  }
+
+  async close(): Promise<void> {
+    const pending = await this.retryCleanup();
+    try {
+      if (pending.ok) await this.client.close?.();
+      else await this.client.retryDescriptorCleanup?.();
+    } catch (cause: unknown) {
+      const failure =
+        cause instanceof AnalysisError
+          ? cause
+          : new ProviderCleanupError(
+              "cutter",
+              [],
+              {
+                reason: cause instanceof Error ? cause.message : String(cause),
+              },
+              { cause },
+            );
+      throw pending.ok
+        ? failure
+        : analysisErrorWithCleanupFailure(
+            pending.error,
+            failure,
+            "close_cutter",
+          ).bindCleanupDependencies([pending.error, failure]);
+    }
+    if (!pending.ok) throw pending.error;
   }
 
   async execute(
@@ -85,7 +148,11 @@ export class CutterBridgeService {
     const parsed = cutterCommandInputSchema.safeParse(rawInput);
     if (!parsed.success) return err(new AnalysisInputError("cutter_command"));
     if (options.signal?.aborted)
-      return err(new AnalysisCancelledError("cutter_command"));
+      return err(
+        new AnalysisCancelledError("cutter_command", {
+          cause: options.signal.reason,
+        }),
+      );
     const input = parsed.data;
     const cleanup = await this.retryCleanup();
     if (!cleanup.ok) return err(cleanup.error);
@@ -167,6 +234,13 @@ export class CutterBridgeService {
         });
         return err(failure);
       }
+      if (options.signal?.aborted)
+        return err(
+          new AnalysisCancelledError("cutter_command", {
+            cause: options.signal.reason,
+            partialObservation: evidence,
+          }),
+        );
       return ok(evidence);
     } catch (cause) {
       if (cause instanceof AnalysisError) return err(cause);
@@ -175,7 +249,11 @@ export class CutterBridgeService {
           ? cause.message
           : "Unknown Cutter bridge failure";
       if (options.signal?.aborted && !message.includes("may have completed"))
-        return err(new AnalysisCancelledError("cutter_command", { cause }));
+        return err(
+          new AnalysisCancelledError("cutter_command", {
+            cause: options.signal.reason,
+          }),
+        );
       return err(
         message.includes("generation changed") ||
           message.includes("unavailable or stale")
