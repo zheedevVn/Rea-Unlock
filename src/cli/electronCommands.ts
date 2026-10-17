@@ -22,6 +22,7 @@ import {
 } from "../cliObservationOptions.js";
 import { runCliJavaScriptApplicationAnalysis } from "./javascriptApplicationAnalysis.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Register CLI equivalents of the Electron MCP tools. */
 export const registerElectronCommands = (
@@ -180,17 +181,30 @@ const registerElectronTargetList = (
       endpoint: z.string().describe("Literal-loopback Electron CDP endpoint"),
     }),
     run: ({ args }) =>
-      logCliCommand(logger, "list-electron-targets", async () => {
-        const context = await electronObservationContext();
-        const parsed = listElectronTargetsInputSchema.safeParse({
-          cdp_endpoint: args.endpoint,
-        });
-        if (!parsed.success) return inputError("list_electron_targets");
-        const { listElectronTargets } =
-          await import("../application/javascript/ElectronObservationService.js");
-        const result = await listElectronTargets(context.provider, parsed.data);
-        return result.ok ? result.value : cliError(result.error);
-      }),
+      withCommandCancellation((signal) =>
+        logCliCommand(logger, "list-electron-targets", async () => {
+          const context = await electronObservationContext();
+          const parsed = listElectronTargetsInputSchema.safeParse({
+            cdp_endpoint: args.endpoint,
+          });
+          if (!parsed.success) return inputError("list_electron_targets");
+          const { listElectronTargets } =
+            await import("../application/javascript/ElectronObservationService.js");
+          return await finishAnalysisCommand(
+            () =>
+              listElectronTargets(context.provider, parsed.data, { signal }),
+            {
+              close: async () => {
+                await context.provider.close?.();
+              },
+            },
+            "rea-cdp-electron",
+            "list_electron_targets",
+            undefined,
+            signal,
+          );
+        }),
+      ),
   });
 };
 
@@ -206,20 +220,33 @@ const registerElectronPageInspection = (
     }),
     options: electronPageInspectionOptions,
     run: ({ args, options }) =>
-      logCliCommand(logger, "inspect-electron-page", async () => {
-        const context = await electronObservationContext();
-        const parsed = inspectElectronPageInputSchema.safeParse({
-          cdp_endpoint: args.endpoint,
-          target_id: args.targetId,
-          observation_ms: options.observationMs,
-          include_script_sources: options.includeScriptSources,
-        });
-        if (!parsed.success) return inputError("inspect_electron_page");
-        const { inspectElectronPage } =
-          await import("../application/javascript/ElectronObservationService.js");
-        const result = await inspectElectronPage(context.provider, parsed.data);
-        return result.ok ? result.value : cliError(result.error);
-      }),
+      withCommandCancellation((signal) =>
+        logCliCommand(logger, "inspect-electron-page", async () => {
+          const context = await electronObservationContext();
+          const parsed = inspectElectronPageInputSchema.safeParse({
+            cdp_endpoint: args.endpoint,
+            target_id: args.targetId,
+            observation_ms: options.observationMs,
+            include_script_sources: options.includeScriptSources,
+          });
+          if (!parsed.success) return inputError("inspect_electron_page");
+          const { inspectElectronPage } =
+            await import("../application/javascript/ElectronObservationService.js");
+          return await finishAnalysisCommand(
+            () =>
+              inspectElectronPage(context.provider, parsed.data, { signal }),
+            {
+              close: async () => {
+                await context.provider.close?.();
+              },
+            },
+            "rea-cdp-electron",
+            "inspect_electron_page",
+            undefined,
+            signal,
+          );
+        }),
+      ),
   });
 };
 

@@ -3,10 +3,10 @@ import { JavaScriptRecoveryService } from "../application/javascript/JavaScriptR
 import { createJavaScriptRecoveryProvider } from "../composition/javascriptRecovery.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
-import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Share source recovery with MCP while keeping CLI spelling at this boundary. */
 export const registerJavaScriptRecoveryCommands = (
@@ -47,13 +47,11 @@ export const registerJavaScriptRecoveryCommands = (
         ),
     }),
     run: ({ args, options }) =>
-      withCommandCancellation(async (signal) => {
-        try {
-          return await logCliCommand(
-            logger,
-            CLI_COMMANDS.recoverJavaScriptSources,
-            async () => {
-              const result = await service.recover(
+      withCommandCancellation((signal) =>
+        logCliCommand(logger, CLI_COMMANDS.recoverJavaScriptSources, () =>
+          finishAnalysisCommand(
+            () =>
+              service.recover(
                 {
                   path: args.path,
                   output_directory: args.outputDirectory,
@@ -68,15 +66,12 @@ export const registerJavaScriptRecoveryCommands = (
                     : { rewrite_level: options.rewriteLevel }),
                 },
                 { signal },
-              );
-              return result.ok
-                ? result.value
-                : projectAnalysisError(result.error);
-            },
-          );
-        } finally {
-          await service.close();
-        }
-      }),
+              ),
+            service,
+            "wakaru",
+            "recover_javascript_sources",
+          ),
+        ),
+      ),
   });
 };

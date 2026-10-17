@@ -4,12 +4,13 @@ import {
   type AnalysisPartialObservation,
 } from "../domain/analysisErrorBase.js";
 import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.js";
+import { AnalysisCancelledError } from "../domain/analysisErrorCore.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import { ProviderAdapterError } from "../domain/providerAdapterError.js";
 import { ProviderCleanupError } from "../domain/providerCleanupError.js";
 import type { Result } from "../domain/result.js";
 
-/** Finish a one-shot CLI operation without discarding its primary result on close failure. */
+/** Finish a one-shot CLI operation while retaining primary results through close. */
 export const finishAnalysisCommand = async <
   Value extends AnalysisPartialObservation,
 >(
@@ -18,6 +19,7 @@ export const finishAnalysisCommand = async <
   providerId: string,
   canonicalOperation: string,
   fallbackResource?: string,
+  signal?: AbortSignal,
 ): Promise<Value | ReturnType<typeof projectAnalysisError>> => {
   let result: Result<Value, AnalysisError>;
   try {
@@ -32,6 +34,8 @@ export const finishAnalysisCommand = async <
     };
   }
   try {
+    // Resource owners may resolve their retained errors during close. This
+    // adapter cannot infer resolution of a producer's earlier cleanup failure.
     await service.close();
   } catch (cause) {
     let cleanup: AnalysisError;
@@ -65,5 +69,12 @@ export const finishAnalysisCommand = async <
           ),
     );
   }
+  if (result.ok && signal?.aborted === true)
+    return projectAnalysisError(
+      new AnalysisCancelledError(canonicalOperation, {
+        cause: signal.reason,
+        partialObservation: result.value,
+      }),
+    );
   return result.ok ? result.value : projectAnalysisError(result.error);
 };

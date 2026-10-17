@@ -1,15 +1,14 @@
 import { z } from "incur";
-import { AnalysisError } from "../domain/analysisErrorBase.js";
 import { FlutterBuildAnalysisService } from "../application/flutter/FlutterBuildAnalysisService.js";
 import type { FlutterBuildAnalysisPort } from "../application/flutter/FlutterBuildAnalysisPort.js";
 import { createFlutterBuildAnalysisProvider } from "../composition/flutter.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
-import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import type { FlutterOperation } from "../domain/flutter/flutterBuildAnalysis.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** One flutter command: CLI shape and the request it produces. */
 interface FlutterCommandSpec {
@@ -74,23 +73,19 @@ export const registerFlutterCommands = (
         : { args: spec.argumentSchema, options: spec.optionSchema }),
       run: ({ args, options }) =>
         withCommandCancellation((signal) =>
-          logCliCommand(logger, spec.command, async () => {
-            const settled = await new FlutterBuildAnalysisService(
-              provider,
-            ).execute(spec.operation, spec.toInput(args, options ?? {}), {
-              signal,
-            });
-            try {
-              await provider.close();
-            } catch (cause) {
-              if (cause instanceof AnalysisError)
-                return projectAnalysisError(cause);
-              throw cause;
-            }
-            return settled.ok
-              ? settled.value
-              : projectAnalysisError(settled.error);
-          }),
+          logCliCommand(logger, spec.command, () =>
+            finishAnalysisCommand(
+              () =>
+                new FlutterBuildAnalysisService(provider).execute(
+                  spec.operation,
+                  spec.toInput(args, options ?? {}),
+                  { signal },
+                ),
+              { close: () => provider.close() },
+              "flutter",
+              spec.operation,
+            ),
+          ),
         ),
     });
   }

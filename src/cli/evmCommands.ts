@@ -1,11 +1,11 @@
 import { z } from "incur";
-import { resolve } from "node:path";
 import { evmInterfaceModule } from "../composition/evm.js";
 import { logCliCommand } from "../cliLogging.js";
-import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { absoluteCallerPath } from "../filesystem/callerPath.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Resolve operator paths and preserve explicit encoding through the shared workflow. */
 export const registerEvmCommands = (
@@ -23,24 +23,22 @@ export const registerEvmCommands = (
         .describe("Selected carrier representation"),
     }),
     run: ({ args }) =>
-      withCommandCancellation(async (signal) => {
-        try {
-          return await logCliCommand(
-            logger,
-            evmInterfaceModule.cliCommand,
-            async () => {
-              const result = await service.inspect(
-                { path: resolve(args.path), encoding: args.encoding },
+      withCommandCancellation((signal) =>
+        logCliCommand(logger, evmInterfaceModule.cliCommand, () =>
+          finishAnalysisCommand(
+            () =>
+              service.inspect(
+                {
+                  path: absoluteCallerPath(args.path),
+                  encoding: args.encoding,
+                },
                 { signal },
-              );
-              return result.ok
-                ? result.value
-                : projectAnalysisError(result.error);
-            },
-          );
-        } finally {
-          await service.close();
-        }
-      }),
+              ),
+            service,
+            "evmole-interface",
+            "inspect_evm_interface",
+          ),
+        ),
+      ),
   });
 };

@@ -1,16 +1,14 @@
 import { z } from "incur";
-import { AnalysisError } from "../domain/analysisErrorBase.js";
-import { analysisErrorWithCleanupFailure } from "../domain/analysisErrorCleanup.js";
 import { PcapAnalysisService } from "../application/pcap/PcapAnalysisService.js";
 import type { PcapAnalysisPort } from "../application/pcap/PcapAnalysisPort.js";
 import { createPcapAnalysisProvider } from "../composition/pcap.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
-import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import type { PcapOperation } from "../domain/pcap/pcapAnalysis.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Expose the same explicit pcap requests through one-shot CLI commands. */
 export const registerPcapCommands = (
@@ -22,27 +20,14 @@ export const registerPcapCommands = (
   const service = new PcapAnalysisService(provider);
   const execute = (name: string, operation: PcapOperation, input: unknown) =>
     withCommandCancellation((signal) =>
-      logCliCommand(logger, name, async () => {
-        const result = await service.execute(operation, input, { signal });
-        try {
-          await provider.close();
-        } catch (cause) {
-          if (cause instanceof AnalysisError) {
-            if (result.ok) cause.retainPartialObservation(result.value);
-            return projectAnalysisError(
-              result.ok
-                ? cause
-                : analysisErrorWithCleanupFailure(
-                    result.error,
-                    cause,
-                    operation,
-                  ),
-            );
-          }
-          throw cause;
-        }
-        return result.ok ? result.value : projectAnalysisError(result.error);
-      }),
+      logCliCommand(logger, name, () =>
+        finishAnalysisCommand(
+          () => service.execute(operation, input, { signal }),
+          { close: () => provider.close() },
+          "pcap",
+          operation,
+        ),
+      ),
     );
 
   cli.command(CLI_COMMANDS.inspectPcapClient, {

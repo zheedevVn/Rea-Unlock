@@ -1,7 +1,6 @@
 import { inspectSignalDecodersInputSchema } from "../domain/signals/signalDecoders.js";
 import { z } from "incur";
 import type { SignalRecordingService } from "../application/signals/SignalRecordingService.js";
-import { resolve } from "node:path";
 import { createSignalRecordingService } from "../composition/signals.js";
 import {
   signalRecordingOptionsSchema,
@@ -14,6 +13,7 @@ import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
 import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
+import { absoluteCallerPath } from "../filesystem/callerPath.js";
 export const registerSignalCommands = (
   cli: CliInstance,
   logger: Logger,
@@ -107,7 +107,7 @@ export const registerSignalCommands = (
                 {
                   ...options,
                   ...(all_lines ? { line_limit: null } : {}),
-                  path: resolve(args.path),
+                  path: absoluteCallerPath(args.path),
                 },
                 { signal },
               ),

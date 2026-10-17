@@ -2,13 +2,14 @@ import { compareWasmInterfaces } from "../application/wasm/WasmInterfaceComparis
 import { parseCliJsonInput } from "../cliJsonInput.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { z } from "incur";
-import { resolve } from "node:path";
 import { wasmArtifactModule } from "../composition/wasm.js";
 import { logCliCommand } from "../cliLogging.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
+import { absoluteCallerPath } from "../filesystem/callerPath.js";
+import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
 /** Resolve all caller-selected artifact paths through the shared workflow. */
 export const registerWasmCommands = (
@@ -56,30 +57,27 @@ export const registerWasmCommands = (
         .describe("Explicit local WASM candidates"),
     }),
     run: ({ args, options }) =>
-      withCommandCancellation(async (signal) => {
-        try {
-          return await logCliCommand(
-            logger,
-            wasmArtifactModule.cliCommand,
-            async () => {
-              const result = await service.inspect(
+      withCommandCancellation((signal) =>
+        logCliCommand(logger, wasmArtifactModule.cliCommand, () =>
+          finishAnalysisCommand(
+            () =>
+              service.inspect(
                 {
-                  path: resolve(args.path),
-                  glue_paths: options.glue_paths?.map((path) => resolve(path)),
+                  path: absoluteCallerPath(args.path),
+                  glue_paths: options.glue_paths?.map((path) =>
+                    absoluteCallerPath(path),
+                  ),
                   candidate_paths: options.candidate_paths?.map((path) =>
-                    resolve(path),
+                    absoluteCallerPath(path),
                   ),
                 },
                 { signal },
-              );
-              return result.ok
-                ? result.value
-                : projectAnalysisError(result.error);
-            },
-          );
-        } finally {
-          await service.close();
-        }
-      }),
+              ),
+            service,
+            "wabt-artifact",
+            "inspect_wasm_artifact",
+          ),
+        ),
+      ),
   });
 };

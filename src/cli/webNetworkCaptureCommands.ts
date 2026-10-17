@@ -5,6 +5,7 @@ import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
 import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
+import { cliIntegerArgument } from "./options.js";
 import { withCommandCancellation } from "./commandCancellation.js";
 import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
 
@@ -26,7 +27,7 @@ export const registerWebNetworkCaptureCommands = (
     }),
     options: z.object({
       record: z
-        .array(z.coerce.number().int().nonnegative())
+        .array(cliIntegerArgument(0))
         .optional()
         .describe("Zero-based producer ordinals; repeat to select several"),
       sensitiveValue: z

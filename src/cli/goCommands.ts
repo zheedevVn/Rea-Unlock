@@ -1,5 +1,4 @@
 import { z } from "incur";
-import { resolve } from "node:path";
 import { createGoBinaryService } from "../composition/go.js";
 import { CLI_COMMANDS } from "../cliCommandNames.js";
 import { logCliCommand } from "../cliLogging.js";
@@ -7,6 +6,7 @@ import type { Logger } from "pino";
 import type { CliInstance } from "./types.js";
 import { withCommandCancellation } from "./commandCancellation.js";
 import { finishAnalysisCommand } from "./finishAnalysisCommand.js";
+import { absoluteCallerPath } from "../filesystem/callerPath.js";
 
 /** Resolve caller paths and inspect static build metadata through the shared workflow. */
 export const registerGoCommands = (cli: CliInstance, logger: Logger): void => {
@@ -24,7 +24,11 @@ export const registerGoCommands = (cli: CliInstance, logger: Logger): void => {
           CLI_COMMANDS.inspectGoBinary,
           async () =>
             finishAnalysisCommand(
-              () => service.inspect({ path: resolve(args.path) }, { signal }),
+              () =>
+                service.inspect(
+                  { path: absoluteCallerPath(args.path) },
+                  { signal },
+                ),
               service,
               "go-build-info",
               "inspect_go_binary",
