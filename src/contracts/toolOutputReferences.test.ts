@@ -6,17 +6,24 @@ import { z } from "zod";
 
 import { toolContract } from "./toolContracts.js";
 import { toolOutputSchemaWithMetadata } from "./toolSchemaMetadata.js";
+import { RAW_ONLY_ARCHITECTURES } from "../domain/binaryTargetTypes.js";
 import { createEvidence } from "../domain/evidence.js";
 
-it.each(["draft-2020-12", "draft-07"] as const)(
-  "advertises the raw-only 6502 Evidence subject constraint in %s",
-  (target) => {
+it.each(
+  (["draft-2020-12", "draft-07"] as const).flatMap((target) =>
+    RAW_ONLY_ARCHITECTURES.map(
+      (architecture) => [target, architecture] as const,
+    ),
+  ),
+)(
+  "advertises the raw-only Evidence subject constraint in %s for %s",
+  (target, architecture) => {
     const valid = createEvidence(
       {
         path: "/fixture/image.bin",
         sha256: "a".repeat(64),
         format: "raw-binary",
-        architecture: "6502",
+        architecture,
       },
       { id: "fixture", name: "Fixture", version: "1" },
       { operation: "address_name", parameters: {}, result: "entry" },

@@ -2,11 +2,7 @@ import { z } from "zod";
 
 import type { ToolContract } from "./toolContractTypes.js";
 import { advertisedInputExamples } from "./advertisedInputExamples.js";
-import {
-  advertisedReferenceExpansionBudget,
-  inputSchemaWithinReferenceExpansionBudget,
-  presentInputJsonSchema,
-} from "./inputSchemaPresentation.js";
+import { presentInputJsonSchema } from "./inputSchemaPresentation.js";
 import { digestCanonicalValue } from "../domain/canonicalDigest.js";
 
 const PROPERTY_DESCRIPTIONS: Readonly<Record<string, string>> = {
@@ -64,31 +60,16 @@ export const toolInputSchemaWithMetadata = <Contract extends ToolContract>(
     contract.inputSchema,
     "input",
     (project) => (options) => {
-      const shared = project({
+      const inline = project({
         ...options,
-        libraryOptions: { reused: "ref", ...options.libraryOptions },
+        libraryOptions: { ...options.libraryOptions, reused: "inline" },
       });
       const examples = advertisedInputExamples(contract);
       return {
-        // Sharing definitions only helps clients that resolve them. A client
-        // rendering declarations from a shared expansion budget degrades
-        // every reference past it to `unknown`, so an input whose shared form
-        // exceeds the budget is re-projected without shared definitions.
-        ...inputSchemaWithinReferenceExpansionBudget(
-          presentInputJsonSchema(shared, fallbackPropertyDescription),
-          () =>
-            presentInputJsonSchema(
-              project({
-                ...options,
-                libraryOptions: {
-                  ...options.libraryOptions,
-                  reused: "inline",
-                },
-              }),
-              fallbackPropertyDescription,
-            ),
-          advertisedReferenceExpansionBudget,
-        ),
+        // Keep advertised parameters self-contained for clients that do not
+        // resolve local references. The registered canonical schema remains
+        // responsible for runtime validation.
+        ...presentInputJsonSchema(inline, fallbackPropertyDescription),
         ...(examples.length === 0 ? {} : { examples }),
       };
     },

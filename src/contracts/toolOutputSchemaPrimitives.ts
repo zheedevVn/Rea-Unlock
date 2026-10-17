@@ -260,6 +260,12 @@ const providerDiagnostics = z.record(z.string(), jsonValueSchema);
 
 const providerAvailability = z.discriminatedUnion("status", [
   z.object({
+    status: z.literal("unknown"),
+    code: z.null(),
+    reason: z.string().min(1),
+    diagnostics: providerDiagnostics,
+  }),
+  z.object({
     status: z.literal("available"),
     code: z.null(),
     reason: z.null(),
@@ -463,6 +469,7 @@ export const expandToolAvailability = (
 
 export const sessionProvider = z
   .object({
+    cleanup_pending: z.boolean(),
     capabilities: z.array(providerCapabilitySet),
     analysis_run: analysisRun,
     analysis_activity: analysisActivity,

@@ -8,7 +8,10 @@ import {
   managedMemberSummaryViewResultSchema,
 } from "../domain/analysisView/analysisView.js";
 import { evidenceBundleSummarySchema } from "../domain/evidenceRecordSummary.js";
-import { BINARY_ARCHITECTURES } from "../domain/binaryTargetTypes.js";
+import {
+  BINARY_ARCHITECTURES,
+  RAW_ONLY_ARCHITECTURES,
+} from "../domain/binaryTargetTypes.js";
 import {
   binaryArchitectureSchema,
   rawBinaryEntryPointSchema,
@@ -465,7 +468,10 @@ const lifecycleTargetFields = {
 const detectedLifecycleTargetSchema = z.object({
   ...lifecycleTargetFields,
   format: targetFormatSchema.exclude(["raw-binary"]),
-  architecture: z.enum(BINARY_ARCHITECTURES).exclude(["6502"]).nullable(),
+  architecture: z
+    .enum(BINARY_ARCHITECTURES)
+    .exclude([...RAW_ONLY_ARCHITECTURES])
+    .nullable(),
 });
 const rawLifecycleTargetSchema = z.object({
   ...lifecycleTargetFields,
