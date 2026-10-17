@@ -46,7 +46,7 @@ import {
   commitExecutionProfile,
   prepareSessionExecution,
 } from "./BinarySessionExecution.js";
-import { closeAnalysisClient } from "./AnalysisClientCleanup.js";
+import { closeAnalysisClient } from "../../providers/AnalysisClientCleanup.js";
 import { analysisErrorWithCleanupFailure } from "../../domain/analysisErrorCleanup.js";
 const OFFICIAL_OPERATIONS: ReadonlySet<string> = new Set(
   OFFICIAL_TOOL_CONTRACTS.map(({ name }) => name),
@@ -591,10 +591,11 @@ export class BinarySession
   }
 
   /** Describe the active binary session. */
-  status(): JsonValue {
+  status(options: { readonly signal?: AbortSignal } = {}): Promise<JsonValue> {
     const run = this.#active ?? this.#pendingCleanup?.run;
     const client = run?.client;
     return binarySessionStatus({
+      ...options,
       target: this.#active?.target,
       route: this.#currentRoute(),
       router: this.#providerRouter,
@@ -926,6 +927,7 @@ export class BinarySession
     client: AnalysisClient,
     options: Pick<BinarySessionOpenOptions, "signal">,
   ): Promise<boolean> {
+    if (client.reuseReadiness?.() === "blocked") return false;
     const snapshot = client.operationHealthSnapshot?.();
     if (snapshot !== undefined)
       return snapshot.state === "idle" || snapshot.state === "busy";

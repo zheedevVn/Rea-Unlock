@@ -65,7 +65,7 @@ it("rejects malformed provider capability declarations", () => {
   ).toThrow(/Invalid analysis provider ID: auto/u);
 });
 
-it("uses one owner readiness snapshot for candidate availability and capabilities", () => {
+it("uses one owner readiness snapshot for candidate availability and capabilities", async () => {
   const base = candidate("alpha").provider;
   let observed = 0;
   let capabilityReads = 0;
@@ -92,7 +92,7 @@ it("uses one owner readiness snapshot for candidate availability and capabilitie
     },
   };
 
-  const [status] = new AnalysisProviderRegistry([provider]).candidates();
+  const [status] = await new AnalysisProviderRegistry([provider]).candidates();
   expect(observed).toBe(1);
   expect(capabilityReads).toBe(1);
   expect(status).toMatchObject({
@@ -762,4 +762,198 @@ it("registers before production and gates fresh selections until shutdown has jo
     await Promise.all([selecting, closing, next]);
     await registry.closeOwnedResources();
   }
+});
+
+it("joins cancelled readiness finalization and shutdown before admitting another observation", async () => {
+  const base = candidate("alpha").provider;
+  let enter!: () => void;
+  let finish!: () => void;
+  const entered = new Promise<void>((resolve) => {
+    enter = resolve;
+  });
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  let calls = 0;
+  let observed: AbortSignal | undefined;
+  const registry = new AnalysisProviderRegistry([
+    {
+      ...base,
+      inspectAvailability: async ({ signal } = {}) => {
+        calls++;
+        if (calls === 1) {
+          observed = signal;
+          enter();
+          await gate;
+        }
+        return base.inspectAvailability();
+      },
+    },
+  ]);
+  const controller = new AbortController();
+  const reason = { request: "opaque readiness cancellation" };
+  let settled = false;
+  const observing = registry
+    .candidates(undefined, { signal: controller.signal })
+    .catch((cause) => {
+      settled = true;
+      return cause;
+    });
+  await entered;
+  controller.abort(reason);
+  let closed = false;
+  const closing = registry.closeOwnedResources().then((value) => {
+    closed = true;
+    return value;
+  });
+  const next = registry.candidates();
+  try {
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(settled).toBe(false);
+    expect(closed).toBe(false);
+    expect(calls).toBe(1);
+    expect(observed?.reason).toBe(reason);
+    expect(registry.hasPendingOwnedResources()).toBe(true);
+    finish();
+    const failure = await observing;
+    expect(failure).toBeInstanceOf(AnalysisCancelledError);
+    expect(failure.cause).toBe(reason);
+    expect(await closing).toEqual(ok(null));
+    expect(await next).toMatchObject([
+      {
+        availability: {
+          status: "unknown",
+          diagnostics: { finalization: "in_progress" },
+        },
+      },
+    ]);
+    expect(await registry.candidates()).toHaveLength(1);
+    expect(calls).toBe(2);
+    expect(registry.hasPendingOwnedResources()).toBe(false);
+  } finally {
+    finish();
+    await Promise.allSettled([observing, closing, next]);
+    await registry.closeOwnedResources();
+  }
+});
+
+it("joins every candidate and retains physical failure with exact mixed cleanup owners", async () => {
+  const alpha = candidate("alpha").provider;
+  const beta = candidate("beta").provider;
+  const gamma = candidate("gamma").provider;
+  let finish!: () => void;
+  let enter!: () => void;
+  const entered = new Promise<void>((resolve) => {
+    enter = resolve;
+  });
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const physical = new ProviderAdapterError("alpha", "binary_session", {
+    diagnostics: { reason: "physical observation failed" },
+  });
+  const cleanup = new ProviderCleanupError(
+    "beta",
+    ["beta retained prerequisite"],
+    { reason: "controlled cleanup refusal" },
+  );
+  let releases = 0;
+  const registry = new AnalysisProviderRegistry([
+    {
+      ...alpha,
+      inspectAvailability: async () => {
+        throw physical;
+      },
+    },
+    {
+      ...beta,
+      inspectAvailability: async () => {
+        enter();
+        await gate;
+        throw cleanup;
+      },
+      closeOwnedResources: async () => {
+        releases++;
+        cleanup.resolveCleanup();
+        return ok(null);
+      },
+    },
+    gamma,
+  ]);
+  let settled = false;
+  const observing = registry.candidates().catch((cause) => {
+    settled = true;
+    return cause;
+  });
+  await entered;
+  try {
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(settled).toBe(false);
+    finish();
+    const failure = await observing;
+    expect(failure.cleanupIncomplete).toBe(true);
+    expect(failure.cleanupResources).toContain("beta retained prerequisite");
+    expect(failure.diagnostics).toMatchObject({
+      readiness_candidates: [
+        { provider: { id: "gamma" }, availability: { status: "available" } },
+      ],
+    });
+    expect(failure.cleanupPrimary).toBe(physical);
+    expect(projectAnalysisError(failure).details).toMatchObject({
+      diagnostics: {
+        readiness_errors: expect.arrayContaining([
+          {
+            provider_id: "alpha",
+            error: expect.objectContaining({ code: "execution_failure" }),
+          },
+          {
+            provider_id: "beta",
+            error: expect.objectContaining({ code: "cleanup_incomplete" }),
+          },
+        ]),
+      },
+    });
+    expect(registry.hasPendingOwnedResources()).toBe(true);
+    expect(await registry.closeOwnedResources()).toEqual(ok(null));
+    expect(releases).toBe(1);
+    expect(failure.cleanupIncomplete).toBe(false);
+    expect(projectAnalysisError(failure)).toMatchObject({
+      code: "execution_failure",
+      details: { diagnostics: { reason: "physical observation failed" } },
+    });
+    expect(registry.hasPendingOwnedResources()).toBe(false);
+  } finally {
+    finish();
+    await observing;
+    await registry.closeOwnedResources();
+  }
+});
+
+it("registers selection before async readiness can race shutdown", async () => {
+  let calls = 0;
+  let observed: AbortSignal | undefined;
+  const base = candidate("alpha").provider;
+  const registry = new AnalysisProviderRegistry([
+    {
+      ...base,
+      inspectAvailability: async ({ signal } = {}) => {
+        calls++;
+        observed = signal;
+        return base.inspectAvailability();
+      },
+    },
+  ]);
+  const selecting = registry.select(DATABASE_TARGET, "alpha");
+  const closing = registry.closeOwnedResources();
+  const [selected, closed] = await Promise.all([selecting, closing]);
+  expect(selected).toMatchObject({
+    ok: false,
+    error: { _tag: "AnalysisCancelledError" },
+  });
+  expect(closed).toEqual(ok(null));
+  expect(calls).toBe(1);
+  expect(observed?.aborted).toBe(true);
+  expect((await registry.select(DATABASE_TARGET, "alpha")).ok).toBe(true);
+  expect(calls).toBe(2);
+  expect(registry.hasPendingOwnedResources()).toBe(false);
 });
