@@ -12,6 +12,7 @@ import {
 } from "./JavaScriptSemanticGraphConstruction.js";
 import { unknownSemanticEvidence } from "./JavaScriptSemanticGraphEvidence.js";
 import type { SemanticFlowProjectionContext } from "./JavaScriptSemanticGraphFlowProjection.js";
+import { semanticResourceLimitReason } from "../../domain/javascript/javascriptSemanticResourceLimits.js";
 
 /** Project environment, argv, file, default, and precedence candidates. */
 export const projectSemanticConfiguration = (
@@ -56,7 +57,17 @@ export const projectSemanticConfiguration = (
           ...(operation.kind === "default" ? (["overrides"] as const) : []),
         ],
         location: operation.location,
-        detail: `Static ${operation.kind} configuration identity is partial.`,
+        ...(operation.valueResourceLimit === undefined
+          ? {
+              detail:
+                operation.kind === "default"
+                  ? "Static default configuration value is partial."
+                  : `Static ${operation.kind} configuration identity is partial.`,
+            }
+          : {
+              reason: "resource-limit",
+              detail: semanticResourceLimitReason(operation.valueResourceLimit),
+            }),
         candidateNodeIds: [],
       });
   }
@@ -80,6 +91,9 @@ const addConfigurationNode = (
       key: operation.key,
       source_kind: operation.kind,
       value: operation.value,
+      ...(operation.valueResourceLimit === undefined
+        ? {}
+        : { value_resource_limit: operation.valueResourceLimit }),
     },
   });
 
@@ -279,6 +293,7 @@ const bindingOrOwner = (
     : (context.callableNodes.get(callableId) ?? context.moduleNode));
 
 interface DataUnknownInput {
+  readonly reason?: "ambiguous-target" | "resource-limit";
   readonly context: SemanticFlowProjectionContext;
   readonly node: JavaScriptSemanticGraphNode;
   readonly family: "boundary" | "configuration" | "request";
@@ -317,7 +332,7 @@ const addDataUnknown = (input: DataUnknownInput): void => {
         node_id: node.node_id,
         family,
         relation_kinds: relationKinds,
-        reason: "ambiguous-target",
+        reason: input.reason ?? "ambiguous-target",
         detail,
         candidate_node_ids: candidateNodeIds,
         evidence: unknownSemanticEvidence(context.file, location),

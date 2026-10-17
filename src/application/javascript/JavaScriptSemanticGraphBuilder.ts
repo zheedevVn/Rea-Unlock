@@ -34,8 +34,16 @@ import {
 import { projectSemanticResources } from "./JavaScriptSemanticGraphResourceProjection.js";
 import { projectSemanticObjects } from "./JavaScriptSemanticGraphObjectProjection.js";
 import { projectSemanticValues } from "./JavaScriptSemanticGraphValueProjection.js";
-import { inferredSemanticEvidenceAt } from "./JavaScriptSemanticGraphEvidence.js";
-import { observedSemanticEvidence } from "./JavaScriptSemanticGraphEvidence.js";
+import {
+  inferredSemanticEvidenceAt,
+  observedSemanticEvidence,
+  unknownSemanticEvidence,
+} from "./JavaScriptSemanticGraphEvidence.js";
+import {
+  semanticCoverageResourceLimits,
+  semanticResourceLimitCoverage,
+} from "../../domain/javascript/javascriptSemanticCoverage.js";
+import { semanticResourceLimitReason } from "../../domain/javascript/javascriptSemanticResourceLimits.js";
 import {
   partialApplicationCoverage,
   type ApplicationCoverage,
@@ -163,7 +171,7 @@ export interface JavaScriptSemanticGraphProjection {
   readonly adoptFileProjection: (
     projection: JavaScriptSemanticFileProjection,
   ) => void;
-  /** Preserve source-bound unknowns for an execution or result-retention failure. */
+  /** Preserve JavaScript-source unknowns; other file kinds have no semantic module. */
   readonly recordUnavailableFile: (
     file: JavaScriptArtifactFile,
     reason: string,
@@ -346,6 +354,9 @@ export const createJavaScriptSemanticGraphProjection = (
       if (projection.truncated) truncatedFiles += 1;
     },
     recordUnavailableFile: (file, reason, limits, unknownReason) => {
+      // Both full and incremental construction enter here. Metadata/native
+      // processing gaps belong to the application graph, never JavaScript IR.
+      if (file.kind !== "javascript") return;
       const retainedLimits = javaScriptAnalysisCoverageLimits(limits);
       for (const limit of retainedLimits) {
         executionLimits.set(
@@ -462,6 +473,7 @@ function* projectFileSteps(
   });
   if (moduleNode === null) return [];
   state.roots.add(moduleNode.node_id);
+  projectFileResourceLimits({ file, ir, state, moduleNode });
   yield* projectElectronSemanticCallPaths(file, paths, state);
   // Node creation keeps source order, which the per-file node budget relies
   // on; yields between nodes do not change it.
@@ -549,6 +561,36 @@ function* projectFileSteps(
     state.evidenceContexts,
   );
 }
+
+const projectFileResourceLimits = (
+  context: Pick<FileContext, "file" | "ir" | "state" | "moduleNode">,
+): void => {
+  // Getter limits describe query effects without tagged values; other limits
+  // already project from binding or return-site values and must not be duplicated.
+  for (const limit of semanticCoverageResourceLimits(context.ir.coverage)) {
+    if (limit !== "getter-expansion") continue;
+    const unknown = createJavaScriptSemanticGraphUnknown(
+      {
+        node_id: context.moduleNode.node_id,
+        family: "data-flow",
+        relation_kinds: ["defines"],
+        reason: "resource-limit",
+        detail: semanticResourceLimitReason(limit),
+        candidate_node_ids: [],
+        evidence: {
+          ...unknownSemanticEvidence(context.file, null),
+          coverage: partialApplicationCoverage(
+            semanticResourceLimitCoverage([limit]),
+            null,
+          ),
+          limitations: [semanticResourceLimitReason(limit)],
+        },
+      },
+      context.state.evidenceContexts,
+    );
+    context.state.unknowns.set(unknown.unknown_id, unknown);
+  }
+};
 
 function* createReturnSiteNodes(
   file: JavaScriptArtifactFile,
