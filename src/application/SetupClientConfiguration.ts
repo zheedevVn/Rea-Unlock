@@ -44,7 +44,7 @@ import {
   RegularFileCleanupFailure,
 } from "./RegularFileRead.js";
 import {
-  preserveRecoveryBackup,
+  preserveCurrentRecoveryBackup,
   selectCurrentRecoveryBackup,
 } from "./SetupRecoveryBackup.js";
 import type { ClientConfigurationFileError } from "./ClientConfigurationFiles.js";
@@ -74,6 +74,8 @@ export class ClientConfigurationCleanupRollbackFailure extends RegularFileCleanu
         [failure.cleanupCause, new Error(configurationFailure.failure.detail)],
         `Configuration readback cleanup and rollback failed: ${configurationFailure.failure.path}`,
       ),
+      failure.retention,
+      failure.completionCancellation,
     );
   }
 }
@@ -230,32 +232,32 @@ const persistClientConfiguration = async ({
 }: ClientConfigurationUpdate): Promise<ClientConfigurationResult> => {
   // The plan chose this file; an MSIX package may have switched to its
   // private copy since, for example when it quit.
-  if (
-    client.msixPackage !== undefined &&
-    (await packageReadTargetChanged(client.msixPackage, client.configPath))
-  )
-    return { status: "failed", reason: "target_changed" };
-  const backupPath =
-    original === undefined ? undefined : `${client.configPath}.rea.backup`;
+  if (client.msixPackage !== undefined) {
+    const target = await packageReadTargetChanged(
+      client.msixPackage,
+      client.configPath,
+    );
+    if (!target.ok)
+      return {
+        status: "failed",
+        reason: "target_unavailable",
+        failure: {
+          kind: "inspect",
+          path: target.error.path,
+          detail: target.error.detail,
+        },
+      };
+    if (target.value) return { status: "failed", reason: "target_changed" };
+  }
   let recoveryBackupPath: string | undefined;
-  if (backupPath !== undefined && original !== undefined) {
-    const selection = await selectCurrentRecoveryBackup(backupPath, original);
-    if (!selection.ok) return { status: "failed", reason: "backup" };
-    if (
-      !(await preserveRecoveryBackup(
-        transactionPath,
-        selection.value.backupPath,
-      ))
-    )
-      return { status: "failed", reason: "backup" };
-    const verified = await selectCurrentRecoveryBackup(backupPath, original);
-    if (
-      !verified.ok ||
-      verified.value.backupPath !== selection.value.backupPath ||
-      !verified.value.present
-    )
-      return { status: "failed", reason: "backup" };
-    recoveryBackupPath = verified.value.backupPath;
+  if (original !== undefined) {
+    const preserved = await preserveCurrentRecoveryBackup(
+      `${client.configPath}.rea.backup`,
+      transactionPath,
+      original,
+    );
+    if (!preserved.ok) return { status: "failed", reason: "backup" };
+    recoveryBackupPath = preserved.value;
   }
   // A native OpenCode V2 entry replaces REA's legacy V1 entry, which would
   // otherwise conflict with it.
@@ -652,7 +654,11 @@ const rollbackOrReadbackFailure = async (
 ): Promise<ClientConfigurationResult> => {
   const rollback = await restoreConfig(targetPath, original);
   return rollback.ok
-    ? { status: "failed", reason: "readback" }
+    ? {
+        status: "failed",
+        reason: "readback",
+        ...(backupPath === undefined ? {} : { backupPath }),
+      }
     : {
         status: "failed",
         reason: "rollback",
