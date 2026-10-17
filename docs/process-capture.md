@@ -425,7 +425,9 @@ results for unaffected dimensions and mark affected dimensions unknown; an
 incomplete capture cannot locate the first divergence across all dimensions.
 Trace assertions use coverage for the sources they select, so an assertion
 about complete raw terminal output need not fail because rendered snapshots
-were omitted. Captures missing `truncation_details` are rejected on import;
+were omitted. A trace difference applies to the dimensions identified by its
+diagnostic; unrelated dimensions retain their own comparison, including unknown
+coverage. Captures missing `truncation_details` are rejected on import;
 preserve them as historical files and recapture for current comparisons.
 `limits.file_bytes` is already the cumulative whole-file hashing budget,
 independent of `limits.output_bytes`, which bounds retained terminal content.
