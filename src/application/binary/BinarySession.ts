@@ -55,12 +55,15 @@ const ENHANCED_OPERATIONS: ReadonlySet<string> = new Set(
   ENHANCED_TOOL_CONTRACTS.map(({ name }) => name),
 );
 
-interface SessionBinding {
-  readonly target: BinaryTarget;
+interface SessionRun {
   readonly client: AnalysisClient;
-  readonly profile: AnalysisProfileCommitment | null;
   readonly route: SessionProviderRoute;
   readonly runId: string;
+}
+
+interface SessionBinding extends SessionRun {
+  readonly target: BinaryTarget;
+  readonly profile: AnalysisProfileCommitment | null;
   nativeSourceAdmitted: boolean;
 }
 
@@ -79,8 +82,7 @@ export class BinarySession
   #externalMutationCleanupFailure: AnalysisError | undefined;
   #pendingCleanup:
     | {
-        readonly client: AnalysisClient;
-        readonly providerId: string;
+        readonly run: SessionRun;
         readonly retainDocument: boolean;
       }
     | undefined;
@@ -201,8 +203,12 @@ export class BinarySession
       stagedSnapshotMatches: (target, profile) =>
         this.matchesSnapshot(target, profile),
     }).then((resolved) =>
-      isAborted(options.signal)
-        ? err(new AnalysisCancelledError("open_binary"))
+      resolved.ok && isAborted(options.signal)
+        ? err(
+            new AnalysisCancelledError("open_binary", {
+              cause: options.signal?.reason,
+            }),
+          )
         : resolved,
     );
   }
@@ -216,12 +222,12 @@ export class BinarySession
     options: BinarySessionOpenOptions = {},
   ): Promise<Result<BinaryTarget, AnalysisError>> {
     return this.#open(
-      () =>
+      (admitted) =>
         resolveSessionOpen({
           router: this.#providerRouter,
           current: this.#active,
           path,
-          options,
+          options: admitted,
           stagedSnapshotMatches: (target, profile) =>
             this.matchesSnapshot(target, profile),
         }),
@@ -250,12 +256,33 @@ export class BinarySession
   }
 
   #open(
-    resolve: () => Promise<Result<ResolvedSessionOpen, AnalysisError>>,
-    options: Pick<BinarySessionOpenOptions, "signal" | "snapshot">,
+    resolve: (
+      admitted: BinarySessionOpenOptions,
+    ) => Promise<Result<ResolvedSessionOpen, AnalysisError>>,
+    options: BinarySessionOpenOptions,
   ): Promise<Result<BinaryTarget, AnalysisError>> {
-    return this.#serialize((admittedThrough) =>
-      this.#openWithinTransition(admittedThrough, resolve, options),
-    );
+    return this.#serialize(async (admittedThrough) => {
+      const admitted = await this.#withLoadedSnapshot(options);
+      if (!admitted.ok) return admitted;
+      return this.#openWithinTransition(
+        admittedThrough,
+        () => resolve(admitted.value),
+        admitted.value,
+      );
+    });
+  }
+
+  /** Read the staged snapshot only after earlier lifecycle transitions have settled. */
+  async #withLoadedSnapshot(
+    options: BinarySessionOpenOptions,
+  ): Promise<Result<BinarySessionOpenOptions, AnalysisError>> {
+    if (options.loadSnapshot === undefined) return ok(options);
+    if (isAborted(options.signal))
+      return err(new AnalysisCancelledError("open_binary"));
+    const loaded = await options.loadSnapshot();
+    if (!loaded.ok) return loaded;
+    const { loadSnapshot: _loaded, ...rest } = options;
+    return ok({ ...rest, snapshot: loaded.value });
   }
 
   async #openWithinTransition(
@@ -297,10 +324,7 @@ export class BinarySession
     const previous = this.#active;
     this.#active = undefined;
     if (previous !== undefined) {
-      const closed = await this.#retireClient(
-        previous.client,
-        previous.route.identity.id,
-      );
+      const closed = await this.#retireClient(previous);
       if (!closed.ok) {
         // A failed open retires the provider cache, not the investigation.
         // Preserve Evidence and Unknown history for export and recovery.
@@ -317,23 +341,18 @@ export class BinarySession
         ),
       );
     const runId = randomUUID();
-    const client = route.createClient(target, { runId });
+    const client = route.createClient(target, {
+      runId,
+    });
+    const run: SessionRun = { client, route, runId };
     const started = await client.execute("health", {}, options);
     if (!started.ok) {
-      return err(
-        await this.#failedOpen(
-          client,
-          route.identity.id,
-          previous,
-          started.error,
-        ),
-      );
+      return err(await this.#failedOpen(run, previous, started.error));
     }
     if (isAborted(options.signal)) {
       return err(
         await this.#failedOpen(
-          client,
-          route.identity.id,
+          run,
           previous,
           new AnalysisCancelledError("open_binary"),
         ),
@@ -341,10 +360,8 @@ export class BinarySession
     }
     this.#active = {
       target,
-      client,
       profile,
-      route,
-      runId,
+      ...run,
       nativeSourceAdmitted: false,
     };
     this.#clearRuntimeAvailability();
@@ -357,14 +374,7 @@ export class BinarySession
       const imported = this.importAnalysisSnapshot(options.snapshot);
       if (!imported.ok) {
         this.#active = undefined;
-        return err(
-          await this.#failedOpen(
-            client,
-            route.identity.id,
-            previous,
-            imported.error,
-          ),
-        );
+        return err(await this.#failedOpen(run, previous, imported.error));
       }
     }
     return ok(target);
@@ -484,42 +494,50 @@ export class BinarySession
             options.progress,
             options.retainProviderDocuments,
           )
-        : await this.#retireClient(
-            previous.client,
-            previous.route.identity.id,
-            {
-              ...(options.progress === undefined
-                ? {}
-                : { progress: options.progress }),
-              ...(options.retainProviderDocuments === true
-                ? { retainDocument: true }
-                : {}),
-            },
-          );
+        : await this.#retireClient(previous, {
+            ...(options.progress === undefined
+              ? {}
+              : { progress: options.progress }),
+            ...(options.retainProviderDocuments === true
+              ? { retainDocument: true }
+              : {}),
+          });
     if (clearRecords) this.clearSessionRecords();
     this.#clearRuntimeAvailability();
     const fileResources = await this.closeWriteResources();
-    if (!closed.ok && !fileResources.ok)
+    const candidateResources = await this.#providerRouter.closeOwnedResources();
+    const resourceFailures = [
+      ...(fileResources.ok ? [] : [fileResources.error]),
+      ...(candidateResources.ok ? [] : [candidateResources.error]),
+    ];
+    let resourceFailure = resourceFailures[0];
+    for (const next of resourceFailures.slice(1))
+      if (resourceFailure !== undefined)
+        resourceFailure = analysisErrorWithCleanupFailure(
+          resourceFailure,
+          next,
+          "close_binary",
+        );
+    if (!closed.ok && resourceFailure !== undefined)
       return err(
         analysisErrorWithCleanupFailure(
           closed.error,
-          fileResources.error,
+          resourceFailure,
           "close_binary",
         ),
       );
-    return closed.ok ? fileResources : closed;
+    if (!closed.ok) return closed;
+    return resourceFailure === undefined ? ok(null) : err(resourceFailure);
   }
 
   async #retireClient(
-    client: AnalysisClient,
-    providerId: string,
+    run: SessionRun,
     options: Pick<ExecutionOptions, "progress"> & {
       readonly retainDocument?: boolean;
     } = {},
   ): Promise<Result<null, AnalysisError>> {
     this.#pendingCleanup = {
-      client,
-      providerId,
+      run,
       retainDocument: options.retainDocument === true,
     };
     return this.#retryPendingCleanup(options.progress);
@@ -536,8 +554,8 @@ export class BinarySession
       this.#pendingCleanup = pending;
     }
     const closed = await closeAnalysisClient(
-      pending.client,
-      pending.providerId,
+      pending.run.client,
+      pending.run.route.identity.id,
       {
         ...(progress === undefined ? {} : { progress }),
         ...(pending.retainDocument ? { retainDocument: true } : {}),
@@ -548,12 +566,11 @@ export class BinarySession
   }
 
   async #failedOpen(
-    client: AnalysisClient,
-    providerId: string,
+    run: SessionRun,
     previous: SessionBinding | undefined,
     primary: AnalysisError,
   ): Promise<AnalysisError> {
-    const closed = await this.#retireClient(client, providerId);
+    const closed = await this.#retireClient(run);
     if (!closed.ok)
       return analysisErrorWithCleanupFailure(
         primary,
@@ -575,18 +592,21 @@ export class BinarySession
 
   /** Describe the active binary session. */
   status(): JsonValue {
+    const run = this.#active ?? this.#pendingCleanup?.run;
+    const client = run?.client;
     return binarySessionStatus({
       target: this.#active?.target,
       route: this.#currentRoute(),
       router: this.#providerRouter,
       runtimeUnavailability: this.#runtimeUnavailability,
-      runId: this.#active?.runId,
-      runtimeLineageSnapshots:
-        this.#active?.client.runtimeLineageSnapshots?.() ?? [],
-      requestActivitySnapshots:
-        this.#active?.client.requestActivitySnapshots?.() ?? [],
-      providerOperationHealth:
-        this.#active?.client.operationHealthSnapshot?.() ?? null,
+      runId: run?.runId,
+      runtimeLineageSnapshots: client?.runtimeLineageSnapshots?.() ?? [],
+      requestActivitySnapshots: client?.requestActivitySnapshots?.() ?? [],
+      providerOperationHealth: client?.operationHealthSnapshot?.() ?? null,
+      cleanupPending:
+        this.#pendingCleanup !== undefined ||
+        this.hasPendingFileResources ||
+        this.#providerRouter.hasPendingOwnedResources(),
     });
   }
 
@@ -921,21 +941,22 @@ export class BinarySession
   ): Promise<Result<null, AnalysisError>> {
     if (previous === undefined) return ok(null);
     const runId = randomUUID();
-    const client = previous.route.createClient(previous.target, { runId });
+    const client = previous.route.createClient(previous.target, {
+      runId,
+    });
+    const run: SessionRun = { client, route: previous.route, runId };
     const started = await client.execute("health", {});
     if (started.ok) {
       this.#active = {
         target: previous.target,
-        client,
         profile: previous.profile,
-        route: previous.route,
-        runId,
+        ...run,
         nativeSourceAdmitted: false,
       };
       this.#clearRuntimeAvailability();
       return ok(null);
     }
-    const closed = await this.#retireClient(client, previous.route.identity.id);
+    const closed = await this.#retireClient(run);
     return closed.ok
       ? ok(null)
       : err(

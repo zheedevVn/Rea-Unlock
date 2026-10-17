@@ -1,3 +1,11 @@
+import { AnalysisCleanupLease } from "../../artifacts/AnalysisCleanupLease.js";
+import { ArtifactResourceScope } from "../../artifacts/ArtifactResourceScope.js";
+import { ArtifactReaderFailure } from "../../artifacts/ArtifactReader.js";
+import { bindArtifactFileCleanup } from "../../artifacts/ArtifactFileOperation.js";
+import { SharedStartupAttempt } from "../../process/SharedStartupAttempt.js";
+import { ProviderAdapterError } from "../../domain/providerAdapterError.js";
+import { projectAnalysisError } from "../../domain/analysisErrorProjection.js";
+import { ProviderCleanupError } from "../../domain/providerCleanupError.js";
 import {
   analysisProviderIdSchema,
   analysisProviderSelectorSchema,
@@ -26,6 +34,7 @@ import {
   type AnalysisProviderCandidateEvaluation,
 } from "./AnalysisProviderEvaluation.js";
 import { compareUnicodeCodePoints } from "../../domain/unicodeCodePointOrder.js";
+import type { FileCloseResourceOwner } from "../AnalysisProvider.js";
 
 /** Deterministic discovery truth for one configured deep provider. */
 export interface AnalysisProviderCandidateStatus {
@@ -67,6 +76,8 @@ interface TargetSelectionContext {
   readonly signal: AbortSignal | undefined;
 }
 
+type SelectionResult = Result<AnalysisProviderSelection, AnalysisError>;
+
 /**
  * Discover and select overlapping deep providers without starting their clients.
  * Registration order never affects selection or caller-visible output.
@@ -77,9 +88,26 @@ export class AnalysisProviderRegistry {
   readonly #declaredOperations: readonly string[];
   readonly #defaultSelector: AnalysisProviderSelector;
 
+  readonly #selections = new Set<SharedStartupAttempt<SelectionResult>>();
+  readonly #selectionCleanup = new Set<AnalysisError>();
+  readonly #profileFiles = new ArtifactResourceScope();
+  readonly #profileFileOwner: FileCloseResourceOwner = {
+    retain: (owner, resource) =>
+      this.#profileFiles.retain({
+        kind: "lease",
+        resource,
+        lease: new AnalysisCleanupLease(() => owner.close(), [resource]),
+      }),
+    run: (operation) => this.#profileFiles.run(operation),
+  };
+  #closing: Promise<Result<null, AnalysisError>> | undefined;
+
   constructor(
     providers: readonly AnalysisProviderCandidate[],
     defaultSelector: AnalysisProviderSelector = "auto",
+    private readonly canInspectWithoutDeepProvider?: (
+      target: BinaryTarget,
+    ) => boolean,
   ) {
     this.#defaultSelector =
       analysisProviderSelectorSchema.parse(defaultSelector);
@@ -135,6 +163,73 @@ export class AnalysisProviderRegistry {
     );
   }
 
+  /** Report retained candidate resources without retrying cleanup. */
+  hasPendingOwnedResources(): boolean {
+    return (
+      this.#selections.size > 0 ||
+      this.#profileFiles.hasPending ||
+      [...this.#selectionCleanup].some((error) => error.cleanupIncomplete) ||
+      this.#providers.some(
+        (provider) => provider.hasPendingOwnedResources?.() === true,
+      )
+    );
+  }
+
+  /** Close candidate-owned resources even when no target client was opened. */
+  closeOwnedResources(): Promise<Result<null, AnalysisError>> {
+    this.#closing ??= Promise.resolve()
+      .then(() => this.#closeOwnedResources())
+      .finally(() => {
+        this.#closing = undefined;
+      });
+    return this.#closing;
+  }
+
+  async #closeOwnedResources(): Promise<Result<null, AnalysisError>> {
+    const selections = [...this.#selections];
+    for (const selection of selections) selection.close();
+    await Promise.allSettled(selections.map((selection) => selection.promise));
+    const failures: AnalysisError[] = [];
+    try {
+      await this.#profileFiles.retryCleanup();
+    } catch (cause: unknown) {
+      const cleanup = ArtifactReaderFailure.cleanupObservation(
+        cause,
+        "provider profile files",
+      );
+      const failure = new ProviderCleanupError(
+        "rea",
+        cleanup.resources,
+        { reason: cleanup.reason },
+        { cause },
+      );
+      bindArtifactFileCleanup(cause, failure);
+      failures.push(failure);
+    }
+    for (const provider of this.#providers) {
+      if (provider.closeOwnedResources === undefined) continue;
+      const result = await provider.closeOwnedResources();
+      if (!result.ok) failures.push(result.error);
+    }
+    for (const failure of this.#selectionCleanup) {
+      if (failure.cleanupIncomplete) failures.push(failure);
+      else this.#selectionCleanup.delete(failure);
+    }
+    const distinct = [...new Set(failures)];
+    if (distinct.length === 0) return ok(null);
+    if (distinct.length === 1) return err(distinct[0]!);
+    return err(
+      new ProviderCleanupError(
+        "rea",
+        [...new Set(distinct.flatMap((failure) => failure.cleanupResources))],
+        { reason: distinct.map((failure) => failure.message).join("; ") },
+        { cause: new AggregateError(distinct) },
+      ).bindCleanupDependencies(
+        distinct.filter((failure) => failure.cleanupIncomplete),
+      ),
+    );
+  }
+
   /** List the unique deep-operation declarations without probing candidates. */
   declaredOperations(): readonly string[] {
     return [...this.#declaredOperations];
@@ -152,9 +247,83 @@ export class AnalysisProviderRegistry {
     target: BinaryTarget,
     requestedSelector?: AnalysisProviderSelector,
     options: { readonly signal?: AbortSignal } = {},
-  ): Promise<Result<AnalysisProviderSelection, AnalysisError>> {
+  ): Promise<SelectionResult> {
     if (signalIsAborted(options.signal))
-      return err(new AnalysisCancelledError("open_binary"));
+      return err(
+        new AnalysisCancelledError("open_binary", {
+          cause: options.signal?.reason,
+        }),
+      );
+    if (this.#closing !== undefined) {
+      const closed = await this.#closing;
+      if (!closed.ok) return closed;
+    }
+    for (const failure of this.#selectionCleanup)
+      if (!failure.cleanupIncomplete) this.#selectionCleanup.delete(failure);
+    if (
+      [...this.#selectionCleanup].some((failure) => failure.cleanupIncomplete)
+    ) {
+      // A retry may release retained owners; never stop another live selection
+      // merely because a new caller wants admission.
+      if (this.#selections.size > 0)
+        return err(
+          [...this.#selectionCleanup].find(
+            (failure) => failure.cleanupIncomplete,
+          )!,
+        );
+      const closed = await this.closeOwnedResources();
+      if (!closed.ok) return closed;
+    }
+    if (signalIsAborted(options.signal))
+      return err(
+        new AnalysisCancelledError("open_binary", {
+          cause: options.signal?.reason,
+        }),
+      );
+    const selection = new SharedStartupAttempt<SelectionResult>(
+      (signal) =>
+        Promise.resolve().then(() =>
+          this.#selectTarget(target, requestedSelector, signal),
+        ),
+      options.signal,
+    );
+    this.#selections.add(selection);
+    void selection.promise.then(
+      (result) => {
+        this.#selections.delete(selection);
+        if (!result.ok && result.error.cleanupIncomplete)
+          this.#selectionCleanup.add(result.error);
+      },
+      () => {
+        this.#selections.delete(selection);
+      },
+    );
+    const waited = await selection.wait(options.signal);
+    if (waited.status !== "cancelled") {
+      if (!waited.value.ok) return waited.value;
+      if (!selection.signal.aborted) return waited.value;
+      return err(
+        new AnalysisCancelledError("open_binary", {
+          cause: selection.signal.reason,
+        }),
+      );
+    }
+    return err(
+      new AnalysisCancelledError("open_binary", {
+        cause: options.signal?.reason,
+      }),
+    );
+  }
+
+  async #selectTarget(
+    target: BinaryTarget,
+    requestedSelector: AnalysisProviderSelector | undefined,
+    signal: AbortSignal,
+  ): Promise<SelectionResult> {
+    if (signalIsAborted(signal))
+      return err(
+        new AnalysisCancelledError("open_binary", { cause: signal.reason }),
+      );
     const parsedRequest =
       requestedSelector === undefined
         ? undefined
@@ -172,8 +341,16 @@ export class AnalysisProviderRegistry {
     const request = parsedRequest?.data;
     const selector = request ?? this.#defaultSelector;
     const baseline = this.candidates(target);
-    if (signalIsAborted(options.signal))
-      return err(new AnalysisCancelledError("open_binary"));
+    if (signalIsAborted(signal))
+      return err(
+        new AnalysisCancelledError("open_binary", { cause: signal.reason }),
+      );
+    if (selector === "auto" && this.canInspectWithoutDeepProvider?.(target))
+      return ok({
+        requestedProviderId: selector,
+        binding: null,
+        candidates: baseline,
+      });
     if (
       request === undefined &&
       this.#byId.has(selector) &&
@@ -189,14 +366,18 @@ export class AnalysisProviderRegistry {
       });
     if (selector !== "auto")
       return this.#selectConcrete(
-        { target, baseline, signal: options.signal },
+        {
+          target,
+          baseline,
+          signal: signal,
+        },
         selector,
         request === undefined ? "environment" : "request",
       );
     return this.#selectAutomatically({
       target,
       baseline,
-      signal: options.signal,
+      signal: signal,
     });
   }
 
@@ -245,6 +426,7 @@ export class AnalysisProviderRegistry {
       initial,
       target,
       signal,
+      this.#profileFileOwner,
     );
     if (!evaluation.ok) return evaluation;
     const evaluated = evaluation.value;
@@ -291,6 +473,7 @@ export class AnalysisProviderRegistry {
                 status,
                 target,
                 signal,
+                this.#profileFileOwner,
               )
             : ok({
                 candidate: provider,
@@ -299,17 +482,21 @@ export class AnalysisProviderRegistry {
         },
       ),
     );
-    const cancelled = results.find((result) => !result.ok);
-    if (cancelled !== undefined && !cancelled.ok) return cancelled;
-    const evaluations = results.map((result) => {
-      if (!result.ok)
-        throw new TypeError("Cancelled candidate evaluation disappeared");
-      return result.value;
+    const evaluations = results.flatMap((result) =>
+      result.ok ? [result.value] : [],
+    );
+    const failures = results.flatMap((result, index) => {
+      const error = result.ok ? result.value.profileError : result.error;
+      return error === undefined
+        ? []
+        : [{ providerId: this.#providers[index]!.identity().id, error }];
     });
-    const cleanupFailure = evaluations.find(
-      ({ profileError }) => profileError?.cleanupIncomplete === true,
-    )?.profileError;
-    if (cleanupFailure !== undefined) return err(cleanupFailure);
+    if (
+      results.some((result) => !result.ok) ||
+      failures.some(({ error }) => error.cleanupIncomplete) ||
+      signalIsAborted(signal)
+    )
+      return err(profileSelectionFailure(failures, signal));
     const statuses = evaluations.map(({ status }) => status);
     const usable = evaluations.filter(
       (
@@ -451,3 +638,64 @@ const cloneTargetSupport = (
   ...support,
   diagnostics: jsonObjectSchema.parse(support.diagnostics),
 });
+
+/** Every terminal child remains attributed; cleanup is conjunctive across owners. */
+const profileSelectionFailure = (
+  failures: readonly {
+    readonly providerId: string;
+    readonly error: AnalysisError;
+  }[],
+  signal?: AbortSignal,
+): AnalysisError => {
+  const primary =
+    failures.find(({ error }) => !(error instanceof AnalysisCancelledError)) ??
+    failures[0];
+  if (primary === undefined)
+    return new AnalysisCancelledError("open_binary", { cause: signal?.reason });
+  if (failures.length === 1) return primary.error;
+  const cleanupFailures = failures
+    .filter(({ error }) => error.cleanupIncomplete)
+    .map(({ error }) => error);
+  const options = {
+    diagnostics: {
+      profile_errors: failures.map(({ providerId, error }) => ({
+        provider_id: providerId,
+        error: projectAnalysisError(error),
+      })),
+    },
+    ...(primary.error.capturedOutput === undefined
+      ? {}
+      : { capturedOutput: primary.error.capturedOutput }),
+    ...(primary.error.partialObservation === undefined
+      ? {}
+      : { partialObservation: primary.error.partialObservation }),
+    ...(cleanupFailures.length === 0
+      ? {}
+      : {
+          cleanup: {
+            reason: cleanupFailures.map((error) => error.message).join("; "),
+            resources: [
+              ...new Set(
+                cleanupFailures.flatMap((error) => error.cleanupResources),
+              ),
+            ],
+          },
+        }),
+  };
+  const failure =
+    primary.error instanceof AnalysisCancelledError
+      ? new AnalysisCancelledError("open_binary", {
+          ...options,
+          cause: primary.error.cause,
+        })
+      : new ProviderAdapterError("rea", "resolve_analysis_profile", {
+          ...options,
+          userMessage: projectAnalysisError(primary.error).message,
+          cause: new AggregateError(
+            failures.map(({ error }) => error),
+            "Provider profile resolutions failed",
+            { cause: primary.error },
+          ),
+        });
+  return failure.bindCleanupDependencies(cleanupFailures);
+};
