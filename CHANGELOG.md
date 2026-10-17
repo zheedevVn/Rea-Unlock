@@ -1,5 +1,27 @@
 # Changelog
 
+## [6.6.0](https://github.com/zheedevVn/Rea-Unlock/compare/rea-unlock-6.5.0...rea-unlock-6.6.0) (2026-10-17)
+
+
+### Features
+
+* add analyze_web_stack tool for backend/frontend reverse engineering ([3592701](https://github.com/zheedevVn/Rea-Unlock/commit/3592701857655c564779a7f8c9889b5585fe4e1e))
+
+
+### Bug Fixes
+
+* rebrand publish-readiness — translated READMEs (2/7) ([ed4bf0b](https://github.com/zheedevVn/Rea-Unlock/commit/ed4bf0b8b95a4ef035117ce2813f2c5177956de4))
+* rebrand publish-readiness — translated READMEs (3/7) ([dcc994a](https://github.com/zheedevVn/Rea-Unlock/commit/dcc994a2ebac1014733307c7306396c4d2b69b62))
+* rebrand publish-readiness — translated READMEs (4/7) ([608886f](https://github.com/zheedevVn/Rea-Unlock/commit/608886fa93f5733da7e3f789c62ba661a0e14e4a))
+* rebrand publish-readiness — translated READMEs (5/7) ([cbe7730](https://github.com/zheedevVn/Rea-Unlock/commit/cbe77301ac20302db098d863d9942582dbce3b6e))
+* rebrand publish-readiness — translated READMEs (6/7) ([521600e](https://github.com/zheedevVn/Rea-Unlock/commit/521600ec4f9a6c102e2b3815e8c7590e7e7dde15))
+* rebrand publish-readiness — translated READMEs (7/7) ([7dfc105](https://github.com/zheedevVn/Rea-Unlock/commit/7dfc105b5c346c1b78ba7fcec81922b730ddfc20))
+
+
+### Documentation
+
+* fix README star history and document analyze_web_stack (1/7) ([0591ba0](https://github.com/zheedevVn/Rea-Unlock/commit/0591ba085e2e621ec6d67f9386c4adf49461db03))
+
 ## [6.5.0](https://github.com/morluto/rea/compare/rea-agents-6.4.0...rea-agents-6.5.0) (2026-10-13)
 
 Provider prerequisites and recorded verification scope are listed in [the testing guide](docs/testing.md).

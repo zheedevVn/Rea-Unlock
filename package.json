@@ -1,7 +1,7 @@
 {
   "name": "rea-unlock",
   "mcpName": "io.github.zheedevVn/rea-unlock",
-  "version": "6.5.0",
+  "version": "6.6.0",
   "description": "Reverse engineer anything from your terminal or agent with one CLI and MCP server.",
   "license": "MIT",
   "author": "Hồ Đức Minh",

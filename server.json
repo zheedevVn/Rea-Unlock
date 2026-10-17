@@ -8,13 +8,13 @@
     "url": "https://github.com/zheedevVn/Rea-Unlock",
     "source": "github"
   },
-  "version": "6.5.0",
+  "version": "6.6.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "rea-unlock",
-      "version": "6.5.0",
+      "version": "6.6.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
